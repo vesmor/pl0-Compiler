@@ -16,11 +16,24 @@
     3) Start Fetch cycle
         Scan from stack at program counter, into IR and increment by 3
 */
+//only 2 functions MAIN and BASE
+
+
 
 #include <stdlib.h>
 #include <stdio.h>
 
-//only 2 functions MAIN and BASE
+
+/* GLOBAL VARIABLES */
+#define ARRAY_SIZE 500
+
+FILE *in; //input file variable
+
+
+/*-----------------*/
+
+
+
 
 
 typedef enum opcodes {
@@ -37,21 +50,30 @@ typedef struct IR{
 }IR;
 
 
-//file IO
-FILE *in;
 
 int main(int argc, char *argv[]){
 
+
+    //open file
+    in = fopen(argv[1], "r");
+    
+    int pas[ARRAY_SIZE]; //process address space array
+
+    
     IR IR;
 
-    in = fopen(argv[1], "r");
+    for (int i = 0; i < ARRAY_SIZE; i++){
 
-    //scan the file 3 times
-    for (int i = 0; i < 3; i++){
-        fscanf(in, "%d %d %d", &IR.op, &IR.l, &IR.m);
+        //breaks loop if theres nothing else in input file to read
+        if (fscanf(in, "%d", &pas[i]) < 1){
+            break;
+        }
+        printf("ran %d time\n", (i + 1));
     }
 
-    printf("%d %d %d\n", IR.op, IR.l, IR.m);
+    // okay so now that we finished reading the entire instruction file into the PAS
+    // how do we keep track of where the instruction register starts?
+    // do we use the program counter for that?
 
 
     //cleanup
