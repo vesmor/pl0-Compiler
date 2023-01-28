@@ -15,6 +15,13 @@
         BP = 499, SP = 500, PC = 0;
     3) Start Fetch cycle
         Scan from stack at program counter, into IR and increment by 3
+    
+    things to implement:
+    Error handling
+    base function (there was a question about it being wrong, it uses static link instead of dynamic link 
+        **I AM USURE IF THIS IS TRUE after looking at the CAL instructions,- it was a question in the lab**)
+
+
 */
 //only 2 functions MAIN and BASE
 
@@ -44,7 +51,7 @@ typedef enum opcodes {
 } opcodes;
 
 typedef enum OPRcodes{
-    ADD = 1, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ
+    RTN = 0, ADD, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ
 }OPRcodes;
 
 //instruction register struct
@@ -100,37 +107,99 @@ int main(int argc, char *argv[]){
 
         switch (IR.op)
         {
-        case LIT:
-            /* code */
+        case LIT:       //pushes value of m onto stack
+            --sp;
+            pas[sp] = IR.m;
             break;
-        
         case OPR:
-            /* code */
+            switch (IR.m) {
+                case RTN:
+                    sp = bp + 1;
+                    bp = pas[sp - 2];
+                    pc = pas[sp - 3];
+                    break;
+                case ADD:
+                    pas[sp + 1] = pas[sp + 1] + pas[sp];
+                    ++sp;
+                    break;
+                case SUB:
+                    pas[sp + 1] = pas[sp + 1] - pas[sp];
+                    ++sp;
+                    break;
+                case MUL:
+                    pas[sp + 1] = pas[sp + 1] * pas[sp];
+                    ++sp;
+                    break;
+                case DIV:
+                    pas[sp + 1] = pas[sp + 1] / pas[sp];
+                    ++sp;
+                    break;
+                case EQL:
+                    pas[sp + 1] = pas[sp + 1] == pas[sp];
+                    ++sp;
+                    break;
+                case NEQ:
+                    pas[sp + 1] = pas[sp + 1] != pas[sp];
+                    ++sp;
+                    break;
+                case LSS:
+                    pas[sp + 1] = pas[sp + 1] < pas[sp];
+                    ++sp;
+                    break;
+                case LEQ:
+                    pas[sp + 1] = pas[sp + 1] <= pas[sp];
+                    ++sp;
+                    break;
+                case GTR:
+                    pas[sp + 1] = pas[sp + 1] > pas[sp];
+                    ++sp;
+                    break;
+                case GEQ:
+                    pas[sp + 1] = pas[sp + 1] >= pas[sp];
+                    ++sp;
+                    break;
+            }
             break;
         case LOD:
-            /* code */
+            --sp;
+            pas[sp] = pas[base(bp, IR.l) - IR.m];
             break;
         case STO:
-            /* code */
+            pas[base(bp, IR.l) - IR.m] = pas[sp];
+            ++sp;
             break;
         case CAL:
-            /* code */
+            pas[sp - 1] = base(bp, IR.l);
+            pas[sp - 2] = bp;
+            pas[sp - 3] = pc;
+            bp = sp - 1;
+            pc = IR.m;
             break;
         case INC:
-            /* code */
+            sp = sp - IR.m;
             break;
         case JMP:
-            /* code */
+            pc = IR.m;
             break;
-
         case JPC:
-            /* code */
+            if (pas[sp] == 0) pc = IR.m;
+            ++sp;
             break;
-
         case 9: //used for SOU SIN OR EOP
-
+            switch (IR.m) {
+                case 1:
+                    printf("%d", pas[sp]);
+                    ++sp;
+                    break;
+                case 2:
+                    --sp;
+                    scanf("%d\n", &pas[sp]);
+                    break;
+                case 3:
+                    eop = 0;
+                    break;
+            }
             break;
-        
         }
 
     }
