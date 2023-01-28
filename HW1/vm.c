@@ -203,9 +203,87 @@ int main(int argc, char *argv[]){
         }
 
     }
+/*
+void print_stack(int PC, int BP, int SP, int GP, int *pas, int *bars) {
+	int i;
+	printf("%d\t%d\t%d\t", PC, BP, SP);
+	for (i = GP; i <= SP; i++)
+	{
+		if (bars[i] == 1)
+		printf("| %d ", pas[i]);
+		else
+		printf("%d ", pas[i]);
+	}
+	printf("\n");
+}
 
+void print_instruction(int PC, int* IR){
+	char opname[4];
+	switch (IR[0])
+	{
+		case 1 : 
+			strcpy(opname, "LIT"); 
+			break;
+		case 2 :
+			switch (IR[2])
+			{
+				case 0 : strcpy(opname, "RTN"); break;
+				case 1 : strcpy(opname, "ADD"); break;
+				case 2 : strcpy(opname, "SUB"); break;
+				case 3 : strcpy(opname, "MUL"); break;
+				case 4 : strcpy(opname, "DIV"); break;
+				case 5 : strcpy(opname, "EQL"); break;
+				case 6 : strcpy(opname, "NEQ"); break;
+				case 7 : strcpy(opname, "LSS"); break;
+				case 8 : strcpy(opname, "LEQ"); break;
+				case 9 : strcpy(opname, "GTR"); break;
+				case 10 : strcpy(opname, "GEQ"); break;
+				default : strcpy(opname, "err"); break;
+			}
+		break;
+		case 3 : 
+			strcpy(opname, "LOD"); 
+			break;
+		case 4 : 
+			strcpy(opname, "STO"); 
+			break;
+		case 5 : 
+			strcpy(opname, "CAL"); 
+				break;
+		case 6 : 
+			strcpy(opname, "INC"); 
+			break;
+		case 7 : 
+			strcpy(opname, "JMP"); 
+			break;
+		case 8 : 
+			strcpy(opname, "JPC"); 
+			break;
+		case 9 :
+			switch (IR[2])
+			{
+				case 1 :
+					strcpy(opname, "WRT");
+					break;
+				case 2 :
+					strcpy(opname, "RED"); 
+					break;
+				case 3 : 
+					strcpy(opname, "HLT"); 
+					break;
+				default : 
+					strcpy(opname, "err"); 
+					break;
+			}
+		break;
+	default : 
+		strcpy(opname, "err"); 
+		break;
+	}
 
-
+	printf("%d\t%s\t%d\t%d\t", (PC - 3)/3, opname, IR[1], IR[2]);
+}
+*/
 
 
     //cleanup
