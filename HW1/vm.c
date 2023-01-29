@@ -16,7 +16,6 @@
     Error handling
     base function (there was a question about it being wrong, it uses static link instead of dynamic link 
         **I AM USURE IF THIS IS TRUE after looking at the CAL instructions,- it was a question in the lab**)
-    
 */
 //only 2 functions MAIN and BASE
 //Jie Lin said I could use functions for printing output
@@ -65,11 +64,15 @@ void print_stack(int PC, int BP, int SP);
 void print_instruction(int PC, IR IR);
 
 
+int base(int BP, int L);
+
+
 int main(int argc, char *argv[]){
 
 
     //open file
     in = fopen(argv[1], "r");
+
 
     
     IR IR; //instruction register
@@ -83,7 +86,6 @@ int main(int argc, char *argv[]){
             temp_pas_size = i; //keeps track of how 
             break;
         }
-
         // printf("ran %d times\n", i+1);
 
 
@@ -107,10 +109,9 @@ int main(int argc, char *argv[]){
 
     //no u just use the IR struct for this
 
-
-
     int bp = 499; //base pointer
     int sp = bp + 1; //stack pointer
+
     int pc = 0; //program counter
 
     printf("\t\t\tPC\tBP\tSP\tstack\nInitial values:\t%d\t%d\t%d\n", pc, bp, sp);
@@ -124,7 +125,6 @@ int main(int argc, char *argv[]){
         IR.l = pas[pc + 1];
         IR.m = pas[pc + 2];
         pc += 3; //move program counter up to next instruction
-
 
         char charInput;
 
@@ -207,6 +207,7 @@ int main(int argc, char *argv[]){
 
             case INC:
                 sp -= IR.m;
+
                 break;
 
             case JMP:
@@ -235,11 +236,11 @@ int main(int argc, char *argv[]){
                     case 3:
                         eop = 0;    //end program
                         // printf("\nending program\n");
+
                         break;
                 }
                 break;
         }
-
         print_instruction(pc, IR);
         print_stack(pc, bp, sp);
     }
