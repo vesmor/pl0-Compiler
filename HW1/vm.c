@@ -8,18 +8,16 @@
 
 /*
     TODO:
-    1) Scan everything to stack first
-        Stack size is [look up in instructions]
-    2) initialize all counters
-        OP L M, all init to 0;
-        BP = 499, SP = 500, PC = 0;
-    3) Start Fetch cycle
-        Scan from stack at program counter, into IR and increment by 3
+        Error Handling
+        Print Instructions
+        
     
     things to implement:
     Error handling
     base function (there was a question about it being wrong, it uses static link instead of dynamic link 
         **I AM USURE IF THIS IS TRUE after looking at the CAL instructions,- it was a question in the lab**)
+
+    
 
 
 */
@@ -63,27 +61,42 @@ typedef struct IR{
 
 
 
+int base(int BP, int L);
+
+
 int main(int argc, char *argv[]){
 
 
     //open file
     in = fopen(argv[1], "r");
-    
+    printf("File opened\n");
 
     
     IR IR; //instruction register
+    
 
+    int temp_pas_size;
     for (int i = 0; i < ARRAY_SIZE; i++){
 
         //breaks loop if theres nothing else in input file to read
         if (fscanf(in, "%d", &pas[i]) < 1){
+            
+            temp_pas_size = i; //keeps track of how 
             break;
         }
-        printf("ran %d time\n", (i + 1));
+
+        printf("ran %d times\n", i+1);
+
+
     }
 
 
-    //initialize SP BP and PC
+    //print PAS
+    for (int i = 0; i < temp_pas_size; i++){
+        printf("[%d]", pas[i]);
+    }
+    printf("\n");
+
 
 
     // okay so now that we finished reading the entire instruction file into the PAS
@@ -93,6 +106,7 @@ int main(int argc, char *argv[]){
     //no u just use the IR struct for this
 
 
+
     int sp = 500; //stack pointer
     int bp = sp - 1; //base pointer
     int pc = 0; //program counter
@@ -100,106 +114,125 @@ int main(int argc, char *argv[]){
     int eop = 1; //end of program
     
     while (eop){ //keep running until end of program
+        
 
         IR.op = pas[pc];
         IR.l = pas[pc + 1];
         IR.m = pas[pc + 2];
 
+        pc = pc + 3; //move program counter up to next instruction
+
+        char charInput;
+
         switch (IR.op)
         {
-        case LIT:       //pushes value of m onto stack
-            --sp;
-            pas[sp] = IR.m;
-            break;
-        case OPR:
-            switch (IR.m) {
-                case RTN:
-                    sp = bp + 1;
-                    bp = pas[sp - 2];
-                    pc = pas[sp - 3];
-                    break;
-                case ADD:
-                    pas[sp + 1] = pas[sp + 1] + pas[sp];
-                    ++sp;
-                    break;
-                case SUB:
-                    pas[sp + 1] = pas[sp + 1] - pas[sp];
-                    ++sp;
-                    break;
-                case MUL:
-                    pas[sp + 1] = pas[sp + 1] * pas[sp];
-                    ++sp;
-                    break;
-                case DIV:
-                    pas[sp + 1] = pas[sp + 1] / pas[sp];
-                    ++sp;
-                    break;
-                case EQL:
-                    pas[sp + 1] = pas[sp + 1] == pas[sp];
-                    ++sp;
-                    break;
-                case NEQ:
-                    pas[sp + 1] = pas[sp + 1] != pas[sp];
-                    ++sp;
-                    break;
-                case LSS:
-                    pas[sp + 1] = pas[sp + 1] < pas[sp];
-                    ++sp;
-                    break;
-                case LEQ:
-                    pas[sp + 1] = pas[sp + 1] <= pas[sp];
-                    ++sp;
-                    break;
-                case GTR:
-                    pas[sp + 1] = pas[sp + 1] > pas[sp];
-                    ++sp;
-                    break;
-                case GEQ:
-                    pas[sp + 1] = pas[sp + 1] >= pas[sp];
-                    ++sp;
-                    break;
-            }
-            break;
-        case LOD:
-            --sp;
-            pas[sp] = pas[base(bp, IR.l) - IR.m];
-            break;
-        case STO:
-            pas[base(bp, IR.l) - IR.m] = pas[sp];
-            ++sp;
-            break;
-        case CAL:
-            pas[sp - 1] = base(bp, IR.l);
-            pas[sp - 2] = bp;
-            pas[sp - 3] = pc;
-            bp = sp - 1;
-            pc = IR.m;
-            break;
-        case INC:
-            sp = sp - IR.m;
-            break;
-        case JMP:
-            pc = IR.m;
-            break;
-        case JPC:
-            if (pas[sp] == 0) pc = IR.m;
-            ++sp;
-            break;
-        case 9: //used for SOU SIN OR EOP
-            switch (IR.m) {
-                case 1:
-                    printf("%d", pas[sp]);
-                    ++sp;
-                    break;
-                case 2:
-                    --sp;
-                    scanf("%d\n", &pas[sp]);
-                    break;
-                case 3:
-                    eop = 0;
-                    break;
-            }
-            break;
+            case LIT:       //pushes value of m onto stack
+                sp--;
+                pas[sp] = IR.m;
+                break;
+
+            case OPR:
+                switch (IR.m) {
+                    case RTN:
+                        sp = bp + 1;
+                        bp = pas[sp - 2];
+                        pc = pas[sp - 3];
+                        break;
+                    case ADD:
+                        pas[sp + 1] = pas[sp + 1] + pas[sp];
+                        ++sp;
+                        break;
+                    case SUB:
+                        pas[sp + 1] = pas[sp + 1] - pas[sp];
+                        ++sp;
+                        break;
+                    case MUL:
+                        pas[sp + 1] = pas[sp + 1] * pas[sp];
+                        ++sp;
+                        break;
+                    case DIV:
+                        pas[sp + 1] = pas[sp + 1] / pas[sp];
+                        ++sp;
+                        break;
+                    case EQL:
+                        pas[sp + 1] = pas[sp + 1] == pas[sp];
+                        ++sp;
+                        break;
+                    case NEQ:
+                        pas[sp + 1] = pas[sp + 1] != pas[sp];
+                        ++sp;
+                        break;
+                    case LSS:
+                        pas[sp + 1] = pas[sp + 1] < pas[sp];
+                        ++sp;
+                        break;
+                    case LEQ:
+                        pas[sp + 1] = pas[sp + 1] <= pas[sp];
+                        ++sp;
+                        break;
+                    case GTR:
+                        pas[sp + 1] = pas[sp + 1] > pas[sp];
+                        ++sp;
+                        break;
+                    case GEQ:
+                        pas[sp + 1] = pas[sp + 1] >= pas[sp];
+                        ++sp;
+                        break;
+                }
+                break;
+
+            case LOD:
+                --sp;
+                pas[sp] = pas[base(bp, IR.l) - IR.m];
+                break;
+
+            case STO:
+                pas[base(bp, IR.l) - IR.m] = pas[sp];
+                ++sp;
+                break;
+
+            case CAL:
+                pas[sp - 1] = base(bp, IR.l);
+                pas[sp - 2] = bp;
+                pas[sp - 3] = pc;
+                bp = sp - 1;
+                pc = IR.m;
+                break;
+
+            case INC:
+                sp = sp - IR.m;
+                break;
+
+            case JMP:
+                pc = IR.m;
+                break;
+
+            case JPC:
+                if (pas[sp] == 0) pc = IR.m;
+                ++sp;
+                break;
+
+            case 9: //used for SOU SIN OR EOP
+                switch (IR.m) {
+
+                    //are we sure we're supposed to put this in as character thats what it says on instructions?
+                    case 1:
+                        printf("%c", pas[sp]);
+                        sp++;
+                        break;
+                    case 2:
+                        
+                        --sp;
+                        scanf(" %c", &pas[sp]);
+
+                        printf("\n%d\n", pas[sp]);
+                        break;
+                    case 3:
+                        eop = 0;    //end program
+                        printf("\nending program\n");
+                        break;
+                }
+                break;
         }
 
     }
@@ -209,7 +242,17 @@ int main(int argc, char *argv[]){
 }
 
 
+//Find base L levels down
+int base(int BP, int L){
+    int arb = BP;   //arb = activiation record base
+    while (L > 0)   //find base L levels down
+    {
+        arb = pas[arb];
+        L--;
+    }
 
+    return arb;
+}
 
 
 /*
