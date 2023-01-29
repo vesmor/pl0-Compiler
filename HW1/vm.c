@@ -203,6 +203,15 @@ int main(int argc, char *argv[]){
         }
 
     }
+
+    //cleanup
+    fclose(in);
+}
+
+
+
+
+
 /*
 void print_stack(int PC, int BP, int SP, int GP, int *pas, int *bars) {
 	int i;
@@ -284,8 +293,3 @@ void print_instruction(int PC, int* IR){
 	printf("%d\t%s\t%d\t%d\t", (PC - 3)/3, opname, IR[1], IR[2]);
 }
 */
-
-
-    //cleanup
-    fclose(in);
-}
