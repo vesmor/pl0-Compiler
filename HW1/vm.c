@@ -16,17 +16,15 @@
     Error handling
     base function (there was a question about it being wrong, it uses static link instead of dynamic link 
         **I AM USURE IF THIS IS TRUE after looking at the CAL instructions,- it was a question in the lab**)
-
-    
-
-
 */
 //only 2 functions MAIN and BASE
+//Jie Lin said I could use functions for printing output
 
 
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
 /* GLOBAL VARIABLES */
@@ -36,6 +34,7 @@
 FILE *in; //input file variable
 
 int pas[ARRAY_SIZE]; //process address space array
+int pipe[ARRAY_SIZE]; //and indicator of where | needs to be printed in the output
 
 /*-----------------*/
 
@@ -44,7 +43,7 @@ int pas[ARRAY_SIZE]; //process address space array
 
 
 typedef enum opcodes {
-	LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC,
+    LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC,
     SOU = 9, SIN = 9, EOP = 9 //these three codes depend on the M passed in
 } opcodes;
 
@@ -54,11 +53,15 @@ typedef enum OPRcodes{
 
 //instruction register struct
 typedef struct IR{
-	int op;	
-	int l;
-	int m;
+    int op; 
+    int l;
+    int m;
 }IR;
 
+//prototypes
+int base(int BP, int L);
+void print_stack(int PC, int BP, int SP);
+void print_instruction(int PC, IR IR);
 
 
 int base(int BP, int L);
@@ -69,7 +72,7 @@ int main(int argc, char *argv[]){
 
     //open file
     in = fopen(argv[1], "r");
-    printf("File opened\n");
+
 
     
     IR IR; //instruction register
@@ -77,27 +80,28 @@ int main(int argc, char *argv[]){
 
     int temp_pas_size;
     for (int i = 0; i < ARRAY_SIZE; i++){
-
         //breaks loop if theres nothing else in input file to read
         if (fscanf(in, "%d", &pas[i]) < 1){
             
             temp_pas_size = i; //keeps track of how 
             break;
         }
-
-        printf("ran %d times\n", i+1);
+        // printf("ran %d times\n", i+1);
 
 
     }
 
-
+/*
     //print PAS
     for (int i = 0; i < temp_pas_size; i++){
         printf("[%d]", pas[i]);
     }
     printf("\n");
+*/
 
-
+    for (int i = 0; i < temp_pas_size; i++){    //initialize array values
+        pipe[i] = 0;
+    }
 
     // okay so now that we finished reading the entire instruction file into the PAS
     // how do we keep track of where the instruction register starts?
@@ -105,11 +109,12 @@ int main(int argc, char *argv[]){
 
     //no u just use the IR struct for this
 
+    int bp = 499; //base pointer
+    int sp = bp + 1; //stack pointer
 
-
-    int sp = 500; //stack pointer
-    int bp = sp - 1; //base pointer
     int pc = 0; //program counter
+
+    printf("\t\t\tPC\tBP\tSP\tstack\nInitial values:\t%d\t%d\t%d\n", pc, bp, sp);
 
     int eop = 1; //end of program
     
@@ -119,8 +124,7 @@ int main(int argc, char *argv[]){
         IR.op = pas[pc];
         IR.l = pas[pc + 1];
         IR.m = pas[pc + 2];
-
-        pc = pc + 3; //move program counter up to next instruction
+        pc += 3; //move program counter up to next instruction
 
         char charInput;
 
@@ -134,6 +138,7 @@ int main(int argc, char *argv[]){
             case OPR:
                 switch (IR.m) {
                     case RTN:
+                        pipe[bp] = 0;
                         sp = bp + 1;
                         bp = pas[sp - 2];
                         pc = pas[sp - 3];
@@ -197,10 +202,12 @@ int main(int argc, char *argv[]){
                 pas[sp - 3] = pc;
                 bp = sp - 1;
                 pc = IR.m;
+                pipe[bp] = 1;
                 break;
 
             case INC:
-                sp = sp - IR.m;
+                sp -= IR.m;
+
                 break;
 
             case JMP:
@@ -216,25 +223,26 @@ int main(int argc, char *argv[]){
                 switch (IR.m) {
 
                     //are we sure we're supposed to put this in as character thats what it says on instructions?
+                    //this doesnt work while outputting char, tried casting and still nothing
                     case 1:
-                        printf("%c", pas[sp]);
+                        printf("Output result is: %d\n", pas[sp]);
                         sp++;
                         break;
                     case 2:
-                        
+                        printf("Please Enter an Integer: ");                        
                         --sp;
-                        scanf(" %c", &pas[sp]);
-
-                        printf("\n%d\n", pas[sp]);
+                        scanf(" %d", &pas[sp]);     //have to take an int
                         break;
                     case 3:
                         eop = 0;    //end program
-                        printf("\nending program\n");
+                        // printf("\nending program\n");
+
                         break;
                 }
                 break;
         }
-
+        print_instruction(pc, IR);
+        print_stack(pc, bp, sp);
     }
 
     //cleanup
@@ -255,84 +263,82 @@ int base(int BP, int L){
 }
 
 
-/*
-void print_stack(int PC, int BP, int SP, int GP, int *pas, int *bars) {
-	int i;
-	printf("%d\t%d\t%d\t", PC, BP, SP);
-	for (i = GP; i <= SP; i++)
-	{
-		if (bars[i] == 1)
-		printf("| %d ", pas[i]);
-		else
-		printf("%d ", pas[i]);
-	}
-	printf("\n");
+void print_stack(int PC, int BP, int SP) {
+    int i;
+    printf("%d\t%d\t%d\t", PC, BP, SP);
+    for (i = ARRAY_SIZE - 1; i >= SP; --i)
+    {
+        if (pipe[i] == 1)
+        printf("| %d ", pas[i]);
+        else
+        printf("%d ", pas[i]);
+    }
+    printf("\n");
 }
 
-void print_instruction(int PC, int* IR){
-	char opname[4];
-	switch (IR[0])
-	{
-		case 1 : 
-			strcpy(opname, "LIT"); 
-			break;
-		case 2 :
-			switch (IR[2])
-			{
-				case 0 : strcpy(opname, "RTN"); break;
-				case 1 : strcpy(opname, "ADD"); break;
-				case 2 : strcpy(opname, "SUB"); break;
-				case 3 : strcpy(opname, "MUL"); break;
-				case 4 : strcpy(opname, "DIV"); break;
-				case 5 : strcpy(opname, "EQL"); break;
-				case 6 : strcpy(opname, "NEQ"); break;
-				case 7 : strcpy(opname, "LSS"); break;
-				case 8 : strcpy(opname, "LEQ"); break;
-				case 9 : strcpy(opname, "GTR"); break;
-				case 10 : strcpy(opname, "GEQ"); break;
-				default : strcpy(opname, "err"); break;
-			}
-		break;
-		case 3 : 
-			strcpy(opname, "LOD"); 
-			break;
-		case 4 : 
-			strcpy(opname, "STO"); 
-			break;
-		case 5 : 
-			strcpy(opname, "CAL"); 
-				break;
-		case 6 : 
-			strcpy(opname, "INC"); 
-			break;
-		case 7 : 
-			strcpy(opname, "JMP"); 
-			break;
-		case 8 : 
-			strcpy(opname, "JPC"); 
-			break;
-		case 9 :
-			switch (IR[2])
-			{
-				case 1 :
-					strcpy(opname, "WRT");
-					break;
-				case 2 :
-					strcpy(opname, "RED"); 
-					break;
-				case 3 : 
-					strcpy(opname, "HLT"); 
-					break;
-				default : 
-					strcpy(opname, "err"); 
-					break;
-			}
-		break;
-	default : 
-		strcpy(opname, "err"); 
-		break;
-	}
 
-	printf("%d\t%s\t%d\t%d\t", (PC - 3)/3, opname, IR[1], IR[2]);
+void print_instruction(int PC, IR IR){
+    char opname[4];
+    switch (IR.op)
+    {
+        case 1: 
+            strcpy(opname, "LIT"); 
+            break;
+        case 2:
+            switch (IR.m)
+            {
+                case 0: strcpy(opname, "RTN"); break;
+                case 1: strcpy(opname, "ADD"); break;
+                case 2: strcpy(opname, "SUB"); break;
+                case 3: strcpy(opname, "MUL"); break;
+                case 4: strcpy(opname, "DIV"); break;
+                case 5: strcpy(opname, "EQL"); break;
+                case 6: strcpy(opname, "NEQ"); break;
+                case 7: strcpy(opname, "LSS"); break;
+                case 8: strcpy(opname, "LEQ"); break;
+                case 9: strcpy(opname, "GTR"); break;
+                case 10: strcpy(opname, "GEQ"); break;
+                default: strcpy(opname, "ERR"); break;
+            }
+        break;
+        case 3: 
+            strcpy(opname, "LOD"); 
+            break;
+        case 4: 
+            strcpy(opname, "STO"); 
+            break;
+        case 5: 
+            strcpy(opname, "CAL"); 
+                break;
+        case 6: 
+            strcpy(opname, "INC"); 
+            break;
+        case 7: 
+            strcpy(opname, "JMP"); 
+            break;
+        case 8: 
+            strcpy(opname, "JPC"); 
+            break;
+        case 9:
+            switch (IR.m)
+            {
+                case 1:
+                    strcpy(opname, "SOU");
+                    break;
+                case 2:
+                    strcpy(opname, "SIN"); 
+                    break;
+                case 3: 
+                    strcpy(opname, "EOP"); 
+                    break;
+                default: 
+                    strcpy(opname, "ERR"); 
+                    break;
+            }
+        break;
+    default: 
+        strcpy(opname, "ERR"); 
+        break;
+    }
+    printf("%s\t%d\t%d\t", opname, IR.l, IR.m);
 }
-*/
