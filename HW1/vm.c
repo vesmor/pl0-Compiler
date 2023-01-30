@@ -77,15 +77,14 @@ int main(int argc, char *argv[]){
     IR IR; //instruction register
     
 
-    int temp_pas_size;
+    int temp_pas_size;  //used to initialize second array laater
     for (int i = 0; i < ARRAY_SIZE; i++){
         //breaks loop if theres nothing else in input file to read
         if (fscanf(in, "%d", &pas[i]) < 1){
             
-            temp_pas_size = i; //keeps track of how 
+            temp_pas_size = i;
             break;
         }
-        // printf("ran %d times\n", i+1);
 
 
     }
@@ -237,6 +236,10 @@ int main(int argc, char *argv[]){
                         eop = 0;
                 }
                 break;
+
+            default:
+                printf("Invalid OP Code\nEnding process...\n");
+                eop= 0;
         }
         print_instruction(pc, IR);
         print_stack(pc, bp, sp);
@@ -245,6 +248,8 @@ int main(int argc, char *argv[]){
     //cleanup
     fclose(in);
 }
+
+
 
 
 //Find base L levels down
