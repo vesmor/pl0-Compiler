@@ -58,13 +58,12 @@ typedef struct IR{
     int m;
 }IR;
 
+
+
 //prototypes
 int base(int BP, int L);
 void print_stack(int PC, int BP, int SP);
 void print_instruction(int PC, IR IR);
-
-
-int base(int BP, int L);
 
 
 int main(int argc, char *argv[]){
@@ -91,23 +90,13 @@ int main(int argc, char *argv[]){
 
     }
 
-/*
-    //print PAS
-    for (int i = 0; i < temp_pas_size; i++){
-        printf("[%d]", pas[i]);
-    }
-    printf("\n");
-*/
+
+
 
     for (int i = 0; i < temp_pas_size; i++){    //initialize array values
         pipe[i] = 0;
     }
 
-    // okay so now that we finished reading the entire instruction file into the PAS
-    // how do we keep track of where the instruction register starts?
-    // do we use the program counter for that?
-
-    //no u just use the IR struct for this
 
     int bp = 499; //base pointer
     int sp = bp + 1; //stack pointer
@@ -183,6 +172,10 @@ int main(int argc, char *argv[]){
                         pas[sp + 1] = pas[sp + 1] >= pas[sp];
                         ++sp;
                         break;
+                    
+                    default:    //error invalid command
+                        printf("Invalid m for OPR command\nEnding process...\n");
+                        eop = 0;    //ending the loop
                 }
                 break;
 
@@ -238,6 +231,10 @@ int main(int argc, char *argv[]){
                         // printf("\nending program\n");
 
                         break;
+
+                    default:
+                        printf("Invalid m for SYS opcode\nEnding process...\n");
+                        eop = 0;
                 }
                 break;
         }
