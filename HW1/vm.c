@@ -173,7 +173,7 @@ int main(int argc, char *argv[]){
                         break;
                     
                     default:    //error invalid command
-                        printf("Invalid m for OPR command\nEnding process...\n");
+                        printf("%d is an Invalid m for OPR opcode\nEnding process...\n", IR.m);
                         eop = 0;    //ending the loop
                 }
                 break;
@@ -199,7 +199,6 @@ int main(int argc, char *argv[]){
 
             case INC:
                 sp -= IR.m;
-
                 break;
 
             case JMP:
@@ -227,18 +226,16 @@ int main(int argc, char *argv[]){
                         break;
                     case 3:
                         eop = 0;    //end program
-                        // printf("\nending program\n");
-
                         break;
 
                     default:
-                        printf("Invalid m for SYS opcode\nEnding process...\n");
+                        printf("%d is an Invalid m for SYS opcode\nEnding process...\n", IR.m);
                         eop = 0;
                 }
                 break;
 
             default:
-                printf("Invalid OP Code\nEnding process...\n");
+                printf("%d is an invalid OP Code\nEnding process...\n", IR.op);
                 eop= 0;
         }
         print_instruction(pc, IR);
