@@ -6,19 +6,7 @@
 */
 
 
-/*
-    TODO:
-        Error Handling
-        Print Instructions
-        
-    
-    things to implement:
-    Error handling
-    base function (there was a question about it being wrong, it uses static link instead of dynamic link 
-        **I AM USURE IF THIS IS TRUE after looking at the CAL instructions,- it was a question in the lab**)
-*/
-//only 2 functions MAIN and BASE
-//Jie Lin said I could use functions for printing output
+
 
 
 
@@ -43,8 +31,8 @@ int pipe[ARRAY_SIZE]; //and indicator of where | needs to be printed in the outp
 
 
 typedef enum opcodes {
-    LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC,
-    SOU = 9, SIN = 9, EOP = 9 //these three codes depend on the M passed in
+    LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC, SYS,
+    SOU = 9, SIN = 9, EOP = 9   //these three codes depend on the M passed in
 } opcodes;
 
 typedef enum OPRcodes{
@@ -210,21 +198,19 @@ int main(int argc, char *argv[]){
                 ++sp;
                 break;
 
-            case 9: //used for SOU SIN OR EOP
+            case SYS: //used for SOU SIN OR EOP
                 switch (IR.m) {
 
-                    //are we sure we're supposed to put this in as character thats what it says on instructions?
-                    //this doesnt work while outputting char, tried casting and still nothing
-                    case 1:
+                    case 1: //SOU
                         printf("Output result is: %d\n", pas[sp]);
                         sp++;
                         break;
-                    case 2:
+                    case 2: //SIN
                         printf("Please Enter an Integer: ");                        
                         --sp;
                         scanf(" %d", &pas[sp]);     //have to take an int
                         break;
-                    case 3:
+                    case 3: //EOP
                         eop = 0;    //end program
                         break;
 
@@ -241,6 +227,8 @@ int main(int argc, char *argv[]){
         print_instruction(pc, IR);
         print_stack(pc, bp, sp);
     }
+
+
 
     //cleanup
     fclose(in);
