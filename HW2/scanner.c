@@ -35,7 +35,7 @@
 
 //look in Lecture 5 Lexical Analysis
 
-#define  norw      15         /* number of reserved words */
+#define  norw      10         /* number of reserved words */
 #define  imax   32767       /* maximum integer value */
 #define  cmax      11         /* maximum number of chars for idents */
 #define  strmax   256         /* maximum length of strings */
@@ -51,7 +51,7 @@ typedef enum{
 }token_type;
 
 /* list of reserved word names */
-char  *word [ ] = {  "null", "begin", "call", "const", "do", "else", "end", "if", "odd", "procedure", "read", "then", "var", "while", "write"}; 
+char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write"}; 
                          
 /* internal representation  of reserved words */
 // int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
@@ -68,17 +68,37 @@ char  *word [ ] = {  "null", "begin", "call", "const", "do", "else", "end", "if"
 FILE *f;
 
 
-void cpytilspace(char bufferArr[], char charArr[]);
-
+void cpytilspace(char buffer[], char arr[], int *arrPointer);
+char* readProgram();
 
 int main(int argc, char const *argv[])
 {
 
     f = fopen(argv[1], "r");
 
+    int sizePointer;    //keeps track of index we're reading from from array
+    char *charArr = readProgram(&sizePointer);
+    char *bufferArr = malloc(1 * sizeof(char));
+    
+    
+    cpytilspace(bufferArr, charArr, sizePointer);
+
+
+
+    //clean up
+    free(bufferArr);
+    free(charArr);
+    fclose(f);
+
+    return 0;
+}
+
+
+//reads pl0 input file and puts every character into an array, keeps track of a
+char* readProgram(int *arrSize){
 
     char *charArr = (char *) malloc(1 * sizeof(char));
-    int arrSize;
+    // int arrSize;
     for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
@@ -93,25 +113,32 @@ int main(int argc, char const *argv[])
         
         // printf("%c\n", charArr[i - 1]);
         
-        arrSize = i;
+        *arrSize = i;
 
     }
- 
-    char *bufferArr = malloc(arrSize * sizeof(char));
-    cpytilspace(bufferArr, charArr);
 
-    //clean up
-    free(bufferArr);
-    free(charArr);
-    fclose(f);
-
-    return 0;
+    return charArr;
 }
 
-//copys array until it reaches a "space" or bar "|"
-void cpytilspace(char bufferArr[], char charArr[]){
 
-    int i;
+//copys array to buffer until it reaches a "space" or bar "|"
+void cpytilspace(char buffer[], char arr[], int *arrPointer){
+
+    int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
+    int lenFrom = strlen(arr);
+    int lenTo = strlen(buffer);
+
+    while(arr[*arrPointer] != '\0' || arr[*arrPointer] != '|' || arr[*arrPointer] != ' '){
+        bufferSize++;
+        *arrPointer++;
+    }
+
+
+    buffer = realloc(buffer, sizeof(char) * bufferSize);
+    for(int k = 0; k < bufferSize; k++){
+        buffer[k] = arr[*arrPointer + k];
+    }
+
     // while()
 
 
