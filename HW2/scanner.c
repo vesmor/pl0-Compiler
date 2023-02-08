@@ -4,6 +4,29 @@
     Romsev Charles
     Brandon Sheridan
 */
+
+
+
+/*
+    TODO:
+        - lol idk ???
+
+        -Error handling 
+            1. Variable does not start with letter. 
+            2. Number too long. 
+            3. Name too long. 
+            4. Invalid symbols. 
+
+        -"parsing" thru the code and seperating each thing into tokens
+            - we can seperate using a space or "|"
+            
+
+
+*/
+
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,11 +42,12 @@
 
 
 typedef enum{
-    nulsym = 1, idsym, numbersym, plussym, minussym,
-    multsym,  slashsym, oodsym, eqsym, neqsym, lessym, leqsym,
-    gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
-    periodsym, becomessym, beginsym, endsym, ifsym, thensym, 
-    whilesym, dosym, callsym, constsym, varsym, procsym, writesym
+    skipsym = 1,identsym, numbersym, plussym, minussym, 
+    multsym,  slashsym, oddsym, eqsym, neqsym, lessym, leqsym, 
+    gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
+    periodsym, becomessym, beginsym, endsym, ifsym, thensym,  
+    whilesym, dosym, callsym, constsym, varsym, procsym, writesym, 
+    readsym , elsesym
 }token_type;
 
 /* list of reserved word names */
@@ -34,7 +58,7 @@ char  *word [ ] = {  "null", "begin", "call", "const", "do", "else", "end", "if"
 
 
 /* list of special symbols */
-int ssym[256];
+// int ssym[256];
 // ssym['+']=plus; ssym['-']=minus; ssym['*']=mult; 
 // ssym['/']=slash;  ssym['(']=lparen;  ssym[')']=rparen; 
 // ssym['=']=eql;      ssym[',']=comma;  ssym['.']=period; 
@@ -48,10 +72,29 @@ int main(int argc, char const *argv[])
 
     f = fopen(argv[1], "r");
 
+    char buffer;
+    char *charArr = (char *) malloc(1 * sizeof(char));
+    int i;
+    for (i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
+        printf("at index %d adding + 1\n",i);
+
+        i++;    //added in statement so it didnt mess up realloc math
+        charArr = realloc(charArr, sizeof(char) * (i + 1));
+        if(charArr == NULL){
+            free(charArr);
+            return -1; //exit program with error
+        }
+        
+        // printf("%c\n", charArr[i - 1]);
 
 
+        
+    }
+ 
+    
+    // printf("\nEnding program... with %d characters\n", i);
     fclose(f);
 
     return 0;

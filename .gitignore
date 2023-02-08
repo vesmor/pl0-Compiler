@@ -1,3 +1,4 @@
 *.out
 *.py
 main/
+*.code-workspace
