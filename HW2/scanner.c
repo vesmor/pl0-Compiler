@@ -40,7 +40,7 @@
 #define  imax   32767       /* maximum integer value */
 #define  cmax      11         /* maximum number of chars for idents */
 #define  strmax   256         /* maximum length of strings */
-
+#define  ignoreyml  4          /* length of ignoresym array*/
 
 typedef enum{
     skipsym = 1,identsym, numbersym, plussym, minussym, 
@@ -52,7 +52,10 @@ typedef enum{
 }token_type;
 
 /* list of reserved word names */
-char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write"}; 
+const char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write"}; 
+
+/* list of ignored symbols */
+const char ignoresym [] = {'\n', '\0', ' ', '\t'};
                          
 /* internal representation  of reserved words */
 // int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
@@ -68,15 +71,17 @@ char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do"
 
 
 
-
 FILE *f;
 
 
 int cpytilspace(char buffer[], char arr[], int arrPointer);
 char* readProgram(int *arrSize);
+int shouldBeIgnored(char c);
 
 int main(int argc, char const *argv[])
 {
+
+
 
     f = fopen(argv[1], "r");
 
@@ -104,6 +109,18 @@ int main(int argc, char const *argv[])
     free(charArr);
     fclose(f);
 
+    return 0;
+}
+
+
+/* returns 1 if symbol should be ignored 0 otherwise */
+int shouldBeIgnored(char c){
+    for (size_t i = 0; i < ignoreyml; i++)
+    {
+        if(c == ignoresym[i])
+            return 1;
+    }
+    
     return 0;
 }
 
@@ -148,7 +165,7 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
     int index = arrPointer; //start where we left off last time on the 
 
-    while(arr[index] != '\0' && arr[index] != '|' && arr[index] != ' ' && arr[index] != '\n'){
+    while( !shouldBeIgnored(arr[index]) ){
         bufferSize++;
         index++;
     }
