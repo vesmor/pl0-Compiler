@@ -19,6 +19,7 @@
 
         -"parsing" thru the code and seperating each thing into tokens
             - we can seperate using a space or "|"
+            - further seperate tokens that may be stuck together such as semicolons and a variable
             
 
 
@@ -65,6 +66,9 @@ char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do"
 // ssym['#']=neq;  ssym['<']=lss;  ssym['>']=gtr; 
 // ssym['$']=leq;  ssym['%']=geq;  ssym[';']=semicolon;
 
+
+
+
 FILE *f;
 
 
@@ -80,18 +84,23 @@ int main(int argc, char const *argv[])
     int indexPointer = 0;   //keeps track of index we're reading from from array
 
     char *charArr = readProgram(&arrSize);
-    char *bufferArr = malloc(1 * sizeof(char));
+    char bufferArr[strmax];
     
-    
-    indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
+    for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
+        
+
+        indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
+        printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
+
+    }
+     
     
 
-    printf("buffer holds %s\n", bufferArr);
 
 
 
     //clean up
-    free(bufferArr);
+    // free(bufferArr);
     free(charArr);
     fclose(f);
 
@@ -129,7 +138,7 @@ char* readProgram(int *arrSize){
 
 /*
     copys array to buffer until it reaches a "space" or bar "|"
-    returns arrPointer
+    returns position in charArr
 */
 int cpytilspace(char buffer[], char arr[], int arrPointer){
 
@@ -139,18 +148,19 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
     int index = arrPointer; //start where we left off last time on the 
 
-    while(arr[index] != '\0' && arr[index] != '|' && arr[index] != ' '){
+    while(arr[index] != '\0' && arr[index] != '|' && arr[index] != ' ' && arr[index] != '\n'){
         bufferSize++;
         index++;
     }
 
 
-    buffer = realloc(buffer, sizeof(char) * bufferSize);
     for(int k = 0; k < bufferSize; k++){
         buffer[k] = arr[arrPointer + k];
     }
+    buffer[bufferSize] = '\0';  //always add terminator to strs in c
 
-    return arrPointer;
+    // printf("functionm buffer holds %s index is %d\n", buffer, index);
+    return index + 1;
 
 
 }
