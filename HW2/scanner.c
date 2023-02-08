@@ -126,7 +126,9 @@ int shouldBeIgnored(char c){
 }
 
 
-//reads pl0 input file and puts every character into an array, keeps track of a
+/* reads pl0 input file and puts every character into one huge array and updates the array size
+    returns a char array with everything from file
+*/
 char* readProgram(int *arrSize){
 
     char *charArr = (char *) malloc(1 * sizeof(char));
