@@ -68,20 +68,22 @@ char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do"
 FILE *f;
 
 
-void cpytilspace(char buffer[], char arr[], int *arrPointer);
-char* readProgram();
+int cpytilspace(char buffer[], char arr[], int arrPointer);
+char* readProgram(int *arrSize);
 
 int main(int argc, char const *argv[])
 {
 
     f = fopen(argv[1], "r");
 
-    int sizePointer;    //keeps track of index we're reading from from array
-    char *charArr = readProgram(&sizePointer);
+    int arrSize;    
+    int indexPointer = 0;   //keeps track of index we're reading from from array
+
+    char *charArr = readProgram(&arrSize);
     char *bufferArr = malloc(1 * sizeof(char));
     
-    
-    cpytilspace(bufferArr, charArr, sizePointer);
+    // for (int i = 0; i < arrSize;)
+    // cpytilspace(bufferArr, charArr, sizePointer);
 
 
 
@@ -121,25 +123,28 @@ char* readProgram(int *arrSize){
 }
 
 
-//copys array to buffer until it reaches a "space" or bar "|"
-void cpytilspace(char buffer[], char arr[], int *arrPointer){
+/*
+    copys array to buffer until it reaches a "space" or bar "|"
+    returns arrPointer
+*/
+int cpytilspace(char buffer[], char arr[], int arrPointer){
 
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
     int lenFrom = strlen(arr);
     int lenTo = strlen(buffer);
 
-    while(arr[*arrPointer] != '\0' || arr[*arrPointer] != '|' || arr[*arrPointer] != ' '){
+    while(arr[arrPointer] != '\0' || arr[arrPointer] != '|' || arr[arrPointer] != ' '){
         bufferSize++;
-        *arrPointer++;
+        arrPointer++;
     }
 
 
     buffer = realloc(buffer, sizeof(char) * bufferSize);
     for(int k = 0; k < bufferSize; k++){
-        buffer[k] = arr[*arrPointer + k];
+        buffer[k] = arr[arrPointer + k];
     }
 
-    // while()
+    return arrPointer;
 
 
 }
