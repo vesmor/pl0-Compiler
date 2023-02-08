@@ -82,8 +82,11 @@ int main(int argc, char const *argv[])
     char *charArr = readProgram(&arrSize);
     char *bufferArr = malloc(1 * sizeof(char));
     
-    // for (int i = 0; i < arrSize;)
-    // cpytilspace(bufferArr, charArr, sizePointer);
+    
+    indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
+    
+
+    printf("buffer holds %s\n", bufferArr);
 
 
 
@@ -104,13 +107,14 @@ char* readProgram(int *arrSize){
     for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
-        printf("at index %d adding + 1\n",i);
+        // printf("at index %d adding + 1\n",i);
 
-        i++;    //added in statement so it didnt mess up realloc math for some reason
+        i++;    //added in statement so it didnt mess up realloc 'math' for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
             free(charArr);
-            return -1; //exit program with error
+            printf("Ran out of memory dude. Gotta exit program\n");
+            exit(-1); //exit program with error
         }
         
         // printf("%c\n", charArr[i - 1]);
@@ -129,13 +133,15 @@ char* readProgram(int *arrSize){
 */
 int cpytilspace(char buffer[], char arr[], int arrPointer){
 
+    // int lenFrom = strlen(arr);
+    // int lenTo = strlen(buffer);
+    
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
-    int lenFrom = strlen(arr);
-    int lenTo = strlen(buffer);
+    int index = arrPointer; //start where we left off last time on the 
 
-    while(arr[arrPointer] != '\0' || arr[arrPointer] != '|' || arr[arrPointer] != ' '){
+    while(arr[index] != '\0' && arr[index] != '|' && arr[index] != ' '){
         bufferSize++;
-        arrPointer++;
+        index++;
     }
 
 
