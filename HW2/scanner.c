@@ -20,6 +20,7 @@
         -"parsing" thru the code and seperating each thing into tokens
             - we can seperate using a space or "|"
             - further seperate tokens that may be stuck together such as semicolons and a variable
+            - add a part that skips reading comments
             
 
 
@@ -88,16 +89,16 @@ int main(int argc, char const *argv[])
     int arrSize;    
     int indexPointer = 0;   //keeps track of index we're reading from from array
 
-    char *charArr = readProgram(&arrSize);
-    char bufferArr[strmax];
+    char *charArr = readProgram(&arrSize);  //process file into one big array
+    char bufferArr[strmax];     //used to help seperate into tokens
     
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
-
         indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
         printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
 
     }
+
      
     
 
@@ -159,25 +160,46 @@ char* readProgram(int *arrSize){
 */
 int cpytilspace(char buffer[], char arr[], int arrPointer){
 
-    // int lenFrom = strlen(arr);
-    // int lenTo = strlen(buffer);
     
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
-    int index = arrPointer; //start where we left off last time on the 
+    int index = arrPointer; //track where we're working in the array
+    const int init_arrPointer = arrPointer;   //holds where we initially started with the array
 
     while( !shouldBeIgnored(arr[index]) ){
+
+
+        //checks for comments to ignore and then breaks buffer at spot after comment
+        if (arr[index] == '/' && arr[index + 1] == '*'){
+
+            arrPointer = index;
+            arrPointer += 2;
+
+            while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
+                arrPointer++;
+            }
+            
+            arrPointer++;
+            index = arrPointer;
+            
+            break;
+
+        }
+
         bufferSize++;
         index++;
     }
+    
 
+    // printf("buffersize %d\n", bufferSize);
 
+    //copying the valid word chunk from arr to buffer
     for(int k = 0; k < bufferSize; k++){
-        buffer[k] = arr[arrPointer + k];
+        buffer[k] = arr[init_arrPointer + k];
     }
     buffer[bufferSize] = '\0';  //always add terminator to strs in c
 
     // printf("functionm buffer holds %s index is %d\n", buffer, index);
-    return index + 1;
+    return index + 1;   //return where we will continue workin with array
 
 
 }
