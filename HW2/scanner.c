@@ -67,20 +67,24 @@ char  *word [ ] = {  "null", "begin", "call", "const", "do", "else", "end", "if"
 
 FILE *f;
 
+
+void cpytilspace(char bufferArr[], char charArr[]);
+
+
 int main(int argc, char const *argv[])
 {
 
     f = fopen(argv[1], "r");
 
-    char buffer;
+
     char *charArr = (char *) malloc(1 * sizeof(char));
-    int i;
-    for (i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
+    int arrSize;
+    for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
         printf("at index %d adding + 1\n",i);
 
-        i++;    //added in statement so it didnt mess up realloc math
+        i++;    //added in statement so it didnt mess up realloc math for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
             free(charArr);
@@ -88,14 +92,27 @@ int main(int argc, char const *argv[])
         }
         
         // printf("%c\n", charArr[i - 1]);
-
-
         
+        arrSize = i;
+
     }
  
-    
-    // printf("\nEnding program... with %d characters\n", i);
+    char *bufferArr = malloc(arrSize * sizeof(char));
+    cpytilspace(bufferArr, charArr);
+
+    //clean up
+    free(bufferArr);
+    free(charArr);
     fclose(f);
 
     return 0;
+}
+
+//copys array until it reaches a "space" or bar "|"
+void cpytilspace(char bufferArr[], char charArr[]){
+
+    int i;
+    // while()
+
+
 }
