@@ -96,7 +96,6 @@ int main(int argc, char const *argv[])
         indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
         printf("%s\t%d\n", bufferArr, indexPointer);    //edited to comply with formatting requirements
 
-
     }
 
      
@@ -145,7 +144,9 @@ char* readProgram(int *arrSize){
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
             free(charArr);
+
             printf("Ran out of memory dude. Gotta exit program\n"); //lmao
+
             exit(-1); //exit program with error
         }
         
@@ -154,6 +155,7 @@ char* readProgram(int *arrSize){
         *arrSize = i;
 
     }
+
     printf("\n\n");
 
     return charArr;
