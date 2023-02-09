@@ -88,10 +88,14 @@ int main(int argc, char const *argv[])
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
     
+    printf("Lexeme Table:\n\n");
+    printf("lexeme\ttoken type\n");
+    
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
         indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
-        printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
+        printf("%s\t%d\n", bufferArr, indexPointer);    //edited to comply with formatting requirements
+
 
     }
 
