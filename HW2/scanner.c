@@ -34,16 +34,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 
 
 //look in Lecture 5 Lexical Analysis
 
-#define  norw      10         /* number of reserved words */
-#define  imax   32767       /* maximum integer value */
-#define  cmax      11         /* maximum number of chars for idents */
-#define  strmax   256         /* maximum length of strings */
-#define  ignoreyml  4          /* length of ignoresym array*/
+#define  norw          10         /* number of reserved words */
+#define  imax       32767       /* maximum integer value */
+#define  cmax          11         /* maximum number of chars for idents */
+#define  strmax       256         /* maximum length of strings */
+#define  ignoresymlen   4          /* length of ignoresym array*/
+#define  ssymlen       16
 
 typedef enum{
     skipsym = 1,identsym, numbersym, plussym, minussym, 
@@ -54,23 +56,18 @@ typedef enum{
     readsym , elsesym
 }token_type;
 
-/* list of reserved word names */
+/* list of reserved keyword names */
 const char  *word [ ] = {  "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write"}; 
 
 /* list of ignored symbols */
-const char ignoresym [] = {'\n', '\0', ' ', '\t'};
+const char ignoresym [] = { '\n', '\0', ' ', '\t'};
                          
 /* internal representation  of reserved words */
 // int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
 
 
-/* list of special symbols */
-// int ssym[256];
-// ssym['+']=plus; ssym['-']=minus; ssym['*']=mult; 
-// ssym['/']=slash;  ssym['(']=lparen;  ssym[')']=rparen; 
-// ssym['=']=eql;      ssym[',']=comma;  ssym['.']=period; 
-// ssym['#']=neq;  ssym['<']=lss;  ssym['>']=gtr; 
-// ssym['$']=leq;  ssym['%']=geq;  ssym[';']=semicolon;
+/* list of special symbols such as arithmetic*/
+char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':'};
 
 
 typedef struct lexeme{
@@ -94,6 +91,12 @@ void tokenize(char *chunk);
 int main(int argc, char const *argv[])
 {
 
+    // ssym[plussym]=  ('+');  ssym[minussym]=    ('-');  ssym[multsym]=      ('*');
+    // ssym[slashsym]= ('/');  ssym[lparentsym]=  ('(');  ssym[rparentsym]=   (')'); 
+    // ssym[eqsym]=    ('=');  ssym[commasym]=    (',');  ssym[periodsym]=    ('.'); 
+    // ssym[neqsym]=   ('#');  ssym[lessym]=      ('<');  ssym[gtrsym]=       ('>'); 
+    // ssym[leqsym]=   ('$');  ssym[geqsym]=      ('%');  ssym[semicolonsym]= (';');
+
 
 
     f = fopen(argv[1], "r");
@@ -103,6 +106,12 @@ int main(int argc, char const *argv[])
 
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
+
+    for (size_t i = 0; i < ssymlen; i++)
+    {
+        // printf("ssym [%ld]: %c\n", i, ssym[i]);
+    }
+    
     
     //tokenize program using a buffer array
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
@@ -132,11 +141,24 @@ int main(int argc, char const *argv[])
 
 /* returns 1 if symbol should be ignored 0 otherwise */
 int shouldBeIgnored(char c){
-    for (size_t i = 0; i < ignoreyml; i++)
+    for (size_t i = 0; i < ignoresymlen; i++)
     {
         if(c == ignoresym[i])
             return 1;
     }
+    
+    return 0;
+}
+
+/*checks if character is a special symbol*/
+int isDelimiter(char c){
+
+    for (size_t i = 0; i < ssymlen; i++)
+    {
+        if (c == ssym[i]){
+            return 1;
+        }
+    }  
     
     return 0;
 }
@@ -203,6 +225,33 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
 
         }
 
+
+        //if the character we landed on is a special sym we break the chunk here
+        if (isDelimiter(arr[index])){
+            if( arr[index] == ':' && arr[index+1] == '='){
+                bufferSize += 2;
+                index++;
+                break;
+            }
+
+            else{
+                bufferSize++;
+                index++;
+                break;
+            }
+
+        }
+
+        //peek to see if next char is a spec sym so we just break it here
+        if( isDelimiter(arr[index + 1]) ){
+            bufferSize++;
+            // index++;
+
+            break;
+        }
+
+
+        // printf("arr %c\n", arr[index]);
         bufferSize++;
         index++;
     }
@@ -214,15 +263,31 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
     for(int k = 0; k < bufferSize; k++){
         buffer[k] = arr[init_arrPointer + k];
     }
-    buffer[bufferSize] = '\0';  //always add terminator to strs in c
+    buffer[bufferSize] = '\0';  //always add terminator to end of strs in c
 
-    // printf("functionm buffer holds %s index is %d\n", buffer, index);
-    return index + 1;   //return where we will continue workin with array
+
+    return index + 1;   //continue to next array element
 
 
 }
 
+/*
+    checks if chunk is a variable
+    returns 1 if yes 0 other wise
+*/
+int isVar (char *chunk, char *err){
 
+    for(size_t i = 0; i < strlen(chunk); i++){
+        
+        if(isdigit(chunk[i])){
+
+
+
+        }
+
+    }
+
+}
 
 /*Organize word chunks into proper lexeme*/
 void tokenize(char *chunk){
@@ -232,6 +297,23 @@ void tokenize(char *chunk){
     }
 
     printf("chunk %s\n", chunk);
+
+
+    // char err[strmax]; //for error messages maybe?
+
+    // int len = strlen(chunk);
+
+    // for (size_t i = 0; i < len; i++){
+
+    //     if( isdigit(chunk[i]) && ){
+
+    //     }
+
+    // }
+
+    // if(isVar(chunk, err)){
+
+    // }
 
     // if (isWord(chunk)){
         
