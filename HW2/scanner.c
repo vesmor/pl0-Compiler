@@ -10,16 +10,20 @@
 /*
     TODO:
         - lol idk ???
+
         -Error handling 
             1. Variable does not start with letter. 
             2. Number too long. 
             3. Name too long. 
             4. Invalid symbols. 
+
         -"parsing" thru the code and seperating each thing into tokens
             - we can seperate using a space or "|"
             - further seperate tokens that may be stuck together such as semicolons and a variable
             - add a part that skips reading comments
             
+
+
 */
 
 
@@ -88,13 +92,10 @@ int main(int argc, char const *argv[])
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
     
-    printf("Lexeme Table:\n\n");
-    printf("lexeme\ttoken type\n");
-    
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
         indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
-        printf("%s\t%d\n", bufferArr, indexPointer);    //edited to comply with formatting requirements
+        printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
 
     }
 
@@ -130,13 +131,10 @@ int shouldBeIgnored(char c){
 */
 char* readProgram(int *arrSize){
 
-    printf("Source Program: \n");
-
     char *charArr = (char *) malloc(1 * sizeof(char));
     // int arrSize;
     for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
-        printf("%c", charArr[i]); //Displays code, added to comply with program instructions
 
         // printf("at index %d adding + 1\n",i);
 
@@ -144,9 +142,7 @@ char* readProgram(int *arrSize){
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
             free(charArr);
-
-            printf("Ran out of memory dude. Gotta exit program\n"); //lmao
-
+            printf("Ran out of memory dude. Gotta exit program\n");
             exit(-1); //exit program with error
         }
         
@@ -155,8 +151,6 @@ char* readProgram(int *arrSize){
         *arrSize = i;
 
     }
-
-    printf("\n\n");
 
     return charArr;
 }
