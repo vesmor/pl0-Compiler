@@ -20,7 +20,9 @@
         -"parsing" thru the code and seperating each thing into tokens
             - we can seperate using a space or "|"
             - further seperate tokens that may be stuck together such as semicolons and a variable
-            - add a part that skips reading comments
+            - organize tokens into different identifiers
+                -Someone mentioned making a struct for everything? like for the lexemes
+            - can we have 1+2 instead of 1 + 2
             
 
 
@@ -71,6 +73,14 @@ const char ignoresym [] = {'\n', '\0', ' ', '\t'};
 // ssym['$']=leq;  ssym['%']=geq;  ssym[';']=semicolon;
 
 
+typedef struct lexeme{
+
+    char *tokenName;
+    int tokenType;
+    int val;
+
+}lexeme;
+
 
 FILE *f;
 
@@ -78,6 +88,8 @@ FILE *f;
 int cpytilspace(char buffer[], char arr[], int arrPointer);
 char* readProgram(int *arrSize);
 int shouldBeIgnored(char c);
+void tokenize(char *chunk);
+
 
 int main(int argc, char const *argv[])
 {
@@ -92,10 +104,14 @@ int main(int argc, char const *argv[])
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
     
+    //tokenize program using a buffer array
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
-        indexPointer = cpytilspace(bufferArr, charArr, indexPointer);
-        printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
+        indexPointer = cpytilspace(bufferArr, charArr, indexPointer);   //returns the index where we left off
+        // printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
+
+
+        tokenize(bufferArr);
 
     }
 
@@ -167,10 +183,10 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
     int index = arrPointer; //track where we're working in the array
     const int init_arrPointer = arrPointer;   //holds where we initially started with the array
 
-    while( !shouldBeIgnored(arr[index]) ){
+    while( !shouldBeIgnored(arr[index]) ){  //runs until an ignorable space
 
 
-        //checks for comments to ignore and then breaks buffer at spot after comment
+        //checks for comments to ignore and then breaks buffer at index after comment
         if (arr[index] == '/' && arr[index + 1] == '*'){
 
             arrPointer = index;
@@ -203,5 +219,22 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
     // printf("functionm buffer holds %s index is %d\n", buffer, index);
     return index + 1;   //return where we will continue workin with array
 
+
+}
+
+
+
+/*Organize word chunks into proper lexeme*/
+void tokenize(char *chunk){
+
+    if (chunk == NULL || chunk[0] == '\0'){
+        return;
+    }
+
+    printf("chunk %s\n", chunk);
+
+    // if (isWord(chunk)){
+        
+    // }
 
 }
