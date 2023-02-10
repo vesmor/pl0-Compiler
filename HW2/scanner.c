@@ -81,9 +81,14 @@ typedef struct lexeme{
 FILE *f;
 
 
-int chunkify(char buffer[], char arr[], int arrPointer);
-char* readProgram(int *arrSize);
+int findSymVal(char *chunk);
 int shouldBeIgnored(char c);
+int isSpecialSym(char c);
+char* readProgram(int *arrSize);
+int chunkify(char buffer[], char arr[], int arrPointer);
+int isWord (char *chunk);
+int isNumber (char *chunk);
+int isIdentifier(char *chunk);
 lexeme* tokenize(char *chunk);
 
 
@@ -192,7 +197,7 @@ int shouldBeIgnored(char c){
     return 0;
 }
 
-/*checks if character is a special symbol*/
+/*checks if character exists in special symbol array*/
 int isSpecialSym(char c){
 
     for (size_t i = 0; i < ssymlen; i++)
@@ -352,7 +357,22 @@ int isNumber (char *chunk){
 
 }
 
-/*Organize word chunks into proper lexeme*/
+/*
+    if variable starts with number or special sym return 0
+    otherwise return 1
+*/
+int isIdentifier(char *chunk){
+
+    if ( isdigit(chunk[0]) || isSpecialSym(chunk[0]) ){
+        return 0;
+    }
+
+    return 1;
+
+}
+
+
+/*Organize word chunks into proper lexeme category*/
 lexeme* tokenize(char *chunk){
 
     if (chunk == NULL || chunk[0] == '\0'){
@@ -372,21 +392,31 @@ lexeme* tokenize(char *chunk){
         u can use findSymVal to find the TokenType number of a chunk if needed
     */
 
+    int tokenVal = findSymVal(chunk);
+
     if (isWord(chunk)){
-        int tokenVal = findSymVal(chunk);
         // t = makeLexNode(chunk, tokenVal, tokenVal);
-        printf("%d", tokenVal);
         printf("\n");
         return t;
     }
 
-    else if( isNumber(chunk) ){
+    //literally just checks for var symbol since its not a keyword
+    else if ( !strcmp(chunk, "var") ){
+        
+    }
 
+    else if( isNumber(chunk) ){
+        tokenVal = numbersym;
+    }
+
+    else if( isIdentifier(chunk) ){
+        tokenVal = identsym;
     }
 
 
 
-    // printf("\n"); //remove this once token type is determined
+    printf("%d", tokenVal);
+    printf("\n"); //remove this once token type is determined
 
     return t;
 }
