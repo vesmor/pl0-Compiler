@@ -245,8 +245,6 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
         //peek to see if next char is a spec sym so we just break it here
         if( isDelimiter(arr[index + 1]) ){
             bufferSize++;
-            // index++;
-
             break;
         }
 
@@ -277,15 +275,13 @@ int cpytilspace(char buffer[], char arr[], int arrPointer){
 */
 int isVar (char *chunk, char *err){
 
-    for(size_t i = 0; i < strlen(chunk); i++){
-        
-        if(isdigit(chunk[i])){
-
-
-
+    for (size_t i = 0; i < norw; i++)
+    {
+        if( !strcmp(chunk, word[i]) ){
+            return 1;
         }
-
     }
+    
 
 }
 
@@ -299,24 +295,15 @@ void tokenize(char *chunk){
     printf("chunk %s\n", chunk);
 
 
-    // char err[strmax]; //for error messages maybe?
+    char err[strmax]; //for error messages maybe?
 
-    // int len = strlen(chunk);
 
-    // for (size_t i = 0; i < len; i++){
+    if(isVar(chunk, err)){
 
-    //     if( isdigit(chunk[i]) && ){
+    }
 
-    //     }
-
-    // }
-
-    // if(isVar(chunk, err)){
-
-    // }
-
-    // if (isWord(chunk)){
+    if (isWord(chunk)){
         
-    // }
+    }
 
 }
