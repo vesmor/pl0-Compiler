@@ -21,6 +21,8 @@
             - everything has been broken down into chunks but next it just needs to be organized
                 into the proper tokenType
             - While getting organized it needs to make sure errors get thrown when they happen
+            - Gotta revisit the chunkify function because some words are getting cut off
+            - "begin" and "end" keyword get the wrong token# or none at all for some reason?
 
 */
 
@@ -132,7 +134,7 @@ int main(int argc, char const *argv[])
         // printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
 
 
-        tokens[i] = tokenize(bufferArr);
+        tokenize(bufferArr);
 
 
         // printToken(tokens[i]);
@@ -322,7 +324,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 }
 
 /*
-    checks if chunk is a variable
+    checks if chunk is a keyword
     returns 0 if not, and index number if found
 */
 int isWord (char *chunk){
@@ -387,9 +389,8 @@ lexeme* tokenize(char *chunk){
 
 
     /*
-        this function should organize things into different lexemes
-        and also it will be responsible for errors such as if a variables starts with a number
-        u can use findSymVal to find the TokenType number of a chunk if needed
+        having trouble with begin not getting the proper token type
+        and end not getting a number at all
     */
 
     int tokenVal = findSymVal(chunk);
@@ -400,7 +401,7 @@ lexeme* tokenize(char *chunk){
         return t;
     }
 
-    //literally just checks for var symbol since its not a keyword
+    //literally just checks for var symbol since its not a keyword ig?
     else if ( !strcmp(chunk, "var") ){
         
     }
