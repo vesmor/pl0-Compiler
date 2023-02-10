@@ -242,8 +242,8 @@ char* readProgram(int *arrSize){
 
 
 /*
-    copys array to buffer until it reaches a "space" or bar "|"
-    returns position in charArr
+    seperates known symbols into chunks to be organized later
+    returns 'working' position in charArr
 */
 int chunkify(char buffer[], char arr[], int arrPointer){
 
