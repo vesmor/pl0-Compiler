@@ -2,3 +2,4 @@
 *.py
 main/
 *.code-workspace
+example.c
