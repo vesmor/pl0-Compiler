@@ -3,7 +3,7 @@
     COP3402 Euripedes Montagne
     Romsev Charles
     Brandon Sheridan
-*/
+*/ 
 
 
 
@@ -107,6 +107,8 @@ int main(int argc, char const *argv[])
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
 
+    printf("Lexeme Table:\n\nlexeme\ttoken type\n");
+
     for (size_t i = 0; i < ssymlen; i++)
     {
         // printf("ssym [%ld]: %c\n", i, ssym[i]);
@@ -169,12 +171,16 @@ int isDelimiter(char c){
 */
 char* readProgram(int *arrSize){
 
+    printf("Source Program:\n");
+
     char *charArr = (char *) malloc(1 * sizeof(char));
     // int arrSize;
     for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
         // printf("at index %d adding + 1\n",i);
+
+        printf("%c", charArr[i]);
 
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
@@ -189,6 +195,7 @@ char* readProgram(int *arrSize){
         *arrSize = i;
 
     }
+    printf("\n\n");
 
     return charArr;
 }
@@ -292,8 +299,8 @@ void tokenize(char *chunk){
         return;
     }
 
-    printf("chunk %s\n", chunk);
-
+    printf("%s\t", chunk);
+    printf("\n"); //remove this once token type is determined
 
     char err[strmax]; //for error messages maybe?
 
@@ -303,7 +310,7 @@ void tokenize(char *chunk){
     }
 
     if (isWord(chunk)){
-        
+    
     }
 
 }
