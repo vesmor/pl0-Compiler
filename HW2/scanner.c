@@ -334,6 +334,24 @@ int isWord (char *chunk){
 
 }
 
+/*
+    checks if chunk is a number
+    1 if yes, index where it isnt if not
+*/
+int isNumber (char *chunk){
+
+    int len = strlen(chunk);
+    for (size_t i = 0; i < len; i++)
+    {
+        if( !isdigit(chunk[i]) || (chunk[i] == '-' && i > 0) ){   //OR stmnt checks that there isnt a minus sign past the first index
+            return i;
+        }
+    }
+    
+    return 1;
+
+}
+
 /*Organize word chunks into proper lexeme*/
 lexeme* tokenize(char *chunk){
 
@@ -341,7 +359,7 @@ lexeme* tokenize(char *chunk){
         return NULL;
     }
 
-    // printf("%s\t", chunk);
+    printf("%s\t", chunk);
 
     char err[strmax]; //for error messages maybe?
 
@@ -356,15 +374,16 @@ lexeme* tokenize(char *chunk){
 
     if (isWord(chunk)){
         int tokenVal = findSymVal(chunk);
-        t = makeLexNode(chunk, tokenVal, tokenVal);
+        // t = makeLexNode(chunk, tokenVal, tokenVal);
+        printf("%d", tokenVal);
         printf("\n");
         return t;
     }
 
+    else if( isNumber(chunk) ){
+        
+    }
 
-    // if(isVar(chunk, err)){
-
-    // }
 
 
     // printf("\n"); //remove this once token type is determined
