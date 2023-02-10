@@ -81,7 +81,7 @@ typedef struct lexeme{
 FILE *f;
 
 
-int cpytilspace(char buffer[], char arr[], int arrPointer);
+int chunkify(char buffer[], char arr[], int arrPointer);
 char* readProgram(int *arrSize);
 int shouldBeIgnored(char c);
 lexeme* tokenize(char *chunk);
@@ -123,7 +123,7 @@ int main(int argc, char const *argv[])
     //tokenize program using a buffer array
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
-        indexPointer = cpytilspace(bufferArr, charArr, indexPointer);   //returns the index where we left off
+        indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
         // printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
 
 
@@ -245,7 +245,7 @@ char* readProgram(int *arrSize){
     copys array to buffer until it reaches a "space" or bar "|"
     returns position in charArr
 */
-int cpytilspace(char buffer[], char arr[], int arrPointer){
+int chunkify(char buffer[], char arr[], int arrPointer){
 
     
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
@@ -381,7 +381,7 @@ lexeme* tokenize(char *chunk){
     }
 
     else if( isNumber(chunk) ){
-        
+
     }
 
 
