@@ -38,17 +38,17 @@
 
 //look in Lecture 5 Lexical Analysis
 
-#define  norw          10         /* number of reserved words */
+#define  norw          14         /* number of reserved words */
 #define  imax       32767       /* maximum integer value */
 #define  cmax          11         /* maximum number of chars for idents */
 #define  strmax       256         /* maximum length of strings */
 #define  ignoresymlen   4          /* length of ignoresym array*/
-#define  ssymlen       16          /*len of special symbol arr*/
-#define  symlen        33
+#define  ssymlen       17          /*len of special symbol arr*/
+#define  symlen        34
 
 typedef enum{
     skipsym = 1, identsym, numbersym, plussym, minussym, 
-    multsym,  slashsym, oddsym, eqsym, neqsym, lessym, leqsym, 
+    multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym, 
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,  
     whilesym, dosym, callsym, constsym, varsym, procsym, writesym, 
@@ -56,18 +56,21 @@ typedef enum{
 }token_type;
 
 /* list of reserved keyword names */
-const char  *word [ ] = { "begin", "end", "if", "then", "while", "do", "call", "read", "write", "else"}; 
+const char  *word [ ] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"}; 
 
 /* list of ignored symbols */
 const char ignoresym [] = { '\n', '\0', ' ', '\t'};
                          
 /* internal representation  of reserved words */
-// int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
+// int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, 
+    //readsym, thensym, varsym, whilesym, writesym};
 
 
 /* list of special symbols such as arithmetic*/
-char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':'};
-char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "", "",",", ";", ".", ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
+char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
+
+char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
+    ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
 
 typedef struct lexeme{
@@ -91,16 +94,7 @@ int chunkify(char buffer[], char arr[], int arrPointer);
 int isWord (char *chunk);
 int isNumber (char *chunk);
 int isIdentifier(char *chunk);
-lexeme* tokenize(char *chunk);
-
-
-void printToken(lexeme* t){
-
-    if(t != NULL){
-        printf("Token: %s\n\ttype:%d\n\tval: %d\n", t->tokenName, t->tokenType, t->val);
-    }
-}
-
+int tokenize(char *chunk);
 
 int main(int argc, char const *argv[])
 {
@@ -124,7 +118,7 @@ int main(int argc, char const *argv[])
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
 
     
-    lexeme **tokens = malloc(arrSize * sizeof(lexeme*));  //arr of lexemes 1
+    // lexeme **tokens = malloc(arrSize * sizeof(lexeme*));  //arr of lexemes 1
     // tokens[0] = malloc(sizeof(lexeme)); //init first lexeme in arr
     
     //tokenize program using a buffer array
@@ -144,14 +138,6 @@ int main(int argc, char const *argv[])
 
     }
 
-    
-
-     
-    
-
-
-
-
     //clean up
     // free(bufferArr);
     free(charArr);
@@ -160,7 +146,7 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-
+/*
 lexeme* makeLexNode(char *token, int tokenType, int value){
 
     lexeme *node = malloc(sizeof(lexeme));
@@ -172,7 +158,7 @@ lexeme* makeLexNode(char *token, int tokenType, int value){
 
     return node;
 }
-
+*/
 
 
 int findSymVal(char *chunk){
@@ -228,7 +214,7 @@ char* readProgram(int *arrSize){
         // printf("at index %d adding + 1\n",i);
 
         printf("%c", charArr[i]);
-
+    
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
@@ -236,9 +222,9 @@ char* readProgram(int *arrSize){
             printf("Ran out of memory dude. Gotta exit program\n");
             exit(-1); //exit program with error
         }
-        
+    
         // printf("%c\n", charArr[i - 1]);
-        
+    
         *arrSize = i;
 
     }
@@ -282,7 +268,8 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
         //if the character we landed on is a special sym we break the chunk here
         if (isSpecialSym(arr[index])){
-            if( arr[index] == ':' && arr[index+1] == '='){
+            if( (arr[index] == ':' && arr[index+1] == '=') || (arr[index] == '!' && arr[index+1] == '=') 
+                || (arr[index] == '<' && arr[index+1] == '=') || (arr[index] == '>' && arr[index+1] == '=')){
                 bufferSize += 2;
                 index++;
                 break;
@@ -373,19 +360,16 @@ int isIdentifier(char *chunk){
 
 }
 
-
 /*Organize word chunks into proper lexeme category*/
-lexeme* tokenize(char *chunk){
+int tokenize(char *chunk){
 
     if (chunk == NULL || chunk[0] == '\0'){
-        return NULL;
+        return -1;
     }
-
-    printf("%s\t", chunk);
 
     char err[strmax]; //for error messages maybe?
 
-    lexeme* t = NULL;
+    int t;
 
 
     /*
@@ -395,15 +379,10 @@ lexeme* tokenize(char *chunk){
 
     int tokenVal = findSymVal(chunk);
 
-    if (isWord(chunk)){
+    if (isWord(chunk) >= 0){
         // t = makeLexNode(chunk, tokenVal, tokenVal);
-        printf("\n");
-        return t;
-    }
-
-    //literally just checks for var symbol since its not a keyword ig?
-    else if ( !strcmp(chunk, "var") ){
-        
+        // printf("%d", isWord(chunk));
+        tokenVal = findSymVal(chunk);
     }
 
     else if( isNumber(chunk) ){
@@ -414,10 +393,10 @@ lexeme* tokenize(char *chunk){
         tokenVal = identsym;
     }
 
+    printf("%s\t%d\n", chunk, tokenVal);
 
+    //printf("%d", tokenVal);
+    //printf("\n"); //remove this once token type is determined
 
-    printf("%d", tokenVal);
-    printf("\n"); //remove this once token type is determined
-
-    return t;
+    return tokenVal;
 }
