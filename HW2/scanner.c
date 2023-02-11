@@ -26,8 +26,16 @@
 
 */
 
+/*  ________________ERROR CODE DOCUMENTATION____________________ 
+        -1 - Identigiers cannot begin with a digit.
+        -2 - Number too long.
+        -3 - Name too long.
+        -4 - Invalid symbols.
+        -5 - The input ends during a comment (i.e. a comment was started but not 
+            fnished when an end-of-file was seen reading from the input file).
 
-
+    ________________WILL BE IMPORTIANT TO SEE NEXT PROJECT_________________
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,8 +100,7 @@ int isSpecialSym(char c);
 char* readProgram(int *arrSize);
 int chunkify(char buffer[], char arr[], int arrPointer);
 int isWord (char *chunk);
-int isNumber (char *chunk);
-int isIdentifier(char *chunk);
+int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 
 int main(int argc, char const *argv[])
@@ -126,7 +133,10 @@ int main(int argc, char const *argv[])
         
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
         // printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
-
+        
+        if (indexPointer == -1){
+            //error handling for program ending without closing comment
+        }
 
         tokenize(bufferArr);
 
@@ -255,6 +265,9 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             arrPointer += 2;
 
             while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
+                if (arr[arrPointer + 1] == EOF) {
+                    return -5;
+                }
                 arrPointer++;
             }
             
@@ -329,34 +342,32 @@ int isWord (char *chunk){
 }
 
 /*
-    checks if chunk is a number
-    1 if yes, index where it isnt if not
+    determins if the chunk is an ident, int, or invalid. returns 2 for ident, 3 for int,
+    -1 for non num in int, -2 for int too long, -3 for name too long, -4 for invalid symbol
 */
-int isNumber (char *chunk){
-
-    int len = strlen(chunk);
-    for (size_t i = 0; i < len; i++)
-    {
-        if( !isdigit(chunk[i]) || (chunk[i] == '-' && i > 0) ){   //OR stmnt checks that there isnt a minus sign past the first index
-            return i;
+int determinNonReserved(char *chunk){
+    int i = 1;
+    if (isdigit(chunk[0])){
+        for(i; i <= 5; ++i) {
+            if (chunk[i] == '\0') {
+                return 3;
+            }
+            if (!isdigit(chunk[i])) {
+                return -1;            
+            }
         }
+        return -2;
     }
-    
-    return 1;
-
-}
-
-/*
-    if variable starts with number or special sym return 0
-    otherwise return 1
-*/
-int isIdentifier(char *chunk){
-
-    if ( isdigit(chunk[0]) || isSpecialSym(chunk[0]) ){
-        return 0;
+    else if (isalpha(chunk[0])) {
+        for(i; i <= 11; ++i) {
+            if (chunk[i] == '\0') {
+                return 2;
+            }
+        }
+        return -3;
     }
 
-    return 1;
+    return -4;
 
 }
 
@@ -367,36 +378,13 @@ int tokenize(char *chunk){
         return -1;
     }
 
-    char err[strmax]; //for error messages maybe?
+    int tokenVal = determinNonReserved(chunk);
 
-    int t;
-
-
-    /*
-        having trouble with begin not getting the proper token type
-        and end not getting a number at all
-    */
-
-    int tokenVal = findSymVal(chunk);
-
-    if (isWord(chunk) >= 0){
-        // t = makeLexNode(chunk, tokenVal, tokenVal);
-        // printf("%d", isWord(chunk));
+    if (isWord(chunk) > 0 || isSpecialSym(chunk[0])){
         tokenVal = findSymVal(chunk);
     }
 
-    else if( isNumber(chunk) ){
-        tokenVal = numbersym;
-    }
-
-    else if( isIdentifier(chunk) ){
-        tokenVal = identsym;
-    }
-
     printf("%s\t%d\n", chunk, tokenVal);
-
-    //printf("%d", tokenVal);
-    //printf("\n"); //remove this once token type is determined
 
     return tokenVal;
 }
