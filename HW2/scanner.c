@@ -81,17 +81,8 @@ char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
 
-typedef struct lexeme{
-
-    char *tokenName;
-    int tokenType;
-    int val;
-    struct lexeme *next;
-
-}lexeme;
-
-
 FILE *f;
+FILE * out;
 
 
 int findSymVal(char *chunk);
@@ -121,55 +112,37 @@ int main(int argc, char const *argv[])
 
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
+    fclose(f);                   //close file here to open a write file
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
 
-    
-    // lexeme **tokens = malloc(arrSize * sizeof(lexeme*));  //arr of lexemes 1
-    // tokens[0] = malloc(sizeof(lexeme)); //init first lexeme in arr
+    out = fopen("output.txt", "w");
     
     //tokenize program using a buffer array
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
-        // printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
-        
-        if (indexPointer == -1){
-            //error handling for program ending without closing comment
+
+        if (indexPointer == -5){
+            fprintf(out, "-5 ");
+            // exit(-1);
         }
-
-        tokenize(bufferArr);
-
-
-        // printToken(tokens[i]);
-        // printf("%ld\n", i);
-
-        // tokens = realloc(tokens, sizeof(lexeme*) * (i+1));
-
+        
+        int val = tokenize(bufferArr);
+        if (val) {
+            fprintf(out, "%d ", val);
+            if (val == 2 || val == 3){
+                fprintf(out, "%s ", bufferArr);
+            }
+        }
     }
-
     //clean up
     // free(bufferArr);
     free(charArr);
-    fclose(f);
+    fclose(out);
 
     return 0;
 }
-
-/*
-lexeme* makeLexNode(char *token, int tokenType, int value){
-
-    lexeme *node = malloc(sizeof(lexeme));
-
-    strcpy(node->tokenName, token);
-    node->tokenType = tokenType;
-    node->val = value;
-    node->next = NULL;
-
-    return node;
-}
-*/
-
 
 int findSymVal(char *chunk){
 
@@ -265,12 +238,12 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             arrPointer += 2;
 
             while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
-                if (arr[arrPointer + 1] == EOF) {
-                    return -5;
-                }
                 arrPointer++;
+                if (arr[arrPointer + 1] == '\0') {
+                    fprintf(out, "-5");
+                    break;
+                }
             }
-            
             arrPointer++;
             index = arrPointer;
             
@@ -332,7 +305,7 @@ int isWord (char *chunk){
     for (size_t i = 0; i < norw; i++)
     {
         if( !strcmp(chunk, word[i]) ){
-            return i;
+            return i + 1; // +1 so that const does not get looked over in the if statemnt for rtn 0 
         }
     }
 
@@ -375,7 +348,7 @@ int determinNonReserved(char *chunk){
 int tokenize(char *chunk){
 
     if (chunk == NULL || chunk[0] == '\0'){
-        return -1;
+        return 0;
     }
 
     int tokenVal = determinNonReserved(chunk);
