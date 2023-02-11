@@ -122,11 +122,6 @@ int main(int argc, char const *argv[])
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
-
-        if (indexPointer == -5){
-            fprintf(out, "-5 ");
-            // exit(-1);
-        }
         
         int val = tokenize(bufferArr);
         if (val) {
