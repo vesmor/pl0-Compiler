@@ -44,15 +44,20 @@
 
 
 
-//look in Lecture 5 Lexical Analysis
 
-#define  norw          14         /* number of reserved words */
+//Error signals
+#define INVALID_INT_ERR     -1
+#define INT_TOO_LONG_ERR    -2 
+#define NAME_TOO_LONG_ERR   -3
+#define INVALID_SYM_ERR     -4
+
+#define  norw          14       /* number of reserved words */
 #define  imax       32767       /* maximum integer value */
-#define  cmax          11         /* maximum number of chars for idents */
-#define  strmax       256         /* maximum length of strings */
-#define  ignoresymlen   4          /* length of ignoresym array*/
-#define  ssymlen       17          /*len of special symbol arr*/
-#define  symlen        34
+#define  cmax          11       /* maximum number of chars for idents */
+#define  strmax       256       /* maximum length of strings */
+#define  ignoresymlen   4       /* length of ignoresym array*/
+#define  ssymlen       17       /*len of special symbol arr*/
+#define  symlen        34       /*master sym array length*/
 
 typedef enum{
     skipsym = 1, identsym, numbersym, plussym, minussym, 
@@ -126,7 +131,7 @@ int main(int argc, char const *argv[])
         int val = tokenize(bufferArr);
         if (val) {
             fprintf(out, "%d ", val);
-            if (val == 2 || val == 3){
+            if (val == identsym || val == numbersym){
                 fprintf(out, "%s ", bufferArr);
             }
         }
@@ -309,6 +314,8 @@ int isWord (char *chunk){
 
 }
 
+
+
 /*
     determins if the chunk is an ident, int, or invalid. returns 2 for ident, 3 for int,
     -1 for non num in int, -2 for int too long, -3 for name too long, -4 for invalid symbol
@@ -318,24 +325,24 @@ int determinNonReserved(char *chunk){
     if (isdigit(chunk[0])){
         for(i; i <= 5; ++i) {
             if (chunk[i] == '\0') {
-                return 3;
+                return numbersym;
             }
             if (!isdigit(chunk[i])) {
-                return -1;            
+                return INVALID_INT_ERR;            
             }
         }
-        return -2;
+        return INT_TOO_LONG_ERR;
     }
     else if (isalpha(chunk[0])) {
-        for(i; i <= 11; ++i) {
+        for(i; i <= cmax; ++i) {
             if (chunk[i] == '\0') {
-                return 2;
+                return identsym;
             }
         }
-        return -3;
+        return NAME_TOO_LONG_ERR;
     }
 
-    return -4;
+    return INVALID_SYM_ERR;
 
 }
 

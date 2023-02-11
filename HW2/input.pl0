@@ -1,5 +1,5 @@
-var x, y; 
+var x, your; 
 begin
-  y:=3;  
-  x := y + 56; 
+  your:=3;  
+  x1 := your + 56; 
 end.
