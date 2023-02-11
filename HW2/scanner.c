@@ -144,6 +144,7 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
+
 int findSymVal(char *chunk){
 
     for (size_t i = 0; i < symlen; i++)
@@ -228,10 +229,11 @@ int chunkify(char buffer[], char arr[], int arrPointer){
     int index = arrPointer; //track where we're working in the array
     const int init_arrPointer = arrPointer;   //holds where we initially started with the array
 
-    while( !shouldBeIgnored(arr[index]) ){  //runs until an ignorable space
+    //makes space in buffer arr until we land at the index of an ignorable element
+    while( !shouldBeIgnored(arr[index]) ){
 
 
-        //checks for comments to ignore and then breaks buffer at index after comment
+        //checks for signal to start comment and skips portion of array until end of comment signal
         if (arr[index] == '/' && arr[index + 1] == '*'){
 
             arrPointer = index;
@@ -261,11 +263,9 @@ int chunkify(char buffer[], char arr[], int arrPointer){
                 break;
             }
 
-            else{
-                bufferSize++;
-                index++;
-                break;
-            }
+            bufferSize++;
+            break;
+            
 
         }
 
@@ -290,8 +290,8 @@ int chunkify(char buffer[], char arr[], int arrPointer){
     }
     buffer[bufferSize] = '\0';  //always add terminator to end of strs in c
 
-
-    return index + 1;   //continue to next array element
+    arrPointer = index + 1;
+    return arrPointer;   //continue to next array element
 
 
 }
