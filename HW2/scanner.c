@@ -26,8 +26,16 @@
 
 */
 
+/*  ________________ERROR CODE DOCUMENTATION____________________ 
+        -1 - Identigiers cannot begin with a digit.
+        -2 - Number too long.
+        -3 - Name too long.
+        -4 - Invalid symbols.
+        -5 - The input ends during a comment (i.e. a comment was started but not 
+            fnished when an end-of-file was seen reading from the input file).
 
-
+    ________________WILL BE IMPORTIANT TO SEE NEXT PROJECT_________________
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,17 +46,17 @@
 
 //look in Lecture 5 Lexical Analysis
 
-#define  norw          10         /* number of reserved words */
+#define  norw          14         /* number of reserved words */
 #define  imax       32767       /* maximum integer value */
 #define  cmax          11         /* maximum number of chars for idents */
 #define  strmax       256         /* maximum length of strings */
 #define  ignoresymlen   4          /* length of ignoresym array*/
-#define  ssymlen       16          /*len of special symbol arr*/
-#define  symlen        33
+#define  ssymlen       17          /*len of special symbol arr*/
+#define  symlen        34
 
 typedef enum{
     skipsym = 1, identsym, numbersym, plussym, minussym, 
-    multsym,  slashsym, oddsym, eqsym, neqsym, lessym, leqsym, 
+    multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym, 
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,  
     whilesym, dosym, callsym, constsym, varsym, procsym, writesym, 
@@ -56,31 +64,25 @@ typedef enum{
 }token_type;
 
 /* list of reserved keyword names */
-const char  *word [ ] = { "begin", "end", "if", "then", "while", "do", "call", "read", "write", "else"}; 
+const char  *word [ ] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"}; 
 
 /* list of ignored symbols */
 const char ignoresym [] = { '\n', '\0', ' ', '\t'};
                          
 /* internal representation  of reserved words */
-// int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
+// int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, 
+    //readsym, thensym, varsym, whilesym, writesym};
 
 
 /* list of special symbols such as arithmetic*/
-char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':'};
-char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "", "",",", ";", ".", ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
+char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
 
-
-typedef struct lexeme{
-
-    char *tokenName;
-    int tokenType;
-    int val;
-    struct lexeme *next;
-
-}lexeme;
+char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
+    ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
 
 FILE *f;
+FILE * out;
 
 
 int findSymVal(char *chunk);
@@ -89,18 +91,8 @@ int isSpecialSym(char c);
 char* readProgram(int *arrSize);
 int chunkify(char buffer[], char arr[], int arrPointer);
 int isWord (char *chunk);
-int isNumber (char *chunk);
-int isIdentifier(char *chunk);
-lexeme* tokenize(char *chunk);
-
-
-void printToken(lexeme* t){
-
-    if(t != NULL){
-        printf("Token: %s\n\ttype:%d\n\tval: %d\n", t->tokenName, t->tokenType, t->val);
-    }
-}
-
+int determinNonReserved(char *chunk);
+int tokenize(char *chunk);
 
 int main(int argc, char const *argv[])
 {
@@ -120,60 +112,32 @@ int main(int argc, char const *argv[])
 
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
+    fclose(f);                   //close file here to open a write file
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
 
-    
-    lexeme **tokens = malloc(arrSize * sizeof(lexeme*));  //arr of lexemes 1
-    // tokens[0] = malloc(sizeof(lexeme)); //init first lexeme in arr
+    out = fopen("output.txt", "w");
     
     //tokenize program using a buffer array
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
-        // printf("buffer holds %s indexptr is %d\n", bufferArr, indexPointer);
-
-
-        tokenize(bufferArr);
-
-
-        // printToken(tokens[i]);
-        // printf("%ld\n", i);
-
-        // tokens = realloc(tokens, sizeof(lexeme*) * (i+1));
-
+        
+        int val = tokenize(bufferArr);
+        if (val) {
+            fprintf(out, "%d ", val);
+            if (val == 2 || val == 3){
+                fprintf(out, "%s ", bufferArr);
+            }
+        }
     }
-
-    
-
-     
-    
-
-
-
-
     //clean up
     // free(bufferArr);
     free(charArr);
-    fclose(f);
+    fclose(out);
 
     return 0;
 }
-
-
-lexeme* makeLexNode(char *token, int tokenType, int value){
-
-    lexeme *node = malloc(sizeof(lexeme));
-
-    strcpy(node->tokenName, token);
-    node->tokenType = tokenType;
-    node->val = value;
-    node->next = NULL;
-
-    return node;
-}
-
-
 
 int findSymVal(char *chunk){
 
@@ -228,7 +192,7 @@ char* readProgram(int *arrSize){
         // printf("at index %d adding + 1\n",i);
 
         printf("%c", charArr[i]);
-
+    
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
@@ -236,9 +200,9 @@ char* readProgram(int *arrSize){
             printf("Ran out of memory dude. Gotta exit program\n");
             exit(-1); //exit program with error
         }
-        
+    
         // printf("%c\n", charArr[i - 1]);
-        
+    
         *arrSize = i;
 
     }
@@ -270,8 +234,11 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
             while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
                 arrPointer++;
+                if (arr[arrPointer + 1] == '\0') {
+                    fprintf(out, "-5");
+                    break;
+                }
             }
-            
             arrPointer++;
             index = arrPointer;
             
@@ -282,7 +249,8 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
         //if the character we landed on is a special sym we break the chunk here
         if (isSpecialSym(arr[index])){
-            if( arr[index] == ':' && arr[index+1] == '='){
+            if( (arr[index] == ':' && arr[index+1] == '=') || (arr[index] == '!' && arr[index+1] == '=') 
+                || (arr[index] == '<' && arr[index+1] == '=') || (arr[index] == '>' && arr[index+1] == '=')){
                 bufferSize += 2;
                 index++;
                 break;
@@ -332,7 +300,7 @@ int isWord (char *chunk){
     for (size_t i = 0; i < norw; i++)
     {
         if( !strcmp(chunk, word[i]) ){
-            return i;
+            return i + 1; // +1 so that const does not get looked over in the if statemnt for rtn 0 
         }
     }
 
@@ -342,82 +310,49 @@ int isWord (char *chunk){
 }
 
 /*
-    checks if chunk is a number
-    1 if yes, index where it isnt if not
+    determins if the chunk is an ident, int, or invalid. returns 2 for ident, 3 for int,
+    -1 for non num in int, -2 for int too long, -3 for name too long, -4 for invalid symbol
 */
-int isNumber (char *chunk){
-
-    int len = strlen(chunk);
-    for (size_t i = 0; i < len; i++)
-    {
-        if( !isdigit(chunk[i]) || (chunk[i] == '-' && i > 0) ){   //OR stmnt checks that there isnt a minus sign past the first index
-            return i;
+int determinNonReserved(char *chunk){
+    int i = 1;
+    if (isdigit(chunk[0])){
+        for(i; i <= 5; ++i) {
+            if (chunk[i] == '\0') {
+                return 3;
+            }
+            if (!isdigit(chunk[i])) {
+                return -1;            
+            }
         }
+        return -2;
     }
-    
-    return 1;
+    else if (isalpha(chunk[0])) {
+        for(i; i <= 11; ++i) {
+            if (chunk[i] == '\0') {
+                return 2;
+            }
+        }
+        return -3;
+    }
+
+    return -4;
 
 }
 
-/*
-    if variable starts with number or special sym return 0
-    otherwise return 1
-*/
-int isIdentifier(char *chunk){
+/*Organize word chunks into proper lexeme category*/
+int tokenize(char *chunk){
 
-    if ( isdigit(chunk[0]) || isSpecialSym(chunk[0]) ){
+    if (chunk == NULL || chunk[0] == '\0'){
         return 0;
     }
 
-    return 1;
+    int tokenVal = determinNonReserved(chunk);
 
-}
-
-
-/*Organize word chunks into proper lexeme category*/
-lexeme* tokenize(char *chunk){
-
-    if (chunk == NULL || chunk[0] == '\0'){
-        return NULL;
+    if (isWord(chunk) > 0 || isSpecialSym(chunk[0])){
+        tokenVal = findSymVal(chunk);
     }
 
-    printf("%s\t", chunk);
+    printf("%s\t%d\n", chunk, tokenVal);
 
-    char err[strmax]; //for error messages maybe?
-
-    lexeme* t = NULL;
-
-
-    /*
-        having trouble with begin not getting the proper token type
-        and end not getting a number at all
-    */
-
-    int tokenVal = findSymVal(chunk);
-
-    if (isWord(chunk)){
-        // t = makeLexNode(chunk, tokenVal, tokenVal);
-        printf("\n");
-        return t;
-    }
-
-    //literally just checks for var symbol since its not a keyword ig?
-    else if ( !strcmp(chunk, "var") ){
-        
-    }
-
-    else if( isNumber(chunk) ){
-        tokenVal = numbersym;
-    }
-
-    else if( isIdentifier(chunk) ){
-        tokenVal = identsym;
-    }
-
-
-
-    printf("%d", tokenVal);
-    printf("\n"); //remove this once token type is determined
-
-    return t;
+    return tokenVal;
 }
