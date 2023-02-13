@@ -50,6 +50,7 @@
 #define INT_TOO_LONG_ERR    -2 
 #define NAME_TOO_LONG_ERR   -3
 #define INVALID_SYM_ERR     -4
+#define END_OF_COMMENT_ERR  -5
 
 #define  norw          14       /* number of reserved words */
 #define  imax       32767       /* maximum integer value */
@@ -68,28 +69,29 @@ typedef enum{
     readsym , elsesym
 }token_type;
 
+
+
 /* list of reserved keyword names */
 const char  *word [ ] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"}; 
-
 /* list of ignored symbols */
-const char ignoresym [] = { '\n', '\0', ' ', '\t'};
-                         
-/* internal representation  of reserved words */
-// int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym, oddsym, procsym, 
-    //readsym, thensym, varsym, whilesym, writesym};
-
-
+const char ignoresym [] = { '\n', '\0', ' ', '\t'};                         
 /* list of special symbols such as arithmetic*/
 char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
-
+/*master list of all symbols or keywords, matching index with token_type enum*/
 char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
+
+
 
 
 FILE *f;
 FILE * out;
 
 
+
+
+/*---------Function Declarations-----------------*/
+//
 int findSymVal(char *chunk);
 int shouldBeIgnored(char c);
 int isSpecialSym(char c);
@@ -98,17 +100,12 @@ int chunkify(char buffer[], char arr[], int arrPointer);
 int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
+/*-----------------------------------------------*/
+
+
 
 int main(int argc, char const *argv[])
 {
-
-    // ssym[plussym]=  ('+');  ssym[minussym]=    ('-');  ssym[multsym]=      ('*');
-    // ssym[slashsym]= ('/');  ssym[lparentsym]=  ('(');  ssym[rparentsym]=   (')'); 
-    // ssym[eqsym]=    ('=');  ssym[commasym]=    (',');  ssym[periodsym]=    ('.'); 
-    // ssym[neqsym]=   ('#');  ssym[lessym]=      ('<');  ssym[gtrsym]=       ('>'); 
-    // ssym[leqsym]=   ('$');  ssym[geqsym]=      ('%');  ssym[semicolonsym]= (';');
-
-
 
     f = fopen(argv[1], "r");
 
@@ -136,8 +133,9 @@ int main(int argc, char const *argv[])
             }
         }
     }
+
+
     //clean up
-    // free(bufferArr);
     free(charArr);
     fclose(out);
 
@@ -145,6 +143,7 @@ int main(int argc, char const *argv[])
 }
 
 
+/*returns index of symbol found from masterlist*/
 int findSymVal(char *chunk){
 
     for (size_t i = 0; i < symlen; i++)
@@ -183,7 +182,7 @@ int isSpecialSym(char c){
 }
 
 
-/* reads pl0 input file and puts every character into one huge array and updates the array size
+/* reads pl0 input file and puts every character into one huge array and updates array size
     returns a char array with everything from file
 */
 char* readProgram(int *arrSize){
@@ -195,7 +194,6 @@ char* readProgram(int *arrSize){
     for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
-        // printf("at index %d adding + 1\n",i);
 
         printf("%c", charArr[i]);
     
@@ -207,9 +205,7 @@ char* readProgram(int *arrSize){
             exit(-1); //exit program with error
         }
     
-        // printf("%c\n", charArr[i - 1]);
-    
-        *arrSize = i;
+        (*arrSize) = i;
 
     }
     printf("\n\n");
@@ -242,7 +238,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
                 arrPointer++;
                 if (arr[arrPointer + 1] == '\0') {
-                    fprintf(out, "-5");
+                    fprintf(out, "%d", END_OF_COMMENT_ERR);
                     break;
                 }
             }
@@ -276,7 +272,6 @@ int chunkify(char buffer[], char arr[], int arrPointer){
         }
 
 
-        // printf("arr %c\n", arr[index]);
         bufferSize++;
         index++;
     }
@@ -290,11 +285,12 @@ int chunkify(char buffer[], char arr[], int arrPointer){
     }
     buffer[bufferSize] = '\0';  //always add terminator to end of strs in c
 
+
     arrPointer = index + 1;
     return arrPointer;   //continue to next array element
-
-
 }
+
+
 
 /*
     checks if chunk is a keyword
@@ -310,8 +306,6 @@ int isWord (char *chunk){
     }
 
     return 0;
-    
-
 }
 
 
@@ -345,6 +339,7 @@ int determinNonReserved(char *chunk){
     return INVALID_SYM_ERR;
 
 }
+
 
 /*Organize word chunks into proper lexeme category*/
 int tokenize(char *chunk){

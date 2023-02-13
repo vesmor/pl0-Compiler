@@ -1,5 +1,5 @@
 var x, your; 
 begin
   your:=3;  
-  x1 := your + 56; 
+  x1 := your + 56; /**
 end.
