@@ -5,27 +5,6 @@
     Brandon Sheridan
 */ 
 
-
-
-/*
-    TODO:
-        - lol idk ???
-
-        -Error handling 
-            1. Variable does not start with letter. 
-            2. Number too long. 
-            3. Name too long. 
-            4. Invalid symbols. 
-
-        -"parsing" thru the code and seperating each thing into tokens
-            - everything has been broken down into chunks but next it just needs to be organized
-                into the proper tokenType
-            - While getting organized it needs to make sure errors get thrown when they happen
-            - Gotta revisit the chunkify function because some words are getting cut off
-            - "begin" and "end" keyword get the wrong token# or none at all for some reason?
-
-*/
-
 /*  ________________ERROR CODE DOCUMENTATION____________________ 
         -1 - Identigiers cannot begin with a digit.
         -2 - Number too long.
@@ -53,7 +32,6 @@
 #define END_OF_COMMENT_ERR  -5
 
 #define  norw          14       /* number of reserved words */
-#define  imax       32767       /* maximum integer value */
 #define  cmax          11       /* maximum number of chars for idents */
 #define  strmax       256       /* maximum length of strings */
 #define  ignoresymlen   4       /* length of ignoresym array*/
@@ -80,7 +58,6 @@ char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/'
 /*master list of all symbols or keywords, matching index with token_type enum*/
 char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
-
 
 
 
