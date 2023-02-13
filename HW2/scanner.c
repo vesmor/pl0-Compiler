@@ -159,7 +159,9 @@ int isSpecialSym(char c){
 }
 
 
-/* reads pl0 input file and puts every character into one huge array and updates array size
+/* 
+    reads pl0 input file and puts every character into one huge array;
+    updates array size variable to proper value
     returns a char array with everything from file
 */
 char* readProgram(int *arrSize){
