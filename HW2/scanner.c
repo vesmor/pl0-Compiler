@@ -93,6 +93,7 @@ int main(int argc, char const *argv[])
 {
 
     f = fopen(argv[1], "r");
+    out = fopen("output.txt", "w");
 
     int arrSize;    
     int indexPointer = 0;   //keeps track of index we're reading from from array
@@ -100,14 +101,12 @@ int main(int argc, char const *argv[])
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
     lexeme *lex_list = malloc(sizeof(lexeme));
-    fclose(f);                   //close file here to open a write file
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
 
-    out = fopen("output.txt", "w");
     
     //tokenize program using a buffer array
-    size_t i = 0;   //also helps track size of lex_list
+    size_t i;   //also helps track size of lex_list
     for (i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
         
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
@@ -116,17 +115,23 @@ int main(int argc, char const *argv[])
 
         int val = tokenize(bufferArr);
         if (val) {
+            int len = strlen(bufferArr);
+            // printf("len is %d\n", len);
+            lex_list[i].token_name = malloc(len * sizeof(char));
             strcpy(lex_list[i].token_name, bufferArr);
             lex_list[i].token_type = val;
         }
     }
     
-    printf("i is %ld\n", i);
+    printf("Lexeme List:\n");
     printLexemes(lex_list, i);
+    printf("\n");
 
 
     //clean up
+    free(lex_list);
     free(charArr);
+    fclose(f);
     fclose(out);
 
     return 0;
@@ -355,7 +360,11 @@ void printLexemes(lexeme *list, size_t size){
 
     for (size_t i = 0; i < size; i++)
     {
-        printf("%d ", list[i].token_type);
+        if(list[i].token_name == NULL){
+            continue;
+        }  
+
+        printf("|%d ", list[i].token_type);
         fprintf(out, "%d ", list[i].token_type);
         if (list[i].token_type == identsym || list[i].token_type == numbersym){
             printf("%s ", list[i].token_name);
