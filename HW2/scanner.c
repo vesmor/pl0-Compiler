@@ -289,8 +289,6 @@ int chunkify(char buffer[], char arr[], int arrPointer){
     }
     
 
-    // printf("buffersize %d\n", bufferSize);
-
     //copying the valid word chunk from arr to buffer
     for(int k = 0; k < bufferSize; k++){
         buffer[k] = arr[init_arrPointer + k];
