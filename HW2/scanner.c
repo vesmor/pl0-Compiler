@@ -3,6 +3,8 @@
     COP3402 Euripedes Montagne
     Romsev Charles
     Brandon Sheridan
+
+    February 14 2023
 */ 
 
 /*  ________________ERROR CODE DOCUMENTATION____________________ 
@@ -247,7 +249,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             arrPointer = index;
             arrPointer += 2;
 
-            while ( !(arr[arrPointer] == '*' && arr[arrPointer + 1] == '/') || (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/')){
+            while ( !(arr[arrPointer] == '*' && arr[arrPointer + 1] == '/') ){
 
                 arrPointer++;
                 if (arr[arrPointer + 1] == '\0'){
@@ -364,7 +366,6 @@ int tokenize(char *chunk){
         tokenVal = findSymVal(chunk);
     }
 
-    // printf("%s\t%d\n", chunk, tokenVal);
 
     return tokenVal;
 }
