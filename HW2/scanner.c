@@ -120,7 +120,7 @@ int main(int argc, char const *argv[])
         if(indexPointer == END_OF_COMMENT_ERR){
             strcpy(bufferArr, "EOCErr");
             val = END_OF_COMMENT_ERR;
-            indexPointer = arrSize + 1;
+            indexPointer = arrSize + 1; //end processing loop after executing these last lines
         
         }
 
@@ -129,7 +129,6 @@ int main(int argc, char const *argv[])
             printf("%s\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
-            // printf("len is %d\n", len);
             lex_list[i].token_name = malloc(len * sizeof(char));
             strcpy(lex_list[i].token_name, bufferArr);
             lex_list[i].token_type = val;
