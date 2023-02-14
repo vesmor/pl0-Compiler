@@ -108,21 +108,23 @@ int main(int argc, char const *argv[])
     //tokenize program using a buffer array
     size_t i;   //also helps track size of lex_list
     for (i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
-        
+
+
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
         
         lex_list = realloc(lex_list, (i+1) * sizeof(lexeme));
     
         int val = tokenize(bufferArr);
 
-        if (val) {
+        //weeds out EOC error
+        if(indexPointer == END_OF_COMMENT_ERR){
+            strcpy(bufferArr, "EOCErr");
+            val = END_OF_COMMENT_ERR;
+            indexPointer = arrSize + 1;
+        
+        }
 
-            
-            if(indexPointer == END_OF_COMMENT_ERR){
-                strcpy(bufferArr, "EndOFCmntErr");
-                val = END_OF_COMMENT_ERR;
-                indexPointer = arrSize;
-            }
+        if (val) {
 
             printf("%s\t%d\n", bufferArr, val);
 
@@ -246,9 +248,10 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             arrPointer = index;
             arrPointer += 2;
 
-            while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
+            while ( !(arr[arrPointer] == '*' && arr[arrPointer + 1] == '/') || (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/')){
+
                 arrPointer++;
-                if (arr[arrPointer] == '\0') {
+                if (arr[arrPointer + 1] == '\0'){
                     return END_OF_COMMENT_ERR;
                 }
             }
