@@ -48,6 +48,13 @@ typedef enum{
 }token_type;
 
 
+typedef struct lexeme{
+
+    char *token_name;
+    int token_type;
+
+}lexeme;
+
 
 /* list of reserved keyword names */
 const char  *word [ ] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"}; 
@@ -77,6 +84,7 @@ int chunkify(char buffer[], char arr[], int arrPointer);
 int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
+void printLexemes(lexeme *list, size_t size);
 /*-----------------------------------------------*/
 
 
@@ -85,35 +93,57 @@ int main(int argc, char const *argv[])
 {
 
     f = fopen(argv[1], "r");
+    out = fopen("output.txt", "w");
 
     int arrSize;    
     int indexPointer = 0;   //keeps track of index we're reading from from array
 
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
-    fclose(f);                   //close file here to open a write file
+    lexeme *lex_list = malloc(sizeof(lexeme));
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
 
-    out = fopen("output.txt", "w");
     
     //tokenize program using a buffer array
-    for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
-        
+    size_t i;   //also helps track size of lex_list
+    for (i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
+
+
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
         
+        lex_list = realloc(lex_list, (i+1) * sizeof(lexeme));
+    
         int val = tokenize(bufferArr);
+
+        //weeds out EOC error
+        if(indexPointer == END_OF_COMMENT_ERR){
+            strcpy(bufferArr, "EOCErr");
+            val = END_OF_COMMENT_ERR;
+            indexPointer = arrSize + 1; //end processing loop after executing these last lines
+        
+        }
+
         if (val) {
-            fprintf(out, "%d ", val);
-            if (val == identsym || val == numbersym){
-                fprintf(out, "%s ", bufferArr);
-            }
+
+            printf("%s\t%d\n", bufferArr, val);
+
+            int len = strlen(bufferArr);
+            lex_list[i].token_name = malloc(len * sizeof(char));
+            strcpy(lex_list[i].token_name, bufferArr);
+            lex_list[i].token_type = val;
         }
     }
+    
+    printf("Lexeme List:\n");
+    printLexemes(lex_list, i);
+    printf("\n");
 
 
     //clean up
+    free(lex_list);
     free(charArr);
+    fclose(f);
     fclose(out);
 
     return 0;
@@ -184,9 +214,12 @@ char* readProgram(int *arrSize){
             exit(-1); //exit program with error
         }
     
-        (*arrSize) = i;
+        (*arrSize) = i + 1;
 
     }
+    charArr = realloc(charArr, sizeof(char) * (*arrSize));
+    charArr[*arrSize] = '\0'; //signify end of arr
+
     printf("\n\n");
 
     return charArr;
@@ -214,11 +247,11 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             arrPointer = index;
             arrPointer += 2;
 
-            while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
+            while ( !(arr[arrPointer] == '*' && arr[arrPointer + 1] == '/') || (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/')){
+
                 arrPointer++;
-                if (arr[arrPointer + 1] == '\0') {
-                    fprintf(out, "%d", END_OF_COMMENT_ERR);
-                    break;
+                if (arr[arrPointer + 1] == '\0'){
+                    return END_OF_COMMENT_ERR;
                 }
             }
             arrPointer++;
@@ -255,8 +288,6 @@ int chunkify(char buffer[], char arr[], int arrPointer){
         index++;
     }
     
-
-    // printf("buffersize %d\n", bufferSize);
 
     //copying the valid word chunk from arr to buffer
     for(int k = 0; k < bufferSize; k++){
@@ -333,7 +364,27 @@ int tokenize(char *chunk){
         tokenVal = findSymVal(chunk);
     }
 
-    printf("%s\t%d\n", chunk, tokenVal);
+    // printf("%s\t%d\n", chunk, tokenVal);
 
     return tokenVal;
+}
+
+
+void printLexemes(lexeme *list, size_t size){
+
+    for (size_t i = 0; i < size; i++)
+    {
+        if(list[i].token_name == NULL || list[i].token_type == 0){
+            continue;
+        }  
+
+        printf("|%d ", list[i].token_type);
+        fprintf(out, "%d ", list[i].token_type);
+        if (list[i].token_type == identsym || list[i].token_type == numbersym){
+            printf("%s ", list[i].token_name);
+            fprintf(out, "%s ", list[i].token_name);
+        }
+    }
+    
+
 }
