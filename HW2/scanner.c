@@ -112,9 +112,20 @@ int main(int argc, char const *argv[])
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
         
         lex_list = realloc(lex_list, (i+1) * sizeof(lexeme));
-
+    
         int val = tokenize(bufferArr);
+
         if (val) {
+
+            
+            if(indexPointer == END_OF_COMMENT_ERR){
+                strcpy(bufferArr, "EndOFCmntErr");
+                val = END_OF_COMMENT_ERR;
+                indexPointer = arrSize;
+            }
+
+            printf("%s\t%d\n", bufferArr, val);
+
             int len = strlen(bufferArr);
             // printf("len is %d\n", len);
             lex_list[i].token_name = malloc(len * sizeof(char));
@@ -202,9 +213,12 @@ char* readProgram(int *arrSize){
             exit(-1); //exit program with error
         }
     
-        (*arrSize) = i;
+        (*arrSize) = i + 1;
 
     }
+    charArr = realloc(charArr, sizeof(char) * (*arrSize));
+    charArr[*arrSize] = '\0'; //signify end of arr
+
     printf("\n\n");
 
     return charArr;
@@ -234,9 +248,8 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
             while (arr[arrPointer] != '*' && arr[arrPointer + 1] != '/'){
                 arrPointer++;
-                if (arr[arrPointer + 1] == '\0') {
-                    fprintf(out, "%d", END_OF_COMMENT_ERR);
-                    break;
+                if (arr[arrPointer] == '\0') {
+                    return END_OF_COMMENT_ERR;
                 }
             }
             arrPointer++;
@@ -351,16 +364,17 @@ int tokenize(char *chunk){
         tokenVal = findSymVal(chunk);
     }
 
-    printf("%s\t%d\n", chunk, tokenVal);
+    // printf("%s\t%d\n", chunk, tokenVal);
 
     return tokenVal;
 }
+
 
 void printLexemes(lexeme *list, size_t size){
 
     for (size_t i = 0; i < size; i++)
     {
-        if(list[i].token_name == NULL){
+        if(list[i].token_name == NULL || list[i].token_type == 0){
             continue;
         }  
 
