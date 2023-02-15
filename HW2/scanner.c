@@ -102,7 +102,7 @@ int main(int argc, char const *argv[])
 
     char *charArr = readProgram(&arrSize);  //process file into one big array
     char bufferArr[strmax];     //used to help seperate into tokens
-    lexeme *lex_list = malloc(sizeof(lexeme));
+    lexeme *lex_list = NULL;
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
 
