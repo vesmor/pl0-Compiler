@@ -105,6 +105,7 @@ int main(int argc, char const *argv[])
     lexeme *lex_list = NULL;
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
+    fprintf(out, "Lexeme Table:\n\nlexeme\ttoken type\n");
 
     
     //tokenize program using a buffer array
@@ -129,6 +130,7 @@ int main(int argc, char const *argv[])
         if (val) {
 
             printf("%s\t%d\n", bufferArr, val);
+            fprintf(out, "%s\t\t\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
             lex_list[i].token_name = malloc(len * sizeof(char));
@@ -138,7 +140,10 @@ int main(int argc, char const *argv[])
     }
     
     printf("Lexeme List:\n");
+    fprintf(out, "Lexeme List:\n");
+    
     printLexemes(lex_list, i);
+
     printf("\n");
 
 
@@ -199,20 +204,24 @@ int isSpecialSym(char c){
 char* readProgram(int *arrSize){
 
     printf("Source Program:\n");
+    fprintf(out, "Source Program:\n");
 
     char *charArr = (char *) malloc(1 * sizeof(char));
-    // int arrSize;
+
     for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
 
         printf("%c", charArr[i]);
+        fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
             free(charArr);
             printf("Ran out of memory dude. Gotta exit program\n");
+            fprintf(out, "Ran out of memory dude. Gotta exit program\n");
+            fclose(out);
             exit(-1); //exit program with error
         }
     
@@ -223,6 +232,7 @@ char* readProgram(int *arrSize){
     charArr[*arrSize] = '\0'; //signify end of arr
 
     printf("\n\n");
+    fprintf(out, "\n\n");
 
     return charArr;
 }
