@@ -130,7 +130,7 @@ int main(int argc, char const *argv[])
         if (val) {
 
             printf("%s\t%d\n", bufferArr, val);
-            fprintf(out, "%s\t\t\t%d\n", bufferArr, val);
+            fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
             lex_list[i].token_name = malloc(len * sizeof(char));
@@ -148,6 +148,10 @@ int main(int argc, char const *argv[])
 
 
     //clean up
+    for (size_t index = 0; index < i; index++)
+    {
+        free(lex_list[index].token_name);
+    }
     free(lex_list);
     free(charArr);
     fclose(f);
