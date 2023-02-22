@@ -18,12 +18,7 @@
     ________________WILL BE IMPORTIANT TO SEE NEXT PROJECT_________________
 */
 
-/*
-   TODO: add the keywords
-     else
-     call
-     procedure
-*/
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,12 +35,13 @@
 #define INVALID_SYM_ERR     -4
 #define END_OF_COMMENT_ERR  -5
 
-#define  norw          14       /* number of reserved words */
-#define  cmax          11       /* maximum number of chars for idents */
-#define  strmax       256       /* maximum length of strings */
-#define  ignoresymlen   4       /* length of ignoresym array*/
-#define  ssymlen       17       /*len of special symbol arr*/
-#define  symlen        34       /*master sym array length*/
+#define  norw                    14       /* number of reserved words */
+#define  cmax                    11       /* maximum number of chars for idents */
+#define  strmax                 256       /* maximum length of strings */
+#define  ignoresymlen             4       /* length of ignoresym array*/
+#define  ssymlen                 17       /*len of special symbol arr*/
+#define  symlen                  34       /*master sym array length*/
+#define  MAX_SYMBOL_TABLE_SIZE  500
 
 typedef enum{
     skipsym = 1, identsym, numbersym, plussym, minussym, 
@@ -64,6 +60,21 @@ typedef struct lexeme{
 
 }lexeme;
 
+/*
+    For constants, you must store kind, name and value. 
+    For variables, you must store kind, name, L and M.
+*/
+typedef struct symbol{
+
+    int kind;       //ex: const = 1, varsym = 29
+    char name[12];  //name like variable is variables name
+    int val;        //literal value of a number
+    int level;      //lexographical level
+    int addr;       //M address
+
+}symbol;
+
+
 
 /* list of reserved keyword names */
 const char  *word [ ] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"}; 
@@ -77,7 +88,7 @@ char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", 
 
 
 
-FILE *f;
+FILE *in;
 FILE * out;
 
 
@@ -101,8 +112,13 @@ void printLexemes(lexeme *list, size_t size);
 int main(int argc, char const *argv[])
 {
 
-    f = fopen(argv[1], "r");
-    out = fopen("output.txt", "w");
+    in = fopen(argv[1], "r");
+    out = fopen("HW3/output.txt", "w");
+
+    if(in == NULL){
+        printf("No input file provided \n");
+        return EXIT_FAILURE;
+    }
 
     int arrSize;    
     int indexPointer = 0;   //keeps track of index we're reading from from array
@@ -112,7 +128,7 @@ int main(int argc, char const *argv[])
     lexeme *lex_list = NULL;
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
-    fprintf(out, "Lexeme Table:\n\nlexeme\ttoken type\n");
+    // fprintf(out, "Lexeme Table:\n\nlexeme\ttoken type\n");
 
     
     //tokenize program using a buffer array
@@ -137,7 +153,7 @@ int main(int argc, char const *argv[])
         if (val) {
 
             printf("%s\t%d\n", bufferArr, val);
-            fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
+            // fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
             lex_list[i].token_name = malloc(len * sizeof(char));
@@ -147,11 +163,24 @@ int main(int argc, char const *argv[])
     }
     
     printf("Lexeme List:\n");
-    fprintf(out, "Lexeme List:\n");
+    // fprintf(out, "Lexeme List:\n");
     
     printLexemes(lex_list, i);
 
     printf("\n");
+
+    //________________________________END OF LEXXING SECTION____________________________________________//
+    //                                     Time to parse                                                //
+
+    
+    fclose(in);
+    fclose(out);
+    in = NULL;
+    in = fopen("output.txt", "r");
+
+
+
+
 
 
     //clean up
@@ -161,7 +190,7 @@ int main(int argc, char const *argv[])
     }
     free(lex_list);
     free(charArr);
-    fclose(f);
+    fclose(in);
     fclose(out);
 
     return 0;
@@ -215,16 +244,16 @@ int isSpecialSym(char c){
 char* readProgram(int *arrSize){
 
     printf("Source Program:\n");
-    fprintf(out, "Source Program:\n");
+    // fprintf(out, "Source Program:\n");
 
     char *charArr = (char *) malloc(1 * sizeof(char));
 
-    for (int i = 0; fscanf(f, "%c", &charArr[i]) > 0; ){    //incrementor in statement
+    for (int i = 0; fscanf(in, "%c", &charArr[i]) > 0; ){    //incrementor in statement
 
 
 
         printf("%c", charArr[i]);
-        fprintf(out, "%c", charArr[i]);
+        // fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
         charArr = realloc(charArr, sizeof(char) * (i + 1));
@@ -243,7 +272,7 @@ char* readProgram(int *arrSize){
     charArr[*arrSize] = '\0'; //signify end of arr
 
     printf("\n\n");
-    fprintf(out, "\n\n");
+    // fprintf(out, "\n\n");
 
     return charArr;
 }
