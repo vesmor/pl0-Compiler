@@ -101,6 +101,8 @@ void printLexemes(lexeme *list, size_t size);
 int main(int argc, char const *argv[])
 {
 
+    printf("I am here!\n");
+
     f = fopen(argv[1], "r");
     out = fopen("output.txt", "w");
 
