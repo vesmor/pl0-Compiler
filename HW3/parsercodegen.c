@@ -105,6 +105,7 @@ int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
+int symboltablecheck(symbol *table ,char *target);
 /*-----------------------------------------------*/
 
 
@@ -132,8 +133,8 @@ int main(int argc, char const *argv[])
 
     
     //tokenize program using a buffer array
-    size_t i;   //also helps track size of lex_list
-    for (i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
+    size_t lex_size;   //track size of lex_list
+    for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
 
 
         indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
@@ -147,7 +148,7 @@ int main(int argc, char const *argv[])
             strcpy(bufferArr, "EOCErr");
             val = END_OF_COMMENT_ERR;
             indexPointer = arrSize + 1; //end processing loop after executing these last lines
-        
+            lex_size = i;
         }
 
         if (val) {
@@ -160,12 +161,14 @@ int main(int argc, char const *argv[])
             strcpy(lex_list[i].token_name, bufferArr);
             lex_list[i].token_type = val;
         }
+
+        lex_size = i; //store index for lex_list size
     }
     
     printf("Lexeme List:\n");
     // fprintf(out, "Lexeme List:\n");
     
-    printLexemes(lex_list, i);
+    printLexemes(lex_list, lex_size);
 
     printf("\n");
 
@@ -176,15 +179,21 @@ int main(int argc, char const *argv[])
     fclose(in);
     fclose(out);
     in = NULL;
+    out = NULL;
+
     in = fopen("output.txt", "r");
 
 
+    //now what...
 
+    symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+    
+    // parseTokens(symbol_table);
 
 
 
     //clean up
-    for (size_t index = 0; index < i; index++)
+    for (size_t index = 0; index < lex_size; index++)
     {
         free(lex_list[index].token_name);
     }
@@ -436,6 +445,24 @@ void printLexemes(lexeme *list, size_t size){
             fprintf(out, "%s ", list[i].token_name);
         }
     }
+    
+
+}
+
+/*searches thru symbol table for a target name, returns -1 if not found*/
+int symboltablecheck(symbol *table ,char *target){
+
+    const int NOT_FOUND = -1;
+
+    int size = sizeof(table)/sizeof(symbol);
+    for (size_t index = 0; index < size; index++)
+    {
+        if(strcmp(table[index].name, target)){
+            return index;
+        }
+    }
+
+    return NOT_FOUND;
     
 
 }
