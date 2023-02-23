@@ -235,6 +235,8 @@ int main(int argc, char const *argv[])
         if (token == varsym){
             printf("working in var: %d\n", workingIndex);
             numVars = var_declaration(symbol_table, &workingIndex);
+
+            //TODO: assign proper error messages to errors thrown
             if( numVars == IDENT_ALR_DECLARED_ERR || numVars == IDENTIFIER_EXPECTED_ERR || numVars == SEMICOLON_MISSING_ERR){
                 printf("vars error\n");
             }
