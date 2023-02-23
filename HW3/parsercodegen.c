@@ -78,6 +78,7 @@ typedef struct symbol{
     int val;        //literal value of a number
     int level;      //lexographical level
     int addr;       //M address
+    int mark;
 
 }symbol;
 
@@ -93,6 +94,24 @@ char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/'
 char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
+
+char *err_messages[] =  {
+                            "program must end with period",
+                            "const, var, and read keywords must be followed by identifier",
+                            "symbol name has already been declared",
+                            "constants must be assigned with =",
+                            "constants must be assigned an integer value",
+                            "constant and variable declarations must be followed by a semicolon",
+                            "undeclared identifier",
+                            "only variable values may be altered",
+                            "assignment statements must use :=",
+                            "begin must be followed by end",
+                            "if must be followed by then",
+                            "while must be followed by do",
+                            "condition must contain comparison operator",
+                            "right parenthesis must follow left parenthesis",
+                            "arithmetic equations must contain operands, parentheses, numbers, or symbols"
+                        };
 
 
 FILE *in;
@@ -114,6 +133,9 @@ int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
 int symboltablecheck(symbol *table ,char *target);
 void readTokens(symbol *table, int *tableSize);
+int var_declaration(symbol table[], int *workingIndex);
+symbol initSymObj(int kind, char *name, int val, int level, int addr);
+void printTable(symbol table[], int tableSize);
 /*-----------------------------------------------*/
 
 
@@ -175,11 +197,13 @@ int main(int argc, char const *argv[])
         lex_size = i; //store index for lex_list size
     }
     
+    printf("\n");
     printf("Lexeme List:\n");
     // fprintf(out, "Lexeme List:\n");
     
     printLexemes(lex_list, lex_size);
 
+    printf("\n");
     printf("\n");
 
 
@@ -207,17 +231,23 @@ int main(int argc, char const *argv[])
 
     int token;
     int workingIndex = 0;
+    int numVars;
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
         if (token == varsym){
-            var_declaration(&symbol_table, workingIndex);
+            printf("working in var: %d\n", workingIndex);
+            numVars = var_declaration(symbol_table, &workingIndex);
+            if( numVars == IDENT_ALR_DECLARED_ERR || numVars == IDENTIFIER_EXPECTED_ERR || numVars == SEMICOLON_MISSING_ERR){
+                printf("vars error\n");
+            }
+
         }
 
-        (tableSize)++;
+        (tableSize) = workingIndex;
 
     }
 
-    printTable(symbol_table);
+    printTable(symbol_table, tableSize);
 
 
     
@@ -506,21 +536,24 @@ void readTokens(symbol *table, int *tableSize){
     
 }
 
-int var_declaration(symbol *table, int workingIndex){
+int var_declaration(symbol table[], int *workingIndex){
     
     int numVars = 0;
     int token;
 
     do
     {   
+        char name[12];
+        
         int scanned = fscanf(in, "%d", &token); //how many items got fscanned
+        scanned += fscanf(in, "%s", name);
 
         if(token != identsym || !scanned){
             // identifier expected error
             return IDENTIFIER_EXPECTED_ERR;
         }
         
-        if(symboltablecheck(table, token) != NOT_FOUND){
+        if(symboltablecheck(table, name) != NOT_FOUND){
             // identifier already declared error
             return IDENT_ALR_DECLARED_ERR;
         }
@@ -528,13 +561,16 @@ int var_declaration(symbol *table, int workingIndex){
         numVars++;
         
         //Add to symbol table
-        table[workingIndex].kind = identsym;
-        fscanf(in, "%s", table[workingIndex].name);
-        table[workingIndex].level = 0;
+        symbol newSym = initSymObj(identsym, name, 0, 0, numVars + 2);
+        table[*workingIndex] = newSym;
+        (*workingIndex)++;
 
 
         //get next token and hope its a comma
-        fscanf(in, "%d", &token);
+        scanned = fscanf(in, "%d", &token);
+        if(!scanned){
+            return IDENTIFIER_EXPECTED_ERR;
+        }
 
     }while (token == commasym);
     
@@ -545,7 +581,7 @@ int var_declaration(symbol *table, int workingIndex){
     return numVars;
 }
 
-symbol makeSymObj(int kind, char *name, int val, int level, int addr){
+symbol initSymObj(int kind, char *name, int val, int level, int addr){
 
     symbol s;
     s.kind = kind;
@@ -553,7 +589,22 @@ symbol makeSymObj(int kind, char *name, int val, int level, int addr){
     s.val = val;
     s.level = level;
     s.addr = addr;
+    s.mark = 0;
 
     return s;
+
+}
+
+void printTable(symbol table[], int tableSize){
+
+    printf("table size %d\n", tableSize);
+    printf("Kind | Name       | Value | Level | Address | Mark\n");
+    printf("---------------------------------------------------\n");
+
+    for (size_t i = 0; i < tableSize; i++)
+    {
+        printf("   %d |\t\t%s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+    }
+    
 
 }
