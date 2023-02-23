@@ -30,15 +30,16 @@
 
 //Error signals
 typedef enum errors{
- END_OF_COMMENT_ERR = -8,
- INVALID_SYM_ERR,
- NAME_TOO_LONG_ERR,
- INT_TOO_LONG_ERR, 
- INVALID_INT_ERR,
+    SEMICOLON_MISSING_ERR = -9,
+    END_OF_COMMENT_ERR,
+    INVALID_SYM_ERR,
+    NAME_TOO_LONG_ERR,
+    INT_TOO_LONG_ERR, 
+    INVALID_INT_ERR,
 
- IDENTIFIER_EXPECTED_ERR,
- IDENT_ALR_DECLARED_ERR,
- NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
+    IDENTIFIER_EXPECTED_ERR,
+    IDENT_ALR_DECLARED_ERR,
+    NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
 }errors;
 
 #define  norw                    14       /* number of reserved words */
@@ -73,7 +74,7 @@ typedef struct lexeme{
 typedef struct symbol{
 
     int kind;       //ex: const = 1, varsym = 29
-    char name[12];  //name like variable is variables name
+    char name[12];  //name like str is variables name
     int val;        //literal value of a number
     int level;      //lexographical level
     int addr;       //M address
@@ -205,17 +206,18 @@ int main(int argc, char const *argv[])
     symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 
     int token;
+    int workingIndex = 0;
+    for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
-
-    for (size_t i = 0; fscanf(in, "%d", &symbol_table[i].kind) > 0; i++){
-
-        if (symbol_table[i].kind == varsym){
-            var_declaration(symbol_table);
+        if (token == varsym){
+            var_declaration(&symbol_table, workingIndex);
         }
 
         (tableSize)++;
 
     }
+
+    printTable(symbol_table);
 
 
     
@@ -504,17 +506,16 @@ void readTokens(symbol *table, int *tableSize){
     
 }
 
-int var_declaration(symbol *table){
+int var_declaration(symbol *table, int workingIndex){
     
-    const int NOTHING_SCANNED = 0;
-
     int numVars = 0;
     int token;
 
     do
-    {
-        fscanf(in, "%d", &token);
-        if(token != identsym){
+    {   
+        int scanned = fscanf(in, "%d", &token); //how many items got fscanned
+
+        if(token != identsym || !scanned){
             // identifier expected error
             return IDENTIFIER_EXPECTED_ERR;
         }
@@ -524,10 +525,35 @@ int var_declaration(symbol *table){
             return IDENT_ALR_DECLARED_ERR;
         }
 
+        numVars++;
+        
         //Add to symbol table
+        table[workingIndex].kind = identsym;
+        fscanf(in, "%s", table[workingIndex].name);
+        table[workingIndex].level = 0;
 
-    } while (token == commasym);
+
+        //get next token and hope its a comma
+        fscanf(in, "%d", &token);
+
+    }while (token == commasym);
     
+    if (token != semicolonsym){
+        return SEMICOLON_MISSING_ERR;
+    }
    
     return numVars;
+}
+
+symbol makeSymObj(int kind, char *name, int val, int level, int addr){
+
+    symbol s;
+    s.kind = kind;
+    strcpy(s.name, name);
+    s.val = val;
+    s.level = level;
+    s.addr = addr;
+
+    return s;
+
 }
