@@ -29,18 +29,6 @@
 
 
 //Error signals
-typedef enum errors{
-    SEMICOLON_MISSING_ERR = -9,
-    END_OF_COMMENT_ERR,
-    INVALID_SYM_ERR,
-    NAME_TOO_LONG_ERR,
-    INT_TOO_LONG_ERR, 
-    INVALID_INT_ERR,
-
-    IDENTIFIER_EXPECTED_ERR,
-    IDENT_ALR_DECLARED_ERR,
-    NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
-}errors;
 
 #define  norw                    14       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
@@ -95,7 +83,36 @@ char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
 
-char *err_messages[] =  {
+typedef enum errors{
+
+    //Scanner Errors
+    END_OF_COMMENT_ERR = -20,
+    NAME_TOO_LONG_ERR,
+    INT_TOO_LONG_ERR, 
+    INVALID_INT_ERR,
+    INVALID_SYM_ERR,
+
+    //Parser Errors
+    ARITHMETIC_ERR = -15,
+    INCOMPLETE_PARENTHEIS_ERR,
+    NEEDS_COMPARE_ERR,
+    DO_MISSING_ERR,
+    THEN_MISSING_ERR,
+    END_MISSING_ERR,
+    ASSGN_MISSING_ERR,
+    ILLEGAL_CONST_CHANGE_ERR,
+    UNDECLARED_IDENT_ERR,
+    SEMICOLON_MISSING_ERR, 
+    CONST_NOT_INT_ERR, 
+    CONST_NEEDS_EQ_ERR, 
+    IDENT_ALR_DECLARED_ERR, 
+    IDENTIFIER_EXPECTED_ERR, 
+    MISSING_PERIOD_ERR, 
+
+    //General errors
+    NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
+}errors;
+const char *err_messages[] =  {
                             "program must end with period",
                             "const, var, and read keywords must be followed by identifier",
                             "symbol name has already been declared",
@@ -136,6 +153,7 @@ void readTokens(symbol *table, int *tableSize);
 int var_declaration(symbol table[], int *workingIndex);
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
+void emitError(int errorSignal);
 /*-----------------------------------------------*/
 
 
@@ -233,12 +251,12 @@ int main(int argc, char const *argv[])
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
         if (token == varsym){
-            printf("working in var: %d\n", workingIndex);
+
             numVars = var_declaration(symbol_table, &workingIndex);
 
             //TODO: assign proper error messages to errors thrown
-            if( numVars == IDENT_ALR_DECLARED_ERR || numVars == IDENTIFIER_EXPECTED_ERR || numVars == SEMICOLON_MISSING_ERR){
-                printf("vars error\n");
+            if( numVars < 0 ){  //all error signals are negative numbers
+                emitError(numVars);
             }
 
         }
@@ -535,6 +553,11 @@ void readTokens(symbol *table, int *tableSize){
     
 }
 
+/*
+    Function that for when a "var" is about to be declared
+    returns number of vars
+    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
+*/
 int var_declaration(symbol table[], int *workingIndex){
     
     int numVars = 0;
@@ -603,5 +626,13 @@ void printTable(symbol table[], int tableSize){
         printf("   %d |\t\t%s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
     
+}
 
+/*Emit error corresponding to error signal passed by */
+void emitError(int errorSignal){
+
+    errorSignal = abs(errorSignal) - 1;
+
+    printf("%s\n", err_messages[errorSignal]);
+    
 }
