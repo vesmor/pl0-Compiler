@@ -1,6 +1,6 @@
 *.out
 *.py
-main/
+main
 *.code-workspace
 HW2/example.c
-output.txt
+*.txt

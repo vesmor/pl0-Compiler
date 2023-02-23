@@ -43,7 +43,7 @@
 #define  symlen                  34       /*master sym array length*/
 #define  MAX_SYMBOL_TABLE_SIZE  500
 
-typedef enum{
+typedef enum token_type{
     skipsym = 1, identsym, numbersym, plussym, minussym, 
     multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym, 
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
@@ -106,6 +106,7 @@ int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
 int symboltablecheck(symbol *table ,char *target);
+void readTokens(symbol *table, int *tableSize);
 /*-----------------------------------------------*/
 
 
@@ -113,8 +114,10 @@ int symboltablecheck(symbol *table ,char *target);
 int main(int argc, char const *argv[])
 {
 
+    char tokenFileName[] = "HW3/tokens.txt";
+
     in = fopen(argv[1], "r");
-    out = fopen("HW3/output.txt", "w");
+    out = fopen(tokenFileName, "w");
 
     if(in == NULL){
         printf("No input file provided \n");
@@ -172,6 +175,7 @@ int main(int argc, char const *argv[])
 
     printf("\n");
 
+
     //________________________________END OF LEXXING SECTION____________________________________________//
     //                                     Time to parse                                                //
 
@@ -181,15 +185,34 @@ int main(int argc, char const *argv[])
     in = NULL;
     out = NULL;
 
-    in = fopen("output.txt", "r");
+    in = fopen("HW3/tokens.txt", "r");
+
+    if(in == NULL){
+        perror("File not found");
+        return EXIT_FAILURE;
+    }
 
 
     //now what...
 
+    int tableSize = 0; //symbol table size
     symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
-    
-    // parseTokens(symbol_table);
 
+    int token;
+
+
+    for (size_t i = 0; fscanf(in, "%d", &symbol_table[i].kind) > 0; i++){
+
+        if (symbol_table[i].kind == varsym){
+            var_declaration();
+        }
+
+        (tableSize)++;
+
+    }
+
+
+    
 
 
     //clean up
@@ -199,8 +222,8 @@ int main(int argc, char const *argv[])
     }
     free(lex_list);
     free(charArr);
-    fclose(in);
-    fclose(out);
+    // fclose(in);
+    // fclose(out);
 
     return 0;
 }
@@ -465,4 +488,22 @@ int symboltablecheck(symbol *table ,char *target){
     return NOT_FOUND;
     
 
+}
+
+/*read tokens from file and inserts into symbol table struct, update table size*/
+void readTokens(symbol *table, int *tableSize){
+
+
+
+    // printf("table size %d\n", *tableSize);
+    
+}
+
+int var_declaration(){
+    
+    int numVars = 0;
+
+    // if(sym->kind)
+
+    return numVars;
 }
