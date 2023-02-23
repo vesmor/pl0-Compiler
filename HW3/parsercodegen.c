@@ -161,7 +161,6 @@ int main(int argc, char const *argv[])
     lexeme *lex_list = NULL;
 
     printf("Lexeme Table:\n\nlexeme\ttoken type\n");
-    // fprintf(out, "Lexeme Table:\n\nlexeme\ttoken type\n");
 
     
     //tokenize program using a buffer array
@@ -199,7 +198,6 @@ int main(int argc, char const *argv[])
     
     printf("\n");
     printf("Lexeme List:\n");
-    // fprintf(out, "Lexeme List:\n");
     
     printLexemes(lex_list, lex_size);
 
@@ -342,7 +340,6 @@ char* readProgram(int *arrSize){
     charArr[*arrSize] = '\0'; //signify end of arr
 
     printf("\n\n");
-    // fprintf(out, "\n\n");
 
     return charArr;
 }
@@ -549,12 +546,10 @@ int var_declaration(symbol table[], int *workingIndex){
         scanned += fscanf(in, "%s", name);
 
         if(token != identsym || !scanned){
-            // identifier expected error
             return IDENTIFIER_EXPECTED_ERR;
         }
         
         if(symboltablecheck(table, name) != NOT_FOUND){
-            // identifier already declared error
             return IDENT_ALR_DECLARED_ERR;
         }
 
