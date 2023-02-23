@@ -29,11 +29,17 @@
 
 
 //Error signals
-#define INVALID_INT_ERR     -1
-#define INT_TOO_LONG_ERR    -2 
-#define NAME_TOO_LONG_ERR   -3
-#define INVALID_SYM_ERR     -4
-#define END_OF_COMMENT_ERR  -5
+typedef enum errors{
+ END_OF_COMMENT_ERR = -8,
+ INVALID_SYM_ERR,
+ NAME_TOO_LONG_ERR,
+ INT_TOO_LONG_ERR, 
+ INVALID_INT_ERR,
+
+ IDENTIFIER_EXPECTED_ERR,
+ IDENT_ALR_DECLARED_ERR,
+ NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
+}errors;
 
 #define  norw                    14       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
@@ -204,7 +210,7 @@ int main(int argc, char const *argv[])
     for (size_t i = 0; fscanf(in, "%d", &symbol_table[i].kind) > 0; i++){
 
         if (symbol_table[i].kind == varsym){
-            var_declaration();
+            var_declaration(symbol_table);
         }
 
         (tableSize)++;
@@ -475,7 +481,6 @@ void printLexemes(lexeme *list, size_t size){
 /*searches thru symbol table for a target name, returns -1 if not found*/
 int symboltablecheck(symbol *table ,char *target){
 
-    const int NOT_FOUND = -1;
 
     int size = sizeof(table)/sizeof(symbol);
     for (size_t index = 0; index < size; index++)
@@ -499,11 +504,30 @@ void readTokens(symbol *table, int *tableSize){
     
 }
 
-int var_declaration(){
+int var_declaration(symbol *table){
     
+    const int NOTHING_SCANNED = 0;
+
     int numVars = 0;
+    int token;
 
-    // if(sym->kind)
+    do
+    {
+        fscanf(in, "%d", &token);
+        if(token != identsym){
+            // identifier expected error
+            return IDENTIFIER_EXPECTED_ERR;
+        }
+        
+        if(symboltablecheck(table, token) != NOT_FOUND){
+            // identifier already declared error
+            return IDENT_ALR_DECLARED_ERR;
+        }
 
+        //Add to symbol table
+
+    } while (token == commasym);
+    
+   
     return numVars;
 }
