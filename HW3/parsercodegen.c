@@ -30,7 +30,7 @@
 
 //Error signals
 
-#define  norw                    14       /* number of reserved words */
+#define  norw                    12       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
 #define  strmax                 256       /* maximum length of strings */
 #define  ignoresymlen             4       /* length of ignoresym array*/
@@ -66,14 +66,14 @@ typedef struct symbol{
     int val;        //literal value of a number
     int level;      //lexographical level
     int addr;       //M address
-    int mark;
+    int mark;       //marks when the symbol has been used
 
 }symbol;
 
 
 
 /* list of reserved keyword names */
-const char  *word [ ] = { "const", "var", "procedure", "call", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "odd"}; 
+const char  *word [ ] = { "const", "var", "call", "begin", "end", "if", "else", "while", "do", "read", "write", "odd"}; 
 /* list of ignored symbols */
 const char ignoresym [] = { '\n', '\0', ' ', '\t'};                         
 /* list of special symbols such as arithmetic*/
@@ -154,6 +154,8 @@ int var_declaration(symbol table[], int *workingIndex);
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
 void emitError(int errorSignal);
+int isStartStatement(int token);
+void statement(symbol *table, int token);
 /*-----------------------------------------------*/
 
 
@@ -241,27 +243,34 @@ int main(int argc, char const *argv[])
 
 
     //now what...
-
+    int LexLevel = 0;
     int tableSize = 0; //symbol table size
     symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 
     int token;
     int workingIndex = 0;
     int numVars;
+    symbol_table[workingIndex++] = initSymObj(skipsym, "main", 0, LexLevel, 3);
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
+        // printf("token: %d\n", token);    
         if (token == varsym){
 
             numVars = var_declaration(symbol_table, &workingIndex);
 
-            //TODO: assign proper error messages to errors thrown
             if( numVars < 0 ){  //all error signals are negative numbers
                 emitError(numVars);
             }
 
         }
 
-        (tableSize) = workingIndex;
+        if (isStartStatement(token)){    //gotta see how to check for statements
+            
+            statement(symbol_table, token);
+
+        }
+
+        tableSize = workingIndex;
 
     }
 
@@ -278,7 +287,7 @@ int main(int argc, char const *argv[])
     }
     free(lex_list);
     free(charArr);
-    // fclose(in);
+    fclose(in);
     // fclose(out);
 
     return 0;
@@ -441,10 +450,8 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
 
 
-/*
-    checks if chunk is a keyword
-    returns 0 if not, and index number if found
-*/
+//checks if chunk is a keyword
+//returns index number where found 0 if not
 int isWord (char *chunk){
 
     for (size_t i = 0; i < norw; i++)
@@ -459,10 +466,8 @@ int isWord (char *chunk){
 
 
 
-/*
-    determins if the chunk is an ident, int, or invalid. returns 2 for ident, 3 for int,
-    -1 for non num in int, -2 for int too long, -3 for name too long, -4 for invalid symbol
-*/
+//    determins if the chunk is an ident, int, or invalid. returns 2 for ident, 3 for int,
+//    -1 for non num in int, -2 for int too long, -3 for name too long, -4 for invalid symbol
 int determinNonReserved(char *chunk){
     int i = 1;
     if (isdigit(chunk[0])){
@@ -490,7 +495,7 @@ int determinNonReserved(char *chunk){
 }
 
 
-/*Organize word chunks into proper lexeme category*/
+//Organize word chunks into proper lexeme category
 int tokenize(char *chunk){
 
     if (chunk == NULL || chunk[0] == '\0'){
@@ -527,7 +532,7 @@ void printLexemes(lexeme *list, size_t size){
 
 }
 
-/*searches thru symbol table for a target name, returns -1 if not found*/
+//searches thru symbol table for a target name, returns -1 if not found
 int symboltablecheck(symbol *table ,char *target){
 
 
@@ -544,7 +549,7 @@ int symboltablecheck(symbol *table ,char *target){
 
 }
 
-/*read tokens from file and inserts into symbol table struct, update table size*/
+//read tokens from file and inserts into symbol table struct, update table size
 void readTokens(symbol *table, int *tableSize){
 
 
@@ -553,11 +558,10 @@ void readTokens(symbol *table, int *tableSize){
     
 }
 
-/*
-    Function that for when a "var" is about to be declared
-    returns number of vars
-    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
-*/
+
+//    Function that for when a "var" is about to be declared
+//    returns number of vars
+//    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
 int var_declaration(symbol table[], int *workingIndex){
     
     int numVars = 0;
@@ -601,6 +605,7 @@ int var_declaration(symbol table[], int *workingIndex){
     return numVars;
 }
 
+//make symbol struct with values, defaults mark to 0
 symbol initSymObj(int kind, char *name, int val, int level, int addr){
 
     symbol s;
@@ -615,6 +620,7 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 
 }
 
+//TODO: Make the table print prettier, and align the tabs
 void printTable(symbol table[], int tableSize){
 
     printf("table size %d\n", tableSize);
@@ -628,11 +634,45 @@ void printTable(symbol table[], int tableSize){
     
 }
 
-/*Emit error corresponding to error signal passed by */
+//Print error message to console corresponding to error signal passed in
 void emitError(int errorSignal){
 
     errorSignal = abs(errorSignal) - 1;
 
     printf("%s\n", err_messages[errorSignal]);
     
+}
+
+int isStartStatement(int token){
+
+    if (token == identsym || token == beginsym || token == ifsym || token == whilesym || token == readsym || token == writesym){
+        return 1;
+    }
+
+    return 0;
+
+}
+
+
+void statement(symbol *table, int token){
+
+    // if(token == identsym){
+    //     int symIdx = symboltablecheck(table, token);
+    //     if (symIdx == NOT_FOUND){
+    //         //error but which one?
+    //         // i think variable not declared
+    //     }
+
+    //     if (table[symIdx].kind != identsym){
+    //         //not a var error? idk
+    //     }
+
+    //     fscanf(in, "%d", &token); //get next token
+    //     //Expression
+    //     //emit STO (M = table[symIdx].addr)
+    //     //return
+
+    // }
+    printf("\nThis is a statement.\n\n");
+
 }
