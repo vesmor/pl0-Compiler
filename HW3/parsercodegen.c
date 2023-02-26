@@ -44,7 +44,7 @@ typedef enum token_type{
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,  
     whilesym, dosym, callsym, constsym, varsym, procsym, writesym, 
-    readsym , elsesym
+    readsym , elsesym, modsym
 }token_type;
 
 
@@ -134,8 +134,9 @@ const char *err_messages[] =  {
 FILE *in;
 FILE * out;
 
-
-
+//
+symbol table[MAX_SYMBOL_TABLE_SIZE];
+int tableworkingIndex;//working index of symbol table
 
 /*---------Function Declarations-----------------*/
 //
@@ -148,14 +149,14 @@ int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
-int symboltablecheck(symbol *table ,char *target);
+int symboltablecheck(char *target);
 void readTokens(symbol *table, int *tableSize);
-int var_declaration(symbol table[], int *workingIndex);
+int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
 void emitError(int errorSignal);
 int isStartStatement(int token);
-void statement(symbol *table, int token);
+void statement(int token);
 /*-----------------------------------------------*/
 
 
@@ -234,6 +235,7 @@ int main(int argc, char const *argv[])
     in = NULL;
     out = NULL;
 
+
     in = fopen("HW3/tokens.txt", "r");
 
     if(in == NULL){
@@ -245,18 +247,17 @@ int main(int argc, char const *argv[])
     //now what...
     int LexLevel = 0;
     int tableSize = 0; //symbol table size
-    symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+    tableworkingIndex = 0;
 
     int token;
-    int workingIndex = 0;
     int numVars;
-    symbol_table[workingIndex++] = initSymObj(skipsym, "main", 0, LexLevel, 3);
+    table[tableworkingIndex++] = initSymObj(skipsym, "main", 0, LexLevel, 3);
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
         // printf("token: %d\n", token);    
         if (token == varsym){
 
-            numVars = var_declaration(symbol_table, &workingIndex);
+            numVars = var_declaration();
 
             if( numVars < 0 ){  //all error signals are negative numbers
                 emitError(numVars);
@@ -265,16 +266,18 @@ int main(int argc, char const *argv[])
         }
 
         if (isStartStatement(token)){    //gotta see how to check for statements
-            
-            statement(symbol_table, token);
-
+            statement(token);
         }
 
-        tableSize = workingIndex;
+        if(token == identsym){
+            expression(token);
+        }
+
+        tableSize = tableworkingIndex;
 
     }
 
-    printTable(symbol_table, tableSize);
+    printTable(table, tableSize);
 
 
     
@@ -533,7 +536,7 @@ void printLexemes(lexeme *list, size_t size){
 }
 
 //searches thru symbol table for a target name, returns -1 if not found
-int symboltablecheck(symbol *table ,char *target){
+int symboltablecheck(char *target){
 
 
     int size = sizeof(table)/sizeof(symbol);
@@ -562,7 +565,7 @@ void readTokens(symbol *table, int *tableSize){
 //    Function that for when a "var" is about to be declared
 //    returns number of vars
 //    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
-int var_declaration(symbol table[], int *workingIndex){
+int var_declaration(){
     
     int numVars = 0;
     int token;
@@ -578,7 +581,7 @@ int var_declaration(symbol table[], int *workingIndex){
             return IDENTIFIER_EXPECTED_ERR;
         }
         
-        if(symboltablecheck(table, name) != NOT_FOUND){
+        if(symboltablecheck(name) != NOT_FOUND){
             return IDENT_ALR_DECLARED_ERR;
         }
 
@@ -586,8 +589,8 @@ int var_declaration(symbol table[], int *workingIndex){
         
         //Add to symbol table
         symbol newSym = initSymObj(identsym, name, 0, 0, numVars + 2);
-        table[*workingIndex] = newSym;
-        (*workingIndex)++;
+        table[tableworkingIndex] = newSym;
+        tableworkingIndex++;
 
 
         //get next token and hope its a comma
@@ -654,25 +657,155 @@ int isStartStatement(int token){
 }
 
 
-void statement(symbol *table, int token){
+void statement(int token){
 
-    // if(token == identsym){
-    //     int symIdx = symboltablecheck(table, token);
-    //     if (symIdx == NOT_FOUND){
-    //         //error but which one?
-    //         // i think variable not declared
-    //     }
+    if(token == identsym){
+        char *identSymStr;
+        fscanf(in, "%s", identSymStr);
+        int symIdx = symboltablecheck(identSymStr);
+        if (symIdx == NOT_FOUND){
+            //error but which one?
+            // i think variable not declared
+        }
 
-    //     if (table[symIdx].kind != identsym){
-    //         //not a var error? idk
-    //     }
+        if (table[symIdx].kind != identsym){
+            //not a var error? idk
+        }
 
-    //     fscanf(in, "%d", &token); //get next token
-    //     //Expression
-    //     //emit STO (M = table[symIdx].addr)
-    //     //return
+        fscanf(in, "%d", &token); //get next token
+        //Expression
+        //emit STO (M = table[symIdx].addr)
+        return;
 
-    // }
-    printf("\nThis is a statement.\n\n");
+    }
+
+    // printf("\nThis is a statement.\n\n");
+
+}
+
+void expression(int token){
+
+    if (token == minussym){
+        fscanf(in, "%d", &token);
+        term(token);
+        //emit neg ?
+
+    }
+
+}
+
+void term(int token){
+
+    factor(token);
+
+    while(token == multsym || token == slashsym || token == modsym){
+
+        if(token == multsym){
+
+            fscanf(in, "%d", &token);
+            factor(token);
+            //emit MUL ?
+
+        }
+
+        else if(token == slashsym){
+
+            fscanf(in, "%d", &token);
+            factor(token);
+            //emit DIV 
+
+        }
+
+    }
+
+}
+
+void factor(int token){
+
+    if (token == identsym){
+
+        char identifierStr;
+        fscanf(in, "%s", identifierStr);
+        int symIdx = symboltablecheck(identifierStr);
+        if(symIdx == NOT_FOUND){
+            //error
+        }
+        if(table[symIdx].kind == constsym){
+            //emit LIT(m = table[sym.idx].addr)
+        }
+        else{
+            //emit LOD (M = table[symIdx].addr)
+        }
+    }
+    else if(token == numbersym){
+        //emit LIT
+        fscanf(in, "%d", &token);
+    }
+    else if(token == lparentsym){
+        fscanf(in, "%d", &token);
+        expression(token);
+        if(token != rparentsym){
+            //error missing closing parenthesis
+        }
+        fscanf(in, "%d", &token);
+    }
+    else{
+        //error
+    }
+
+}
+
+void program(int token){
+
+    block(token);
+    if(token != periodsym){
+        //error
+    }
+    //emit halt
+}
+
+void block(int token){
+
+    const_declaration(token);
+    int numVars = var_declaration(token);
+    //emit INC(M= 3 + numVars);
+    statement(token);
+
+}
+
+void const_declaration(int token){
+
+    if(token == constsym){
+        
+        do
+        {
+            
+            fscanf(in, "%d", &token);
+            if (token != identsym){
+                //
+            }
+            
+            char *identSymStr;
+            fscanf(in, "%s", identSymStr);
+            if (symboltablecheck(identSymStr) != NOT_FOUND){
+                //not declared error i think?
+            }
+
+            /*
+                save ident name 
+                get next token 
+                if token != eqlsym 
+                    error 
+                get next token 
+                if token != numbersym 
+                    error 
+                add to symbol table (kind 1, saved name, number, 0, 0) 
+                get next token
+            */
+
+        } while (token == commasym);
+        
+
+    }
 
 }
