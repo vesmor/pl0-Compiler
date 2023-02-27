@@ -150,7 +150,7 @@ int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
 int symboltablecheck(char *target);
-int var_declaration();
+int var_declaration(int token);
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
 void emitError(int errorSignal);
@@ -262,10 +262,14 @@ int main(int argc, char const *argv[])
         // printf("token: %d\n", token);    
         if (token == varsym){
 
-            numVars = var_declaration();
+            printf("%d means its a var sym\n", token);
+
+            numVars = var_declaration(token);
 
             if( numVars < 0 ){  //all error signals are negative numbers
+                printTable(table, tableSize);
                 emitError(numVars);
+                exit(EXIT_FAILURE);
             }
 
         }
@@ -563,19 +567,25 @@ int symboltablecheck(char *target){
 //    Function that for when a "var" is about to be declared
 //    returns number of vars
 //    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
-int var_declaration(){
+int var_declaration(int token){
     
     int numVars = 0;
-    int token;
 
     do
     {   
         char name[12];
         
-        int scanned = fscanf(in, "%d", &token); //how many items got fscanned
-        scanned += fscanf(in, "%s", name);
+        if(fscanf(in, "%d", &token) < 0){
+            return IDENTIFIER_EXPECTED_ERR;
+        }
+    
+        if(fscanf(in, "%s", name) < 0){
+            return IDENTIFIER_EXPECTED_ERR;
+        }
 
-        if(token != identsym || !scanned){
+        // printf("%d and %s\n", token, name);
+
+        if(token != identsym){
             return IDENTIFIER_EXPECTED_ERR;
         }
         
@@ -592,8 +602,8 @@ int var_declaration(){
 
 
         //get next token and hope its a comma
-        scanned = fscanf(in, "%d", &token);
-        if(!scanned){
+        
+        if(fscanf(in, "%d", &token) < 0){
             return IDENTIFIER_EXPECTED_ERR;
         }
 
