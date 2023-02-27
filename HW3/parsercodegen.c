@@ -164,7 +164,13 @@ int symboltablecheck(char *target);
 void expression(int token);
 /*-----------------------------------------------*/
 
+// void emit(op , r, l  m){
+//     if x > CODESIZE
+//         error(25)
+//     else{
 
+//     }
+// }
 
 int main(int argc, char const *argv[])
 {
@@ -175,7 +181,7 @@ int main(int argc, char const *argv[])
     out = fopen(tokenFileName, "w");
 
     if(in == NULL){
-        printf("No input file provided \n");
+        printf("No input file provided or name wrong\n");
         return EXIT_FAILURE;
     }
 
@@ -269,7 +275,7 @@ int main(int argc, char const *argv[])
             printf("%d numvars in varsym\n", numVars);
             if( numVars < 0 ){  //all error signals are negative numbers
                 printTable(table, tableworkingIndex);
-                emitError(numVars, '\0');
+                emitError(numVars, "\0");
                 exit(EXIT_FAILURE);
             }
 
@@ -651,14 +657,14 @@ void printTable(symbol table[], int tableSize){
 }
 
 //Print error message to console corresponding to error signal passed in
-//pass '\0' into invalidIdent if not an undeclared_ident error
+//pass "\0" into invalidIdent if not an undeclared_ident error
 void emitError(int errorSignal, char *invalidIdent){
 
     char error_message[strmax] = "";
     errorSignal = abs(errorSignal) - 1; //get index of err message w offset
     strcat(error_message, err_messages[errorSignal]);
     
-    if(invalidIdent != '\0'){
+    if(invalidIdent[0] == '\0'){
         strcat(error_message, " "); //add space
         strcat(error_message, invalidIdent); //insert the wrong variable
         printf("%s\n", error_message);
@@ -705,7 +711,7 @@ void statement(int token){
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
             //it might also be the arithmetic error
-            emitError(ASSGN_MISSING_ERR, '\0');
+            emitError(ASSGN_MISSING_ERR, "\0");
             exit(EXIT_FAILURE);
         }
 
@@ -847,7 +853,7 @@ void factor(int token){
         fscanf(in, "%d", &token);
         expression(token);
         if(token != rparentsym){
-            emitError(INCOMPLETE_PARENTHEIS_ERR, '\0');
+            emitError(INCOMPLETE_PARENTHEIS_ERR, "\0");
         }
         fscanf(in, "%d", &token);
     }
