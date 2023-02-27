@@ -262,11 +262,11 @@ int main(int argc, char const *argv[])
         printf("token: %d\n", token);    
         if (token == varsym){
 
-            printf("%d means its a var sym\n", token);
+            // printf("%d means its a var sym\n", token);
 
             numVars = var_declaration(token);
 
-            printf("%d numvars\n", numVars);
+            printf("%d numvars in varsym\n", numVars);
             if( numVars < 0 ){  //all error signals are negative numbers
                 printTable(table, tableworkingIndex);
                 emitError(numVars);
@@ -289,7 +289,7 @@ int main(int argc, char const *argv[])
 
     }
 
-    printTable(table, tableSize);
+    printTable(table, MAX_SYMBOL_TABLE_SIZE);
 
 
     
@@ -367,7 +367,7 @@ char* readProgram(int *arrSize){
 
 
 
-        printf("%c", charArr[i]);
+        // printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
@@ -643,7 +643,7 @@ void printTable(symbol table[], int tableSize){
     printf("Kind | Name       | Value | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
 
-    for (size_t i = 0; i < tableSize; i++)
+    for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
     {
         printf("   %d |\t\t%s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
@@ -675,6 +675,8 @@ void statement(int token){
     printf("in statement\n");
 
     if(token == identsym){
+
+        printf("identsym in statement\n");
         char identName[cmax];
         fscanf(in, "%s", identName);
         int symIdx = symboltablecheck(identName);
@@ -691,13 +693,17 @@ void statement(int token){
 
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
+            //it might also be the arithmetic error
             emitError(ASSGN_MISSING_ERR);
             exit(EXIT_FAILURE);
         }
 
+        fscanf(in, "%d", &token);
+        tableworkingIndex = symIdx;
         expression(token);
 
         //emit STO (M = table[symIdx].addr)
+        printf("emitting STO\n");
         return;
 
     }
@@ -768,7 +774,7 @@ void expression(int token){
 void term(int token){
 
     printf("in term\n");
-    // factor(token);
+    factor(token);
 
     while(token == multsym || token == slashsym || token == modsym){
 
@@ -803,7 +809,7 @@ void factor(int token){
     printf("in factor\n");
     if (token == identsym){
 
-        char identifierStr;
+        char identifierStr[cmax];
         fscanf(in, "%s", identifierStr);
         int symIdx = symboltablecheck(identifierStr);
         if(symIdx == NOT_FOUND){
@@ -820,9 +826,11 @@ void factor(int token){
         }
     }
     else if(token == numbersym){
-        fscanf(in, "%d", &token);
+        int actualNumber;
+        fscanf(in, "%d", &actualNumber); //get the actual number after numbersym
+        table[tableworkingIndex].val = actualNumber;
         //emit LIT
-        printf("Emitting LIT from factor\n");
+        printf("Emitting LIT %d from factor\n", actualNumber);
     }
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
