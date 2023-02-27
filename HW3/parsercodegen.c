@@ -153,7 +153,7 @@ int symboltablecheck(char *target);
 int var_declaration(int token);
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
-void emitError(int errorSignal);
+void emitError(int errorSignal, char *invalidIdent);
 int isStartStatement(int token);
 void statement(int token);
 void term(int token);
@@ -269,7 +269,7 @@ int main(int argc, char const *argv[])
             printf("%d numvars in varsym\n", numVars);
             if( numVars < 0 ){  //all error signals are negative numbers
                 printTable(table, tableworkingIndex);
-                emitError(numVars);
+                emitError(numVars, '\0');
                 exit(EXIT_FAILURE);
             }
 
@@ -651,11 +651,22 @@ void printTable(symbol table[], int tableSize){
 }
 
 //Print error message to console corresponding to error signal passed in
-void emitError(int errorSignal){
+//pass '\0' into invalidIdent if not an undeclared_ident error
+void emitError(int errorSignal, char *invalidIdent){
 
-    errorSignal = abs(errorSignal) - 1;
+    char error_message[strmax] = "";
+    errorSignal = abs(errorSignal) - 1; //get index of err message w offset
+    strcat(error_message, err_messages[errorSignal]);
+    
+    if(invalidIdent != '\0'){
+        strcat(error_message, " "); //add space
+        strcat(error_message, invalidIdent); //insert the wrong variable
+        printf("%s\n", error_message);
+    }
 
-    printf("%s\n", err_messages[errorSignal]);
+    else{
+        printf("%s\n", error_message);
+    }    
     
 }
 
@@ -681,7 +692,7 @@ void statement(int token){
         fscanf(in, "%s", identName);
         int symIdx = symboltablecheck(identName);
         if (symIdx == NOT_FOUND){
-            emitError(UNDECLARED_IDENT_ERR);
+            emitError(UNDECLARED_IDENT_ERR, identName);
             exit(EXIT_FAILURE);
         }
 
@@ -694,7 +705,7 @@ void statement(int token){
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
             //it might also be the arithmetic error
-            emitError(ASSGN_MISSING_ERR);
+            emitError(ASSGN_MISSING_ERR, '\0');
             exit(EXIT_FAILURE);
         }
 
@@ -813,7 +824,7 @@ void factor(int token){
         fscanf(in, "%s", identifierStr);
         int symIdx = symboltablecheck(identifierStr);
         if(symIdx == NOT_FOUND){
-            emitError(UNDECLARED_IDENT_ERR);
+            emitError(UNDECLARED_IDENT_ERR, identifierStr);
             exit(EXIT_FAILURE);
         }
         if(table[symIdx].kind == constsym){
@@ -836,7 +847,7 @@ void factor(int token){
         fscanf(in, "%d", &token);
         expression(token);
         if(token != rparentsym){
-            emitError(INCOMPLETE_PARENTHEIS_ERR);
+            emitError(INCOMPLETE_PARENTHEIS_ERR, '\0');
         }
         fscanf(in, "%d", &token);
     }
