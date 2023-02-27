@@ -113,21 +113,21 @@ typedef enum errors{
     NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
 }errors;
 const char *err_messages[] =  {
-                            "program must end with period",
-                            "const, var, and read keywords must be followed by identifier",
-                            "symbol name has already been declared",
-                            "constants must be assigned with =",
-                            "constants must be assigned an integer value",
-                            "constant and variable declarations must be followed by a semicolon",
-                            "undeclared identifier",
-                            "only variable values may be altered",
-                            "assignment statements must use :=",
-                            "begin must be followed by end",
-                            "if must be followed by then",
-                            "while must be followed by do",
-                            "condition must contain comparison operator",
-                            "right parenthesis must follow left parenthesis",
-                            "arithmetic equations must contain operands, parentheses, numbers, or symbols"
+                            "Error: program must end with period",
+                            "Error: const, var, and read keywords must be followed by identifier",
+                            "Error: symbol name has already been declared",
+                            "Error: constants must be assigned with =",
+                            "Error: constants must be assigned an integer value",
+                            "Error: constant and variable declarations must be followed by a semicolon",
+                            "Error: undeclared identifier",
+                            "Error: only variable values may be altered",
+                            "Error: assignment statements must use :=",
+                            "Error: begin must be followed by end",
+                            "Error: if must be followed by then",
+                            "Error: while must be followed by do",
+                            "Error: condition must contain comparison operator",
+                            "Error: right parenthesis must follow left parenthesis",
+                            "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols"
                         };
 
 
