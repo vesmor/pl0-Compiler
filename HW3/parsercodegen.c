@@ -553,10 +553,11 @@ void printLexemes(lexeme *list, size_t size){
 //searches thru symbol table for a target name, returns index if found, NOT_FOUND if not
 int symboltablecheck(char *target){
 
-
-    for (size_t index = 0; index < MAX_SYMBOL_TABLE_SIZE; index++)
+    //also check that name isn't empty to avoid seg fault and to save time
+    for (size_t index = 0; index < MAX_SYMBOL_TABLE_SIZE && table[index].name[0] != '\0'; index++)
     {
-        if(strcmp(table[index].name, target)){
+        // printf("\tI: %d\n", index);
+        if(strcmp(table[index].name, target) == 0){
             return index;
         }
     }
