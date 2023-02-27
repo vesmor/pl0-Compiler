@@ -150,13 +150,18 @@ int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
 int symboltablecheck(char *target);
-void readTokens(symbol *table, int *tableSize);
 int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
 void emitError(int errorSignal);
 int isStartStatement(int token);
 void statement(int token);
+void term(int token);
+void factor(int token);
+void block(int token);
+void const_declaration(int token);
+int symboltablecheck(char *target);
+void expression(int token);
 /*-----------------------------------------------*/
 
 
@@ -270,7 +275,9 @@ int main(int argc, char const *argv[])
         }
 
         if(token == identsym){
-            expression(token);
+            // char identName[cmax];
+            // fscanf(in, "%s", identName);
+            statement(token);
         }
 
         tableSize = tableworkingIndex;
@@ -552,15 +559,6 @@ int symboltablecheck(char *target){
 
 }
 
-//read tokens from file and inserts into symbol table struct, update table size
-void readTokens(symbol *table, int *tableSize){
-
-
-
-    // printf("table size %d\n", *tableSize);
-    
-}
-
 
 //    Function that for when a "var" is about to be declared
 //    returns number of vars
@@ -660,12 +658,12 @@ int isStartStatement(int token){
 void statement(int token){
 
     if(token == identsym){
-        char *identSymStr;
-        fscanf(in, "%s", identSymStr);
-        int symIdx = symboltablecheck(identSymStr);
+        char identName[cmax];
+        fscanf(in, "%s", identName);
+        int symIdx = symboltablecheck(identName);
         if (symIdx == NOT_FOUND){
-            //error but which one?
-            // i think variable not declared
+            emitError(UNDECLARED_IDENT_ERR);
+            exit(EXIT_FAILURE);
         }
 
         if (table[symIdx].kind != identsym){
@@ -673,7 +671,13 @@ void statement(int token){
         }
 
         fscanf(in, "%d", &token); //get next token
-        //Expression
+        if(token != becomessym){ //expecting to assign a variable
+            emitError(ASSGN_MISSING_ERR);
+            exit(EXIT_FAILURE);
+        }
+
+        expression(token);
+
         //emit STO (M = table[symIdx].addr)
         return;
 
@@ -686,9 +690,55 @@ void statement(int token){
 void expression(int token){
 
     if (token == minussym){
-        fscanf(in, "%d", &token);
+        // fscanf(in, "%d", &token);
+        // term(token);
+        // //emit neg ?
+        printf("token in exp is minus sym\n");
+        while (token == plussym || token == minussym){
+            fscanf(in, "%d", &token);
+            printf("token is plus or minus\n");
+
+            if (token == plussym){
+                fscanf(in, "%d", &token);
+                term(token);
+                //emit add
+                printf("token in expression is add\n");
+            }
+            else{
+                fscanf(in, "%d", &token);
+                term(token);
+                //emit sub
+                printf("token in expression is sub\n");
+            }    
+        }
+
+    }
+
+    else{
+        if(token == plussym){
+            fscanf(in, "%d", &token);
+            printf("token is plus\n");
+        }
+
         term(token);
-        //emit neg ?
+
+        while (token == plussym || token == minussym){
+            fscanf(in, "%d", &token);
+            printf("token is plus or minus\n");
+
+            if (token == plussym){
+                fscanf(in, "%d", &token);
+                term(token);
+                //emit add
+                printf("token in expression is add\n");
+            }
+            else{
+                fscanf(in, "%d", &token);
+                term(token);
+                //emit sub
+                printf("token in expression is sub\n");
+            }    
+        }
 
     }
 
@@ -713,7 +763,14 @@ void term(int token){
             fscanf(in, "%d", &token);
             factor(token);
             //emit DIV 
+            printf("emit DIV in term\n");
 
+        }
+        else{
+            fscanf(in, "%d", &token);
+            factor(token);
+            //emit MOD
+            printf("emit MOD in term\n");
         }
 
     }
@@ -728,29 +785,34 @@ void factor(int token){
         fscanf(in, "%s", identifierStr);
         int symIdx = symboltablecheck(identifierStr);
         if(symIdx == NOT_FOUND){
-            //error
+            emitError(UNDECLARED_IDENT_ERR);
+            exit(EXIT_FAILURE);
         }
         if(table[symIdx].kind == constsym){
             //emit LIT(m = table[sym.idx].addr)
+            printf("Emit LIT in factor\n");
         }
         else{
             //emit LOD (M = table[symIdx].addr)
+            printf("Emit LOD in factor\n");
         }
     }
     else if(token == numbersym){
-        //emit LIT
         fscanf(in, "%d", &token);
+        //emit LIT
+        printf("Emitting LIT from factor\n");
     }
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
         expression(token);
         if(token != rparentsym){
-            //error missing closing parenthesis
+            emitError(INCOMPLETE_PARENTHEIS_ERR);
         }
         fscanf(in, "%d", &token);
     }
     else{
         //error
+        exit(EXIT_FAILURE);
     }
 
 }
@@ -782,7 +844,7 @@ void const_declaration(int token){
             
             fscanf(in, "%d", &token);
             if (token != identsym){
-                //
+                //error
             }
             
             char *identSymStr;
