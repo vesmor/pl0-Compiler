@@ -266,19 +266,20 @@ int main(int argc, char const *argv[])
 
             numVars = var_declaration(token);
 
+            printf("%d numvars\n", numVars);
             if( numVars < 0 ){  //all error signals are negative numbers
-                printTable(table, tableSize);
+                printTable(table, tableworkingIndex);
                 emitError(numVars);
                 exit(EXIT_FAILURE);
             }
 
         }
 
-        if (isStartStatement(token)){    //gotta see how to check for statements
-            statement(token);
-        }
-
-        if(token == identsym){
+        // if (isStartStatement(token)){    //gotta see how to check for statements
+        //     statement(token);
+        // }
+        else if(token == identsym){
+            printf("\ntoken is %d\n", token);
             // char identName[cmax];
             // fscanf(in, "%s", identName);
             statement(token);
@@ -306,6 +307,9 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
+
+
+//-------------------------------------FUNCTION DECLARATIONS-----------------------------
 
 
 /*returns index of symbol found from masterlist*/
@@ -546,12 +550,11 @@ void printLexemes(lexeme *list, size_t size){
 
 }
 
-//searches thru symbol table for a target name, returns -1 if not found
+//searches thru symbol table for a target name, returns index if found, NOT_FOUND if not
 int symboltablecheck(char *target){
 
 
-    int size = sizeof(table)/sizeof(symbol);
-    for (size_t index = 0; index < size; index++)
+    for (size_t index = 0; index < MAX_SYMBOL_TABLE_SIZE; index++)
     {
         if(strcmp(table[index].name, target)){
             return index;
@@ -589,6 +592,7 @@ int var_declaration(int token){
             return IDENTIFIER_EXPECTED_ERR;
         }
         
+        printTable(table, tableworkingIndex);
         if(symboltablecheck(name) != NOT_FOUND){
             return IDENT_ALR_DECLARED_ERR;
         }
