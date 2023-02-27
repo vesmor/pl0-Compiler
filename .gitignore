@@ -4,3 +4,4 @@ main
 *.code-workspace
 HW2/example.c
 *.txt
+*.vscode

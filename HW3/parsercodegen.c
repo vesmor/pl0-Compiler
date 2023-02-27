@@ -259,7 +259,7 @@ int main(int argc, char const *argv[])
     table[tableworkingIndex++] = initSymObj(skipsym, "main", 0, LexLevel, 3);
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
-        // printf("token: %d\n", token);    
+        printf("token: %d\n", token);    
         if (token == varsym){
 
             printf("%d means its a var sym\n", token);
@@ -279,13 +279,13 @@ int main(int argc, char const *argv[])
         //     statement(token);
         // }
         else if(token == identsym){
-            printf("\ntoken is %d\n", token);
             // char identName[cmax];
             // fscanf(in, "%s", identName);
             statement(token);
         }
 
         tableSize = tableworkingIndex;
+        // printTable(table, tableSize);
 
     }
 
@@ -593,7 +593,7 @@ int var_declaration(int token){
             return IDENTIFIER_EXPECTED_ERR;
         }
         
-        printTable(table, tableworkingIndex);
+        // printTable(table, tableworkingIndex);
         if(symboltablecheck(name) != NOT_FOUND){
             return IDENT_ALR_DECLARED_ERR;
         }
@@ -672,6 +672,8 @@ int isStartStatement(int token){
 
 void statement(int token){
 
+    printf("in statement\n");
+
     if(token == identsym){
         char identName[cmax];
         fscanf(in, "%s", identName);
@@ -683,9 +685,11 @@ void statement(int token){
 
         if (table[symIdx].kind != identsym){
             //not a var error? idk
+            printf("kind isnt ident\n");
+            exit(EXIT_FAILURE);
         }
 
-        fscanf(in, "%d", &token); //get next token
+        fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
             emitError(ASSGN_MISSING_ERR);
             exit(EXIT_FAILURE);
@@ -703,6 +707,8 @@ void statement(int token){
 }
 
 void expression(int token){
+
+    printf("in expression\n");
 
     if (token == minussym){
         // fscanf(in, "%d", &token);
@@ -761,7 +767,8 @@ void expression(int token){
 
 void term(int token){
 
-    factor(token);
+    printf("in term\n");
+    // factor(token);
 
     while(token == multsym || token == slashsym || token == modsym){
 
@@ -793,7 +800,7 @@ void term(int token){
 }
 
 void factor(int token){
-
+    printf("in factor\n");
     if (token == identsym){
 
         char identifierStr;
@@ -827,6 +834,7 @@ void factor(int token){
     }
     else{
         //error
+        printf("error in token\n");
         exit(EXIT_FAILURE);
     }
 
