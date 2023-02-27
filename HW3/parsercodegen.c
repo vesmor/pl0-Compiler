@@ -137,6 +137,7 @@ FILE * out;
 //
 symbol table[MAX_SYMBOL_TABLE_SIZE];
 int tableworkingIndex;//working index of symbol table
+int tableSize;
 
 /*---------Function Declarations-----------------*/
 //
@@ -257,7 +258,7 @@ int main(int argc, char const *argv[])
 
     //now what...
     int LexLevel = 0;
-    int tableSize = 0; //symbol table size
+    tableSize = 0; //symbol table size
     tableworkingIndex = 0;
 
     int token;
@@ -281,16 +282,11 @@ int main(int argc, char const *argv[])
 
         }
 
-        // if (isStartStatement(token)){    //gotta see how to check for statements
-        //     statement(token);
-        // }
-        else if(token == identsym){
-            // char identName[cmax];
-            // fscanf(in, "%s", identName);
+        else if (isStartStatement(token)){    //gotta see how to check for statements
             statement(token);
         }
 
-        tableSize = tableworkingIndex;
+        // tableSize = tableworkingIndex;
         // printTable(table, tableSize);
 
     }
