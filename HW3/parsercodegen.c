@@ -656,15 +656,14 @@ void printTable(symbol table[], int tableSize){
     
 }
 
-//Print error message to console corresponding to error signal passed in
-//pass "\0" into invalidIdent if not an undeclared_ident error
+//Print error message to console corresponding to error signal passed in. pass "\0" into invalidIdent if not an undeclared_ident error
 void emitError(int errorSignal, char *invalidIdent){
 
     char error_message[strmax] = "";
     errorSignal = abs(errorSignal) - 1; //get index of err message w offset
     strcat(error_message, err_messages[errorSignal]);
     
-    if(invalidIdent[0] == '\0'){
+    if(invalidIdent[0] != '\0'){
         strcat(error_message, " "); //add space
         strcat(error_message, invalidIdent); //insert the wrong variable
         printf("%s\n", error_message);
@@ -723,6 +722,22 @@ void statement(int token){
         printf("emitting STO\n");
         return;
 
+    }
+
+    if(token == beginsym){
+        do
+        {
+            fscanf(in, "%d", &token);
+            statement(token);
+        } while (token != semicolonsym);
+
+        if(token != endsym){    //make sure end is followed by beginning
+            emitError(END_MISSING_ERR, "\0");
+            exit(EXIT_FAILURE);
+        }
+         
+        fscanf(in, "%d", &token);
+        return;
     }
 
     // printf("\nThis is a statement.\n\n");
