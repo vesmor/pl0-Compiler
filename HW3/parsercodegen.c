@@ -4,7 +4,7 @@
     Romsev Charles
     Brandon Sheridan
 
-    February 14 2023
+    March 8th 2023
 */ 
 
 /*  ________________ERROR CODE DOCUMENTATION____________________ 
@@ -19,7 +19,9 @@
 */
 
 /*
-    Delete the modsym and related if's statement
+    Might possibly need to implement getting next token as a function that gets next token from the array that we made at the bottom
+    Gotta fix the problem where the loop in beginsym for statement wont scanf the correct part cuz its coming back from a function
+    maybe make the token also a global variable
 */
 
 
@@ -142,6 +144,7 @@ FILE * out;
 symbol table[MAX_SYMBOL_TABLE_SIZE];
 int tableworkingIndex;//working index of symbol table
 int tableSize;
+int token;
 
 /*---------Function Declarations-----------------*/
 //
@@ -155,18 +158,18 @@ int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
 int symboltablecheck(char *target);
-int var_declaration(int token);
+int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
 void emitError(int errorSignal, char *invalidIdent);
-int isStartStatement(int token);
-void statement(int token);
-void term(int token);
-void factor(int token);
-void block(int token);
-void const_declaration(int token);
+int isStartStatement();
+void statement();
+void term();
+void factor();
+void block();
+void const_declaration();
 int symboltablecheck(char *target);
-void expression(int token);
+void expression();
 /*-----------------------------------------------*/
 
 // void emit(op , r, l  m){
@@ -265,17 +268,26 @@ int main(int argc, char const *argv[])
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
 
-    int token;
+    // int token;
     int numVars;
-    table[tableworkingIndex++] = initSymObj(skipsym, "main", 0, LexLevel, 3);
+    table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, 3);
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
-        printf("token: %d\n", token);    
+        char name[cmax] = "";
+        if(token == identsym){
+            fscanf(in, "%s", name);
+            fseek(in, -1, SEEK_CUR);
+        }
+        else{
+            strcpy(name, sym[token]);
+        }
+
+        printf("\ttoken: %d %s\n", token, name);    
         if (token == varsym){
 
             // printf("%d means its a var sym\n", token);
 
-            numVars = var_declaration(token);
+            numVars = var_declaration();
 
             printf("%d numvars in varsym\n", numVars);
             if( numVars < 0 ){  //all error signals are negative numbers
@@ -286,8 +298,8 @@ int main(int argc, char const *argv[])
 
         }
 
-        else if (isStartStatement(token)){    //gotta see how to check for statements
-            statement(token);
+        if (isStartStatement()){    //gotta see how to check for statements
+            statement();
         }
 
         // tableSize = tableworkingIndex;
@@ -577,7 +589,7 @@ int symboltablecheck(char *target){
 //    Function that for when a "var" is about to be declared
 //    returns number of vars
 //    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
-int var_declaration(int token){
+int var_declaration(){
     
     int numVars = 0;
 
@@ -675,7 +687,7 @@ void emitError(int errorSignal, char *invalidIdent){
     
 }
 
-int isStartStatement(int token){
+int isStartStatement(){
 
     if (token == identsym || token == beginsym || token == ifsym || token == whilesym || token == readsym || token == writesym){
         return 1;
@@ -686,7 +698,7 @@ int isStartStatement(int token){
 }
 
 
-void statement(int token){
+void statement(){
 
     printf("in statement\n");
 
@@ -716,20 +728,24 @@ void statement(int token){
 
         fscanf(in, "%d", &token);
         tableworkingIndex = symIdx;
-        expression(token);
+        expression();
 
         //emit STO (M = table[symIdx].addr)
         printf("emitting STO\n");
+        // printf("token is after STO %d\n", token);
         return;
 
     }
 
     if(token == beginsym){
+        printf("begin in statement\n");
         do
         {
             fscanf(in, "%d", &token);
             statement(token);
-        } while (token != semicolonsym);
+
+            printf("out of statement after recurse token is %d\n", token);
+        } while (token == semicolonsym);
 
         if(token != endsym){    //make sure end is followed by beginning
             emitError(END_MISSING_ERR, "\0");
@@ -740,11 +756,11 @@ void statement(int token){
         return;
     }
 
-    // printf("\nThis is a statement.\n\n");
+    printf("\nThis is a statement.\n\n");
 
 }
 
-void expression(int token){
+void expression(){
 
     printf("in expression\n");
 
@@ -759,13 +775,13 @@ void expression(int token){
 
             if (token == plussym){
                 fscanf(in, "%d", &token);
-                term(token);
+                term();
                 //emit add
                 printf("token in expression is add\n");
             }
             else{
                 fscanf(in, "%d", &token);
-                term(token);
+                term();
                 //emit sub
                 printf("token in expression is sub\n");
             }    
@@ -779,7 +795,7 @@ void expression(int token){
             printf("token is plus\n");
         }
 
-        term(token);
+        term();
 
         while (token == plussym || token == minussym){
             fscanf(in, "%d", &token);
@@ -787,13 +803,13 @@ void expression(int token){
 
             if (token == plussym){
                 fscanf(in, "%d", &token);
-                term(token);
+                term();
                 //emit add
                 printf("token in expression is add\n");
             }
             else{
                 fscanf(in, "%d", &token);
-                term(token);
+                term();
                 //emit sub
                 printf("token in expression is sub\n");
             }    
@@ -803,17 +819,17 @@ void expression(int token){
 
 }
 
-void term(int token){
+void term(){
 
     printf("in term\n");
-    factor(token);
+    factor();
 
     while(token == multsym || token == slashsym){
 
         if(token == multsym){
 
             fscanf(in, "%d", &token);
-            factor(token);
+            factor();
             //emit MUL ?
 
         }
@@ -821,7 +837,7 @@ void term(int token){
         else if(token == slashsym){
 
             fscanf(in, "%d", &token);
-            factor(token);
+            factor();
             //emit DIV 
             printf("emit DIV in term\n");
 
@@ -831,7 +847,7 @@ void term(int token){
 
 }
 
-void factor(int token){
+void factor(){
     printf("in factor\n");
     if (token == identsym){
 
@@ -856,11 +872,12 @@ void factor(int token){
         fscanf(in, "%d", &actualNumber); //get the actual number after numbersym
         table[tableworkingIndex].val = actualNumber;
         //emit LIT
-        printf("Emitting LIT %d from factor\n", actualNumber);
+        printf("Emitting numbersym LIT %d from factor\n", actualNumber);
+        fscanf(in, "%d", &token);
     }
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
-        expression(token);
+        expression();
         if(token != rparentsym){
             emitError(INCOMPLETE_PARENTHEIS_ERR, "\0");
         }
@@ -874,25 +891,25 @@ void factor(int token){
 
 }
 
-void program(int token){
+void program(){
 
-    block(token);
+    block();
     if(token != periodsym){
         //error
     }
     //emit halt
 }
 
-void block(int token){
+void block(){
 
-    const_declaration(token);
-    int numVars = var_declaration(token);
+    const_declaration();
+    int numVars = var_declaration();
     //emit INC(M= 3 + numVars);
-    statement(token);
+    statement();
 
 }
 
-void const_declaration(int token){
+void const_declaration(){
 
     if(token == constsym){
         
