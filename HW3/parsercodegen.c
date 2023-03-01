@@ -18,6 +18,10 @@
     ________________WILL BE IMPORTIANT TO SEE NEXT PROJECT_________________
 */
 
+/*
+    Delete the modsym and related if's statement
+*/
+
 
 
 #include <stdio.h>
@@ -44,7 +48,7 @@ typedef enum token_type{
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,  
     whilesym, dosym, callsym, constsym, varsym, procsym, writesym, 
-    readsym , elsesym, modsym
+    readsym , elsesym
 }token_type;
 
 
@@ -789,7 +793,7 @@ void term(int token){
     printf("in term\n");
     factor(token);
 
-    while(token == multsym || token == slashsym || token == modsym){
+    while(token == multsym || token == slashsym){
 
         if(token == multsym){
 
@@ -806,12 +810,6 @@ void term(int token){
             //emit DIV 
             printf("emit DIV in term\n");
 
-        }
-        else{
-            fscanf(in, "%d", &token);
-            factor(token);
-            //emit MOD
-            printf("emit MOD in term\n");
         }
 
     }
