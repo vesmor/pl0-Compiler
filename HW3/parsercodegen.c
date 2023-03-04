@@ -142,11 +142,15 @@ const char *err_messages[] =  {
 FILE *in;
 FILE * out;
 
-//
+//parser global variables
+
 symbol table[MAX_SYMBOL_TABLE_SIZE];
+lexeme *tokens;
+int tokensIndex;
 int tableworkingIndex;//working index of symbol table
 int tableSize;
 int token;
+
 
 /*---------Function Declarations-----------------*/
 //
@@ -163,6 +167,7 @@ int symboltablecheck(char *target);
 int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
+lexeme* readTokens();
 void emitError(int errorSignal, char *invalidIdent);
 int isStartStatement();
 void statement();
@@ -269,46 +274,47 @@ int main(int argc, char const *argv[])
     int LexLevel = 0;
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
+    tokens = readTokens();
 
     int numVars;
     table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, 3);
-    for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
+    // for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
-        char name[cmax] = "";
-        if(token == identsym){
-            fscanf(in, "%s", name);
-            fseek(in, -1, SEEK_CUR);
-        }
-        else{
-            strcpy(name, sym[token]);
-        }
+    //     char name[cmax] = "";
+    //     if(token == identsym){
+    //         fscanf(in, "%s", name);
+    //         fseek(in, -1, SEEK_CUR);
+    //     }
+    //     else{
+    //         strcpy(name, sym[token]);
+    //     }
 
-        printf("\ttoken: %d %s\n", token, name);    
-        if (token == varsym){
+    //     printf("\ttoken: %d %s\n", token, name);    
+    //     if (token == varsym){
 
-            // printf("%d means its a var sym\n", token);
+    //         // printf("%d means its a var sym\n", token);
 
-            numVars = var_declaration();
+    //         numVars = var_declaration();
 
-            printf("%d numvars in varsym\n", numVars);
-            if( numVars < 0 ){  //all error signals are negative numbers
-                printTable(table, tableworkingIndex);
-                emitError(numVars, "\0");
-                exit(EXIT_FAILURE);
-            }
+    //         printf("%d numvars in varsym\n", numVars);
+    //         if( numVars < 0 ){  //all error signals are negative numbers
+    //             printTable(table, tableworkingIndex);
+    //             emitError(numVars, "\0");
+    //             exit(EXIT_FAILURE);
+    //         }
 
-        }
+    //     }
 
-        if (isStartStatement()){    //gotta see how to check for statements
-            statement();
-        }
+    //     if (isStartStatement()){    //gotta see how to check for statements
+    //         statement();
+    //     }
 
-        // tableSize = tableworkingIndex;
-        // printTable(table, tableSize);
+    //     // tableSize = tableworkingIndex;
+    //     // printTable(table, tableSize);
 
-    }
+    // }
 
-    printTable(table, MAX_SYMBOL_TABLE_SIZE);
+    // printTable(table, MAX_SYMBOL_TABLE_SIZE);
 
 
     
@@ -321,6 +327,7 @@ int main(int argc, char const *argv[])
     }
     free(lex_list);
     free(charArr);
+    free(tokens);
     fclose(in);
     // fclose(out);
 
@@ -545,7 +552,7 @@ int tokenize(char *chunk){
         return 0;
     }
 
-    fprintf(out, "tokenize chunk %s\n", chunk);
+    // printf("tokenize chunk %s\n", chunk);
     int tokenVal = determinNonReserved(chunk);
 
     if (isWord(chunk) > 0 || isSpecialSym(chunk[0])){
@@ -673,6 +680,36 @@ void printTable(symbol table[], int tableSize){
     }
     
 }
+
+
+lexeme* readTokens(){
+
+    lexeme *temp = NULL;
+
+    int token_holder;
+
+    for(int i = 0; fscanf(in, "%d", &token_holder) > 0; i++){
+
+        temp = realloc(temp , (i+1) * sizeof(lexeme));
+
+        // printf("tokenholder %d\n", token_holder);
+        if(token_holder == numbersym || token_holder == identsym){
+
+            char buffer[cmax+1];
+            fscanf(in, "%s", buffer);
+            int len = strlen(buffer);
+
+            temp[i].token_name = (char*)malloc((len+1) * sizeof(char));
+            strcpy(temp[i].token_name, buffer);
+
+        }
+
+        temp[i].token_type = token_holder;
+        
+    }
+
+}
+
 
 //Print error message to console corresponding to error signal passed in. pass "\0" into invalidIdent if not an undeclared_ident error
 void emitError(int errorSignal, char *invalidIdent){
