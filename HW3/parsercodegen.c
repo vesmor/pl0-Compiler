@@ -22,6 +22,8 @@
     Might possibly need to implement getting next token as a function that gets next token from the array that we made at the bottom
     Gotta fix the problem where the loop in beginsym for statement wont scanf the correct part cuz its coming back from a function
     maybe make the token also a global variable
+
+    beginsym is getting recursed into the statement function and getting called over and over again because its repeatedely getting scanned in
 */
 
 
@@ -183,7 +185,7 @@ void expression();
 int main(int argc, char const *argv[])
 {
 
-    char tokenFileName[] = "HW3/tokens.txt";
+    char tokenFileName[] = "HW3/tokens.txt"; //remember to change this before submission lol
 
     in = fopen(argv[1], "r");
     out = fopen(tokenFileName, "w");
@@ -222,7 +224,7 @@ int main(int argc, char const *argv[])
             lex_size = i;
         }
 
-        if (val) {
+        if (val > 0) {
 
             printf("%s\t%d\n", bufferArr, val);
             // fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
@@ -268,7 +270,6 @@ int main(int argc, char const *argv[])
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
 
-    // int token;
     int numVars;
     table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, 3);
     for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
@@ -344,12 +345,12 @@ int findSymVal(char *chunk){
 
 }
 
-/* returns 1 if symbol should be ignored 0 otherwise */
+/* returns index + 1of delim symbol that should be ignored 0 otherwise */
 int shouldBeIgnored(char c){
     for (size_t i = 0; i < ignoresymlen; i++)
     {
         if(c == ignoresym[i])
-            return 1;
+            return i + 1;
     }
     
     return 0;
@@ -448,8 +449,9 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
         //if the character we landed on is a special sym we break the chunk here
         if (isSpecialSym(arr[index])){
-            if( (arr[index] == ':' && arr[index+1] == '=') || (arr[index] == '!' && arr[index+1] == '=') 
-                || (arr[index] == '<' && arr[index+1] == '=') || (arr[index] == '>' && arr[index+1] == '=')){
+            if( (arr[index] == ':' && arr[index+1] == '=') || (arr[index] == '!' && arr[index+1] == '=') || 
+                (arr[index] == '<' && arr[index+1] == '=') || (arr[index] == '>' && arr[index+1] == '=')){
+
                 bufferSize += 2;
                 index++;
                 break;
@@ -503,7 +505,7 @@ int isWord (char *chunk){
 
 
 //    determins if the chunk is an ident, int, or invalid. returns 2 for ident, 3 for int,
-//    -1 for non num in int, -2 for int too long, -3 for name too long, -4 for invalid symbol
+//    -17 for non num in int, -18 for int too long, -19 for name too long, -16 for invalid symbol
 int determinNonReserved(char *chunk){
     int i = 1;
     if (isdigit(chunk[0])){
@@ -531,13 +533,19 @@ int determinNonReserved(char *chunk){
 }
 
 
-//Organize word chunks into proper lexeme category
+/*
+   Organize word chunks into proper lexeme category
+    returns token number
+    returns 0 if empty token
+*/
 int tokenize(char *chunk){
 
-    if (chunk == NULL || chunk[0] == '\0'){
+
+    if (chunk == NULL || shouldBeIgnored(chunk[0])){
         return 0;
     }
 
+    fprintf(out, "tokenize chunk %s\n", chunk);
     int tokenVal = determinNonReserved(chunk);
 
     if (isWord(chunk) > 0 || isSpecialSym(chunk[0])){
@@ -553,7 +561,7 @@ void printLexemes(lexeme *list, size_t size){
 
     for (size_t i = 0; i < size; i++)
     {
-        if(list[i].token_name == NULL || list[i].token_type == 0){
+        if(list[i].token_name == NULL || list[i].token_type <= 0){
             continue;
         }  
 
@@ -626,10 +634,8 @@ int var_declaration(){
 
         //get next token and hope its a comma
         
-        if(fscanf(in, "%d", &token) < 0){
-            return IDENTIFIER_EXPECTED_ERR;
-        }
-
+       fscanf(in, "%d", &token);
+            
     }while (token == commasym);
     
     if (token != semicolonsym){
@@ -742,6 +748,8 @@ void statement(){
         do
         {
             fscanf(in, "%d", &token);
+
+            printf("out of statement BEFORE recurse token is %d\n", token);
             statement(token);
 
             printf("out of statement after recurse token is %d\n", token);
@@ -756,7 +764,7 @@ void statement(){
         return;
     }
 
-    printf("\nThis is a statement.\n\n");
+    // printf("\nThis is a statement.\n\n");
 
 }
 
@@ -867,6 +875,7 @@ void factor(){
             printf("Emit LOD in factor\n");
         }
     }
+
     else if(token == numbersym){
         int actualNumber;
         fscanf(in, "%d", &actualNumber); //get the actual number after numbersym
@@ -875,6 +884,7 @@ void factor(){
         printf("Emitting numbersym LIT %d from factor\n", actualNumber);
         fscanf(in, "%d", &token);
     }
+
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
         expression();
