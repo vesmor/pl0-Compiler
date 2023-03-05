@@ -858,6 +858,7 @@ int var_declaration(){
     return numVars;
 }
 
+//still need if, while, read, write
 void statement(){
 
     printf("%d in statement\n", token);
@@ -917,9 +918,19 @@ void statement(){
         return;
     }
 
+    //if statement
+    if(token == ifsym){
+
+        fscanf(in, "%d", &token);
+        // NEED TO MAKE CONDITION
+
+    }
+
     // printf("\nThis is a statement.\n\n");
 
 }
+
+/* NEED TO WRITE CONDITION FUNCTION*/
 
 void expression(){
 
@@ -1008,6 +1019,7 @@ void term(){
 
 }
 
+//still need to figure out error
 void factor(){
     printf("in factor\n");
     if (token == identsym){
