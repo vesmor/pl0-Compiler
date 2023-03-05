@@ -41,7 +41,7 @@
 #define  norw                    12       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
 #define  strmax                 256       /* maximum length of strings */
-#define  ignoresymlen             4       /* length of ignoresym array*/
+#define  ignoresymlen             7       /* length of ignoresym array*/
 #define  ssymlen                 17       /*len of special symbol arr*/
 #define  symlen                  34       /*master sym array length*/
 #define  MAX_SYMBOL_TABLE_SIZE  500
@@ -81,13 +81,13 @@ typedef struct symbol{
 
 
 /* list of reserved keyword names */
-const char  *word [ ] = { "const", "var", "call", "begin", "end", "if", "else", "while", "do", "read", "write", "odd"}; 
+const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "else", "while", "do", "read", "write", "odd"}; 
 /* list of ignored symbols */
-const char ignoresym [] = { '\n', '\0', ' ', '\t'};                         
+const char ignoresym [ignoresymlen] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
-char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
+const char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
-char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
+const char *sym[symlen] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
 
@@ -140,13 +140,13 @@ const char *err_messages[] =  {
 
 
 FILE *in;
-FILE * out;
+FILE *out;
 
 //parser global variables
 
 symbol table[MAX_SYMBOL_TABLE_SIZE];
 lexeme *tokens;
-int tokensIndex;
+int tokensIndex;//working index of tokens array
 int tableworkingIndex;//working index of symbol table
 int tableSize;
 int token;
@@ -229,7 +229,7 @@ int main(int argc, char const *argv[])
             lex_size = i;
         }
 
-        if (val > 0) {
+        if (val) {
 
             printf("%s\t%d\n", bufferArr, val);
             // fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
@@ -274,47 +274,47 @@ int main(int argc, char const *argv[])
     int LexLevel = 0;
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
-    tokens = readTokens();
+    // tokens = readTokens();
 
     int numVars;
     table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, 3);
-    // for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
+    for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
-    //     char name[cmax] = "";
-    //     if(token == identsym){
-    //         fscanf(in, "%s", name);
-    //         fseek(in, -1, SEEK_CUR);
-    //     }
-    //     else{
-    //         strcpy(name, sym[token]);
-    //     }
+        char name[cmax] = "";
+        if(token == identsym){
+            fscanf(in, "%s", name);
+            fseek(in, -1, SEEK_CUR);
+        }
+        else{
+            strcpy(name, sym[token]);
+        }
 
-    //     printf("\ttoken: %d %s\n", token, name);    
-    //     if (token == varsym){
+        printf("\ttoken: %d %s\n", token, name);    
+        if (token == varsym){
 
-    //         // printf("%d means its a var sym\n", token);
+            // printf("%d means its a var sym\n", token);
 
-    //         numVars = var_declaration();
+            numVars = var_declaration();
 
-    //         printf("%d numvars in varsym\n", numVars);
-    //         if( numVars < 0 ){  //all error signals are negative numbers
-    //             printTable(table, tableworkingIndex);
-    //             emitError(numVars, "\0");
-    //             exit(EXIT_FAILURE);
-    //         }
+            printf("%d numvars in varsym\n", numVars);
+            if( numVars < 0 ){  //all error signals are negative numbers
+                printTable(table, tableworkingIndex);
+                emitError(numVars, "\0");
+                exit(EXIT_FAILURE);
+            }
 
-    //     }
+        }
 
-    //     if (isStartStatement()){    //gotta see how to check for statements
-    //         statement();
-    //     }
+        if (isStartStatement()){    //gotta see how to check for statements
+            statement();
+        }
 
-    //     // tableSize = tableworkingIndex;
-    //     // printTable(table, tableSize);
+        // tableSize = tableworkingIndex;
+        // printTable(table, tableSize);
 
-    // }
+    }
 
-    // printTable(table, MAX_SYMBOL_TABLE_SIZE);
+    printTable(table, MAX_SYMBOL_TABLE_SIZE);
 
 
     
@@ -323,11 +323,11 @@ int main(int argc, char const *argv[])
     //clean up
     for (size_t index = 0; index < lex_size; index++)
     {
-        free(lex_list[index].token_name);
+        // free(lex_list[index].token_name);
     }
-    free(lex_list);
-    free(charArr);
-    free(tokens);
+    // free(lex_list);
+    // free(charArr);
+    // free(tokens);
     fclose(in);
     // fclose(out);
 
@@ -476,6 +476,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
             break;
         }
 
+        // printf("in yk char is %c next is %c\n\n", arr[index], arr[index+1]);
 
         bufferSize++;
         index++;
@@ -483,6 +484,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
     
 
     //copying the valid word chunk from arr to buffer
+    // printf("\tbuff size %d\n", bufferSize);
     for(int k = 0; k < bufferSize; k++){
         buffer[k] = arr[init_arrPointer + k];
     }
@@ -559,7 +561,7 @@ int tokenize(char *chunk){
         tokenVal = findSymVal(chunk);
     }
 
-
+    // printf("\tchunk %s\n", chunk);
     return tokenVal;
 }
 
@@ -582,6 +584,9 @@ void printLexemes(lexeme *list, size_t size){
     
 
 }
+
+//_______________________________END LEXER FUNCS_______________________//
+/*                               START PARSER FUNCS                    */
 
 //searches thru symbol table for a target name, returns index if found, NOT_FOUND if not
 int symboltablecheck(char *target){
@@ -784,7 +789,10 @@ void statement(){
         printf("begin in statement\n");
         do
         {
-            fscanf(in, "%d", &token);
+
+            if (fscanf(in, "%d", &token) <= 0){ //makes sure we dont get stuck in recursive hell if theres nothing after
+                break;
+            }
 
             printf("out of statement BEFORE recurse token is %d\n", token);
             statement(token);
