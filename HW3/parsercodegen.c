@@ -36,7 +36,6 @@
 
 
 
-//Error signals
 
 #define  norw                    12       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
@@ -45,6 +44,12 @@
 #define  ssymlen                 17       /*len of special symbol arr*/
 #define  symlen                  34       /*master sym array length*/
 #define  MAX_SYMBOL_TABLE_SIZE  500
+
+//for symbol table kinds
+#define CONST   1
+#define VAR     2
+#define PROC    3
+
 
 //added 9 to the token_type enum(???)
 typedef enum token_type{
@@ -92,6 +97,7 @@ const char *sym[symlen] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=",
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
 
 
+//Error signals
 typedef enum errors{
 
     //Scanner Errors
@@ -179,6 +185,7 @@ void block();
 void const_declaration();
 int symboltablecheck(char *target);
 void expression();
+void condition();
 /*-----------------------------------------------*/
 
 // void emit(op , r, l  m){
@@ -922,15 +929,133 @@ void statement(){
     if(token == ifsym){
 
         fscanf(in, "%d", &token);
-        // NEED TO MAKE CONDITION
 
+        // NEED TO MAKE CONDITION
+        //condition()
+
+        // int jpcIndex = current code index  //IDK what this means yet
+
+        printf("emit JPC");
+
+        if(token != thensym){
+            emitError(THEN_MISSING_ERR, "\0");
+        }
+
+        fscanf(in, "%d", &token);
+        statement();
+        // code[jpcIndex].m = current code index //I think this has something to do with making a new instructions struct
+
+        return;
+    }
+
+    if(token == whilesym){
+
+        fscanf(in, "%d", &token);
+        // int loopIndex = current code index; //idk what this means yet
+
+        // condition()
+
+        if (token != dosym){
+            emitError(DO_MISSING_ERR, "\0");
+        }
+
+        fscanf(in, "%d", &token);
+        // int jpcIndex = current code index;
+
+        printf("emit JPC\n"); //M = loopIndex
+
+        // code[jpcIndex].M = current code index;
+        return;
+
+    }
+
+    if(token == readsym){
+
+        fscanf(in, "%d", &token);
+        if(token != identsym){
+            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+        }
+        
+        char tokenName[cmax];
+        fscanf(in, "%s", tokenName);
+        int symIndex = symboltablecheck(tokenName);
+        if(symIndex == NOT_FOUND){
+            emitError(UNDECLARED_IDENT_ERR, tokenName);
+        }
+
+        if(table[symIndex].kind != VAR){
+            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+        }
+
+        fscanf(in, "%d", &token);
+        
+        printf("emit READ\n");
+        printf("emit STO\n"); //M = table[symIndex].addr
+
+        return;
+
+    }
+
+    if(token == writesym){
+        fscanf(in, "%d", &token);
+        expression();
+        printf("emit WRITE\n");
+        return;
     }
 
     // printf("\nThis is a statement.\n\n");
 
 }
 
-/* NEED TO WRITE CONDITION FUNCTION*/
+void condition(){
+
+    if(token == oddsym){
+        fscanf(in, "%d", &token);
+        expression();
+        printf("emit ODD\n");
+    }
+
+    else{
+
+        expression();
+        if(token == eqlsym){
+            fscanf(in, "%d", &token);
+            expression();
+            printf("emit EQL\n");
+        }
+        else if(token == neqsym){
+            fscanf(in, "%d", &token);
+            expression();
+            printf("emit NEQ\n");
+        }
+        else if(token == lessym){
+            fscanf(in, "%d", &token);
+            expression();
+            printf("emit LSS\n");
+        }
+        else if(token == leqsym){
+            fscanf(in, "%d", &token);
+            expression();
+            printf("emit LEQ\n");
+        }
+        else if(token == gtrsym){
+            fscanf(in, "%d", &token);
+            expression();
+            printf("emit GTR\n");
+        }
+        else if(token == geqsym){
+            fscanf(in, "%d", &token);
+            expression();
+            printf("emit GEQ\n");
+        }
+        else{
+            //not sure what error this throws yet
+            printf("Error: in condition\n");
+        }
+
+    }
+
+}
 
 void expression(){
 
