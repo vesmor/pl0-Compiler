@@ -585,7 +585,7 @@ void printLexemes(lexeme *list, size_t size){
 
 }
 
-//_______________________________END LEXER FUNCS_______________________//
+//________________________________END LEXER FUNCS_______________________//
 /*                               START PARSER FUNCS                    */
 
 //searches thru symbol table for a target name, returns index if found, NOT_FOUND if not
@@ -606,56 +606,6 @@ int symboltablecheck(char *target){
 }
 
 
-//    Function that for when a "var" is about to be declared
-//    returns number of vars
-//    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
-int var_declaration(){
-    
-    int numVars = 0;
-
-    do
-    {   
-        char name[12];
-        
-        if(fscanf(in, "%d", &token) < 0){
-            return IDENTIFIER_EXPECTED_ERR;
-        }
-    
-        if(fscanf(in, "%s", name) < 0){
-            return IDENTIFIER_EXPECTED_ERR;
-        }
-
-        // printf("%d and %s\n", token, name);
-
-        if(token != identsym){
-            return IDENTIFIER_EXPECTED_ERR;
-        }
-        
-        // printTable(table, tableworkingIndex);
-        if(symboltablecheck(name) != NOT_FOUND){
-            return IDENT_ALR_DECLARED_ERR;
-        }
-
-        numVars++;
-        
-        //Add to symbol table
-        symbol newSym = initSymObj(identsym, name, 0, 0, numVars + 2);
-        table[tableworkingIndex] = newSym;
-        tableworkingIndex++;
-
-
-        //get next token and hope its a comma
-        
-       fscanf(in, "%d", &token);
-            
-    }while (token == commasym);
-    
-    if (token != semicolonsym){
-        return SEMICOLON_MISSING_ERR;
-    }
-   
-    return numVars;
-}
 
 //make symbol struct with values, defaults mark to 0
 symbol initSymObj(int kind, char *name, int val, int level, int addr){
@@ -745,6 +695,125 @@ int isStartStatement(){
 
 }
 
+void program(){
+
+    block();
+    if(token != periodsym){
+        //error
+    }
+    //emit halt
+}
+
+void block(){
+
+    const_declaration();
+    int numVars = var_declaration();
+    //emit INC(M= 3 + numVars);
+    statement();
+
+}
+
+void const_declaration(){
+
+    if(token == constsym){
+        
+        do
+        {
+            
+            fscanf(in, "%d", &token);
+            if (token != identsym){
+                emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+            }
+            
+            char identSymStr[cmax];
+            fscanf(in, "%s", identSymStr);
+            if (symboltablecheck(identSymStr) != NOT_FOUND){
+                emitError(UNDECLARED_IDENT_ERR, identSymStr);
+                
+            }
+
+            
+            //save ident name 
+            char identName[cmax];
+            strcpy(identName, identSymStr);
+        
+            fscanf(in, "%d", &token);
+            if (token != eqlsym) {
+                emitError(CONST_NEEDS_EQ_ERR, "\0");
+            }
+            // get next token 
+            fscanf(in, "%d", &token);
+            if(token != numbersym){
+                emitError(CONST_NOT_INT_ERR, "\0");
+            }
+            
+            int actualNumber;
+            fscanf(in ,"%d", &actualNumber);
+            // add to symbol table (kind 1, saved name, number, 0, 0) 
+            symbol newSym = initSymObj(identsym, identName, actualNumber, 0, 0);
+
+            // get next token
+            fscanf(in, "%d", &token); //hoping for a comma
+          
+
+        } while (token == commasym);
+        
+
+    }
+
+}
+
+
+//    Function that for when a "var" is about to be declared
+//    returns number of vars
+//    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
+int var_declaration(){
+    
+    int numVars = 0;
+
+    do
+    {   
+        char name[12];
+        
+        if(fscanf(in, "%d", &token) < 0){
+            return IDENTIFIER_EXPECTED_ERR;
+        }
+    
+        if(fscanf(in, "%s", name) < 0){
+            return IDENTIFIER_EXPECTED_ERR;
+        }
+
+        // printf("%d and %s\n", token, name);
+
+        if(token != identsym){
+            return IDENTIFIER_EXPECTED_ERR;
+        }
+        
+        // printTable(table, tableworkingIndex);
+        if(symboltablecheck(name) != NOT_FOUND){
+            return IDENT_ALR_DECLARED_ERR;
+        }
+
+        numVars++;
+        
+        //Add to symbol table
+        symbol newSym = initSymObj(identsym, name, 0, 0, numVars + 2);
+        table[tableworkingIndex] = newSym;
+        tableworkingIndex++;
+
+
+        //get next token and hope its a comma
+        
+       fscanf(in, "%d", &token);
+            
+    }while (token == commasym);
+    
+    if (token != semicolonsym){
+        return SEMICOLON_MISSING_ERR;
+    }
+   
+    return numVars;
+}
 
 void statement(){
 
@@ -946,57 +1015,3 @@ void factor(){
 
 }
 
-void program(){
-
-    block();
-    if(token != periodsym){
-        //error
-    }
-    //emit halt
-}
-
-void block(){
-
-    const_declaration();
-    int numVars = var_declaration();
-    //emit INC(M= 3 + numVars);
-    statement();
-
-}
-
-void const_declaration(){
-
-    if(token == constsym){
-        
-        do
-        {
-            
-            fscanf(in, "%d", &token);
-            if (token != identsym){
-                //error
-            }
-            
-            char *identSymStr;
-            fscanf(in, "%s", identSymStr);
-            if (symboltablecheck(identSymStr) != NOT_FOUND){
-                //not declared error i think?
-            }
-
-            /*
-                save ident name 
-                get next token 
-                if token != eqlsym 
-                    error 
-                get next token 
-                if token != numbersym 
-                    error 
-                add to symbol table (kind 1, saved name, number, 0, 0) 
-                get next token
-            */
-
-        } while (token == commasym);
-        
-
-    }
-
-}
