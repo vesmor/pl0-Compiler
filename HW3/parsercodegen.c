@@ -61,6 +61,17 @@ typedef enum token_type{
     readsym , elsesym9
 }token_type;
 
+//opcodes copied from HW1
+typedef enum opcodes {
+    LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC, SYS,
+    SOU = 9, SIN = 9, EOP = 9   //these three codes depend on the M passed in
+} opcodes;
+
+//also copied from HW1
+typedef enum OPRcodes{
+    RTN = 0, ADD, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ
+}OPRcodes;
+
 
 typedef struct lexeme{
 
@@ -729,7 +740,7 @@ void block(){
 
     printf("in block\n");
 
-    if (fscanf(in, "%d", &token) <= 0){
+    if (fscanf(in, "%d", &token) <= 0){ //get first token
         printf("Error: token list is empty\n");
         _Exit(EXIT_SUCCESS);
     }
@@ -897,7 +908,7 @@ void statement(){
 
         //emit STO (M = table[symIdx].addr)
         printf("emitting STO\n");
-        // printf("token is after STO %d\n", token);
+        printf("token is after STO %d\n", token);
         return;
 
     }
@@ -916,6 +927,8 @@ void statement(){
 
             printf("out of statement after recurse token is %d\n", token);
         } while (token == semicolonsym);
+        
+        //if statements need a semicolon check for it here and do an error mess
 
         if(token != endsym){    //make sure end is followed by beginning
             emitError(END_MISSING_ERR, "\0");
