@@ -19,11 +19,10 @@
 */
 
 /*
-    Might possibly need to implement getting next token as a function that gets next token from the array that we made at the bottom
-    Gotta fix the problem where the loop in beginsym for statement wont scanf the correct part cuz its coming back from a function
-    maybe make the token also a global variable
-
-    beginsym is getting recursed into the statement function and getting called over and over again because its repeatedely getting scanned in
+    TODO:
+        - original program provided in syllabus isnt completely working
+        - line number 4 is giving the wrong OPR code: its 3, should be 4
+        - line number 6, SYS is 9 should be 3
 */
 
 
@@ -34,6 +33,9 @@
 #include <ctype.h>
 
 
+//these are here cuz romsev wants to be extra
+#define RED   "\x1B[31m"
+#define RESET "\x1B[0m"
 
 
 
@@ -65,7 +67,7 @@ typedef enum token_type{
 //opcodes copied from HW1
 typedef enum opcodes {
     LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC, SYS,
-    SOU = 9, SIN = 9, EOP = 9,   //these three codes depend on the M passed in
+    SOU = 1, SIN, EOP   //these three codes depend on the M passed in
 
 } opcodes;
 
@@ -182,6 +184,7 @@ int tokensIndex;//working index of tokens array
 int tableworkingIndex;//working index of symbol table
 int tableSize;
 int token;
+int LexLevel;
 
 
 /*---------Function Declarations-----------------*/
@@ -225,7 +228,11 @@ int main(int argc, char const *argv[])
     out = fopen(tokenFileName, "w");
 
     if(in == NULL){
-        printf("No input file provided or name wrong\n");
+
+        printf(RED "Fatal File Error: " RESET);
+        printf("No input file provided\nExiting program\n");
+        
+        fclose(out);
         return EXIT_FAILURE;
     }
 
@@ -292,7 +299,7 @@ int main(int argc, char const *argv[])
 
 
     in = fopen("HW3/tokens.txt", "r");
-
+    // out = fopen("HW1/input.txt", "w");
     if(in == NULL){
         perror("File not found");
         return EXIT_FAILURE;
@@ -300,7 +307,7 @@ int main(int argc, char const *argv[])
 
 
     //now what...
-    int LexLevel = 0;
+    LexLevel = 0;
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
     cx = 0;
@@ -317,45 +324,6 @@ int main(int argc, char const *argv[])
     printTable(table, MAX_SYMBOL_TABLE_SIZE);
     printInstructions();
     
-    // for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
-
-    //     char name[cmax] = "";
-    //     if(token == identsym){
-    //         fscanf(in, "%s", name);
-    //         fseek(in, -1, SEEK_CUR);
-    //     }
-    //     else{
-    //         strcpy(name, sym[token]);
-    //     }
-
-    //     printf("\ttoken: %d %s\n", token, name);    
-    //     if (token == varsym){
-
-    //         // printf("%d means its a var sym\n", token);
-
-    //         numVars = var_declaration();
-
-    //         printf("%d numvars in varsym\n", numVars);
-    //         if( numVars < 0 ){  //all error signals are negative numbers
-    //             printTable(table, tableworkingIndex);
-    //             emitError(numVars, "\0");
-    //             exit(EXIT_FAILURE);
-    //         }
-
-    //     }
-
-    //     if (isStartStatement()){    //gotta see how to check for statements
-    //         statement();
-    //     }
-
-    //     // tableSize = tableworkingIndex;
-    //     // printTable(table, tableSize);
-
-    // }
-    
-   
-
-
     
 
 
@@ -771,6 +739,7 @@ void block(){
 
     //emit INC(M= 3 + numVars);
     printf("emitting INC numVars: %d\n", numVars);
+    emit(INC, LexLevel, numVars + 3);
     statement();
     printf("after statement call in block\n");
 
@@ -785,7 +754,7 @@ void const_declaration(){
             
             fscanf(in, "%d", &token);
             if (token != identsym){
-                emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+                emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
             }
             
             char identSymStr[cmax];
@@ -858,7 +827,7 @@ int var_declaration(){
             // printf("%d and %s\n", token, name);
 
             if(token != identsym){
-                return IDENTIFIER_EXPECTED_ERR;
+                return ILLEGAL_CONST_CHANGE_ERR;
             }
             
             // printTable(table, tableworkingIndex);
@@ -906,8 +875,7 @@ void statement(){
         }
 
         if (table[symIdx].kind != identsym){
-            //not a var error? idk
-            printf("kind isnt ident\n");
+            emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
         fscanf(in, "%d", &token); //expecting := sym
@@ -922,6 +890,7 @@ void statement(){
 
         //emit STO (M = table[symIdx].addr)
         printf("emitting STO\n");
+        emit(STO, LexLevel, table[symIdx].addr);
         printf("token is after STO %d\n", token);
         return;
 
@@ -957,12 +926,12 @@ void statement(){
 
         fscanf(in, "%d", &token);
 
-        // NEED TO MAKE CONDITION
-        //condition()
+        condition();
 
-        // int jpcIndex = current code index  //IDK what this means yet
+        int jpcIndex = cx; //IDK what this means yet
 
         printf("emit JPC");
+        emit(JPC, LexLevel, 0);
 
         if(token != thensym){
             emitError(THEN_MISSING_ERR, "\0");
@@ -970,7 +939,7 @@ void statement(){
 
         fscanf(in, "%d", &token);
         statement();
-        // code[jpcIndex].m = current code index //I think this has something to do with making a new instructions struct
+        code[jpcIndex].M = cx; //I think this has something to do with making a new instructions struct
 
         return;
     }
@@ -978,20 +947,23 @@ void statement(){
     if(token == whilesym){
 
         fscanf(in, "%d", &token);
-        // int loopIndex = current code index; //idk what this means yet
+        int loopIndex = cx; //idk what this means yet
 
-        // condition()
+        condition();
 
         if (token != dosym){
             emitError(DO_MISSING_ERR, "\0");
         }
 
         fscanf(in, "%d", &token);
-        // int jpcIndex = current code index;
-
+        int jpcIndex = cx;
         printf("emit JPC\n"); //M = loopIndex
+        emit(JPC, LexLevel, 0);
 
-        // code[jpcIndex].M = current code index;
+        statement();
+
+        emit(JMP, LexLevel, loopIndex);
+        code[jpcIndex].M = cx;
         return;
 
     }
@@ -999,8 +971,9 @@ void statement(){
     if(token == readsym){
 
         fscanf(in, "%d", &token);
+
         if(token != identsym){
-            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+            emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
         
         char tokenName[cmax];
@@ -1017,7 +990,10 @@ void statement(){
         fscanf(in, "%d", &token);
         
         printf("emit READ\n");
+        emit(SYS, LexLevel, 2); //READ
+
         printf("emit STO\n"); //M = table[symIndex].addr
+        emit(STO, LexLevel, table[symIndex].addr);
 
         return;
 
@@ -1027,6 +1003,8 @@ void statement(){
         fscanf(in, "%d", &token);
         expression();
         printf("emit WRITE\n");
+        emit(SYS, LexLevel, SOU); //WRITE
+
         return;
     }
 
@@ -1040,6 +1018,7 @@ void condition(){
         fscanf(in, "%d", &token);
         expression();
         printf("emit ODD\n");
+        emit(ODD, LexLevel, 0);
     }
 
     else{
@@ -1049,35 +1028,40 @@ void condition(){
             fscanf(in, "%d", &token);
             expression();
             printf("emit EQL\n");
+            emit(OPR, LexLevel, EQL);
         }
         else if(token == neqsym){
             fscanf(in, "%d", &token);
             expression();
             printf("emit NEQ\n");
+            emit(OPR, LexLevel, NEQ);
         }
         else if(token == lessym){
             fscanf(in, "%d", &token);
             expression();
             printf("emit LSS\n");
+            emit(OPR, LexLevel, LSS);
         }
         else if(token == leqsym){
             fscanf(in, "%d", &token);
             expression();
             printf("emit LEQ\n");
+            emit(OPR, LexLevel, LEQ);
         }
         else if(token == gtrsym){
             fscanf(in, "%d", &token);
             expression();
             printf("emit GTR\n");
+            emit(OPR, LexLevel, GTR);
         }
         else if(token == geqsym){
             fscanf(in, "%d", &token);
             expression();
             printf("emit GEQ\n");
+            emit(OPR, LexLevel, GEQ);
         }
         else{
-            //not sure what error this throws yet
-            printf("Error: in condition\n");
+            emitError(NEEDS_COMPARE_ERR, "\0");
         }
 
     }
@@ -1089,10 +1073,15 @@ void expression(){
     printf("in expression\n");
 
     if (token == minussym){
-        // fscanf(in, "%d", &token);
-        // term(token);
-        // //emit neg ?
         printf("token in exp is minus sym\n");
+        
+        fscanf(in, "%d", &token);
+        term();
+
+        //emit neg ?
+        printf("Emit neg\n");
+        emit(OPR, LexLevel, SUB);
+
         while (token == plussym || token == minussym){
             fscanf(in, "%d", &token);
             printf("token is plus or minus\n");
@@ -1102,12 +1091,14 @@ void expression(){
                 term();
                 //emit add
                 printf("token in expression is add\n");
+                emit(OPR, LexLevel, ADD);
             }
             else{
                 fscanf(in, "%d", &token);
                 term();
                 //emit sub
                 printf("token in expression is sub\n");
+                emit(OPR, LexLevel, SUB);
             }    
         }
 
@@ -1130,12 +1121,14 @@ void expression(){
                 term();
                 //emit add
                 printf("token in expression is add\n");
+                emit(OPR, LexLevel, SUB);
             }
             else{
                 fscanf(in, "%d", &token);
                 term();
                 //emit sub
                 printf("token in expression is sub\n");
+                emit(OPR, LexLevel, SUB);
             }    
         }
 
@@ -1154,7 +1147,8 @@ void term(){
 
             fscanf(in, "%d", &token);
             factor();
-            //emit MUL ?
+            //emit MUL
+            emit(OPR, LexLevel, MUL);
 
         }
 
@@ -1164,6 +1158,7 @@ void term(){
             factor();
             //emit DIV 
             printf("emit DIV in term\n");
+            emit(OPR, LexLevel, DIV);
 
         }
 
@@ -1182,22 +1177,30 @@ void factor(){
         if(symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identifierStr);
         }
-        if(table[symIdx].kind == constsym){
+
+        if(table[symIdx].kind == CONST){
             //emit LIT(m = table[sym.idx].addr)
             printf("Emit LIT in factor\n");
+            emit(LIT, LexLevel, table[symIdx].addr);
         }
-        else{
+        else if(table[symIdx].kind == VAR){
             //emit LOD (M = table[symIdx].addr)
             printf("Emit LOD in factor\n");
+            emit(LOD, LexLevel, table[symIdx].addr);
         }
+        fscanf(in, "%d", &token);
     }
 
     else if(token == numbersym){
         int actualNumber;
         fscanf(in, "%d", &actualNumber); //get the actual number after numbersym
+
         table[tableworkingIndex].val = actualNumber;
+
         //emit LIT
         printf("Emitting numbersym LIT %d from factor\n", actualNumber);
+        emit(LIT, LexLevel, actualNumber);
+
         fscanf(in, "%d", &token);
     }
 
@@ -1210,17 +1213,22 @@ void factor(){
         fscanf(in, "%d", &token);
     }
     else{
-        //error
-        printf("error in token\n");
+        emitError(ARITHMETIC_ERR, "\0");
     }
 
 }
 
+//pushes opcode into text space array
 void emit(int op, int L, int M){
 
-    // if(cx > CODE_SIZE){
-    //     //probably out of code size error
-    // }
+    // #define RED   "\x1B[31m"
+    // #define RESET "\x1B[0m"
+
+    //def dont want to get bigger than the allocated size
+    if(cx > MAX_CODE_SIZE){ 
+        printf(RED "Fatal Error: " RESET);  //i just like being extra and wanted to color ur console red
+        printf("ran out of allocated text space.\n");
+    }
 
     code[cx].op = op;  //opcode
     code[cx].L = L; // lexicographical level
@@ -1231,9 +1239,17 @@ void emit(int op, int L, int M){
 
 void printInstructions(){
 
+    const char *op_code_names[] = { "LIT", "OPR", "LOD", "STO", "CAL", "INC", "JMP", "JPC", "SYS" };
+
+
     for (size_t i = 0; i < cx; i++)
     {
-        printf("%d %d %d\n" ,code[i].op, code[i].L, code[i].M);
+        char op_name[4];
+        strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
+        
+        printf("%ld %s %d %d\n", i, op_name, code[i].L, code[i].M);
+        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+    
     }
     
 
