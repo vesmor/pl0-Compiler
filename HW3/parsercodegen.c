@@ -22,7 +22,10 @@
     TODO:
         - original program provided in syllabus isnt completely working
         - line number 4 is giving the wrong OPR code: its 3, should be 4
-        - line number 6, SYS is 9 should be 3
+        - figure out the lex level stuff
+        - add terminating errors for scanner portion
+        - remove printf traces
+        - prettify output
 */
 
 
@@ -230,9 +233,17 @@ int main(int argc, char const *argv[])
     if(in == NULL){
 
         printf(RED "Fatal File Error: " RESET);
-        printf("No input file provided\nExiting program\n");
+        printf("No input file provided or no input file of that name found.\n");
+        printf("If a file was provided make sure you called it from the proper directory.\n");
         
         fclose(out);
+        return EXIT_FAILURE;
+    }
+
+    if(out == NULL){
+
+        printf(RED "Fatal Error: File unable to be created:\n" RESET);
+        printf("Program failed to create the file " RED "%s" RESET " possibly due to a non-existent directory.\n", tokenFileName);
         return EXIT_FAILURE;
     }
 
@@ -297,11 +308,12 @@ int main(int argc, char const *argv[])
     in = NULL;
     out = NULL;
 
-
-    in = fopen("HW3/tokens.txt", "r");
+    in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
     // out = fopen("HW1/input.txt", "w");
+
     if(in == NULL){
-        perror("File not found");
+        printf(RED "Fatal Error: the expected tokens.txt file not found:\n" RESET);
+        printf("the program should be reading the tokens.txt file but tried to open " RED "%s" RESET " instead.\nIf the names match, the file might have never been created.", tokenFileName);
         return EXIT_FAILURE;
     }
 
