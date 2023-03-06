@@ -36,7 +36,7 @@ typedef enum opcodes {
 } opcodes;
 
 typedef enum OPRcodes{
-    RTN = 0, ADD, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ
+    RTN = 0, ADD, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ, ODD
 }OPRcodes;
 
 //instruction register struct
@@ -218,6 +218,9 @@ int main(int argc, char *argv[]){
                         printf("%d is an Invalid m for SYS opcode\nEnding process...\n", IR.m);
                         eop = 0;
                 }
+                break;
+            case ODD:
+                pas[sp] <-- pas[sp] % 2;
                 break;
 
             default:

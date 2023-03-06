@@ -64,12 +64,13 @@ typedef enum token_type{
 //opcodes copied from HW1
 typedef enum opcodes {
     LIT = 1, OPR, LOD, STO, CAL, INC, JMP, JPC, SYS,
-    SOU = 9, SIN = 9, EOP = 9   //these three codes depend on the M passed in
+    SOU = 9, SIN = 9, EOP = 9,   //these three codes depend on the M passed in
+
 } opcodes;
 
 //also copied from HW1
 typedef enum OPRcodes{
-    RTN = 0, ADD, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ
+    RTN = 0, ADD, SUB, MUL, DIV, EQL, NEQ, LSS, LEQ, GTR, GEQ, ODD
 }OPRcodes;
 
 
