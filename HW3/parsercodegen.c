@@ -44,6 +44,7 @@
 #define  ssymlen                 17       /*len of special symbol arr*/
 #define  symlen                  34       /*master sym array length*/
 #define  MAX_SYMBOL_TABLE_SIZE  500
+#define  MAX_CODE_SIZE         1000
 
 //for symbol table kinds
 #define CONST   1
@@ -80,6 +81,16 @@ typedef struct lexeme{
     int token_type;
 
 }lexeme;
+
+//instruction hold for parsing
+typedef struct instruction{
+
+    int op; //opcode
+    int L;  // lexicographical level
+    int M;  // modifier
+    
+
+}instruction;
 
 /*
     For constants, you must store kind, name and value. 
@@ -165,6 +176,8 @@ FILE *out;
 
 symbol table[MAX_SYMBOL_TABLE_SIZE];
 lexeme *tokens;
+instruction code[MAX_CODE_SIZE];
+int cx; //working code arr index
 int tokensIndex;//working index of tokens array
 int tableworkingIndex;//working index of symbol table
 int tableSize;
@@ -198,15 +211,10 @@ void const_declaration();
 int symboltablecheck(char *target);
 void expression();
 void condition();
+void emit(int op, int L, int M);
+void printInstructions();
 /*-----------------------------------------------*/
 
-// void emit(op , r, l  m){
-//     if x > CODESIZE
-//         error(25)
-//     else{
-
-//     }
-// }
 
 int main(int argc, char const *argv[])
 {
@@ -295,15 +303,19 @@ int main(int argc, char const *argv[])
     int LexLevel = 0;
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
+    cx = 0;
     // tokens = readTokens();
 
     int numVars;
     table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, 3);
     tableSize++;
     
+    emit(JMP, 0, 3);
+
     program(); //literally starts reading program
 
     printTable(table, MAX_SYMBOL_TABLE_SIZE);
+    printInstructions();
     
     // for (size_t i = 0; fscanf(in, "%d", &token) > 0; i++){
 
@@ -735,6 +747,7 @@ void program(){
     }
     //emit halt
     printf("HALT\n");
+    emit(SYS, 0, EOP);//HALT
 }
 
 void block(){
@@ -1203,3 +1216,25 @@ void factor(){
 
 }
 
+void emit(int op, int L, int M){
+
+    // if(cx > CODE_SIZE){
+    //     //probably out of code size error
+    // }
+
+    code[cx].op = op;  //opcode
+    code[cx].L = L; // lexicographical level
+    code[cx].M = M; // modifier
+    cx++;
+
+}
+
+void printInstructions(){
+
+    for (size_t i = 0; i < cx; i++)
+    {
+        printf("%d %d %d\n" ,code[i].op, code[i].L, code[i].M);
+    }
+    
+
+}
