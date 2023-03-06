@@ -225,7 +225,7 @@ void printInstructions();
 int main(int argc, char const *argv[])
 {
 
-    char tokenFileName[] = "HW3/tokens.txt"; //remember to change this before submission lol
+    char tokenFileName[] = "tokens.txt"; //remember to change this before submission lol
 
     in = fopen(argv[1], "r");
     out = fopen(tokenFileName, "w");
@@ -307,13 +307,20 @@ int main(int argc, char const *argv[])
     fclose(out);
     in = NULL;
     out = NULL;
+    
+    char VMoutputName[] = "../HW1/input.txt";
 
     in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
-    // out = fopen("HW1/input.txt", "w");
+    out = fopen(VMoutputName, "w");
 
     if(in == NULL){
-        printf(RED "Fatal Error: the expected tokens.txt file not found:\n" RESET);
+        printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
         printf("the program should be reading the tokens.txt file but tried to open " RED "%s" RESET " instead.\nIf the names match, the file might have never been created.", tokenFileName);
+        return EXIT_FAILURE;
+    }
+
+    if(out == NULL){
+        printf(RED "File File Error: %s could not be located\n" RESET, VMoutputName);
         return EXIT_FAILURE;
     }
 
@@ -1260,7 +1267,7 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         printf("%ld %s %d %d\n", i, op_name, code[i].L, code[i].M);
-        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     
