@@ -677,6 +677,7 @@ void emitError(int errorSignal, char *invalidIdent){
     printf(RED "%s\n" RESET, error_message); //remove coloring before submission
     
     printTable(table, tableSize);
+    printInstructions();
     _Exit(EXIT_SUCCESS);
 
 }
@@ -694,6 +695,11 @@ int isStartStatement(){
 void program(){
     printf("starting program\n");
 
+    if(fscanf(in, "%d", &token) <= 0){ //get first token
+        printf("Error: token list is empty\n");
+        _Exit(EXIT_SUCCESS);
+    }
+
     block();
     printf("after block in program\n");
     if(token != periodsym){
@@ -708,10 +714,7 @@ void block(){
 
     printf("in block\n");
 
-    if (fscanf(in, "%d", &token) <= 0){ //get first token
-        printf("Error: token list is empty\n");
-        _Exit(EXIT_SUCCESS);
-    }
+    
 
     const_declaration();
     int numVars = var_declaration();
