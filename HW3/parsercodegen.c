@@ -26,6 +26,7 @@
         - add terminating errors for scanner portion
         - remove printf traces
         - prettify output
+        - change const array sizes to compile time
 */
 
 
@@ -115,7 +116,7 @@ typedef struct symbol{
 
 
 /* list of reserved keyword names */
-const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "else", "while", "do", "read", "write", "odd"}; 
+const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
 /* list of ignored symbols */
 const char ignoresym [ignoresymlen] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
@@ -308,7 +309,7 @@ int main(int argc, char const *argv[])
     char VMoutputName[] = "../HW1/input.txt";
 
     in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
-    // out = fopen(VMoutputName, "w");
+    out = fopen(VMoutputName, "w");
 
     if(in == NULL){
         printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
@@ -316,10 +317,10 @@ int main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
 
-    // if(out == NULL){
-    //     printf(RED "File File Error: %s could not be located\n" RESET, VMoutputName);
-    //     return EXIT_FAILURE;
-    // }
+    if(out == NULL){
+        printf(RED "File File Error: %s could not be located\n" RESET, VMoutputName);
+        return EXIT_FAILURE;
+    }
 
 
     //now what...
@@ -873,8 +874,9 @@ void statement(){
         fscanf(in, "%d", &token);
         tableworkingIndex = symIdx;
         expression();
-        if (token != semicolonsym) {
-            printf("error in expression %d\n", token);
+
+        if (token != semicolonsym && token != endsym){
+            printf("missing semicolon %d\n", token);
             emitError(ARITHMETIC_ERR, "\0");
         }
 
@@ -1066,7 +1068,7 @@ void expression(){
     term();
 
     while (token == plussym || token == minussym){
-        fscanf(in, "%d", &token);
+        // fscanf(in, "%d", &token);
         printf("token is plus or minus\n");
     
         if (token == plussym){
@@ -1153,7 +1155,7 @@ void expression(){
 
 void term(){
 
-    printf("in term\n");
+    printf("in term %d\n", token);
     factor();
 
     while(token == multsym || token == slashsym){
@@ -1183,7 +1185,7 @@ void term(){
 
 //still need to figure out error
 void factor(){
-    printf("in factor\n");
+    printf("in factor %d\n", token);
     if (token == identsym){
 
         char identifierStr[cmax];
@@ -1264,7 +1266,7 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         printf("%ld %s %d %d\n", i, op_name, code[i].L, code[i].M);
-        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     
