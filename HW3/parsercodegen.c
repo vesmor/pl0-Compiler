@@ -309,7 +309,7 @@ int main(int argc, char const *argv[])
     char VMoutputName[] = "../HW1/input.txt";
 
     in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
-    // out = fopen(VMoutputName, "w");
+    out = fopen(VMoutputName, "w");
 
     if(in == NULL){
         printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
@@ -317,10 +317,10 @@ int main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
 
-    // if(out == NULL){
-    //     printf(RED "File File Error: %s could not be located\n" RESET, VMoutputName);
-    //     return EXIT_FAILURE;
-    // }
+    if(out == NULL){
+        printf(RED "File File Error: %s could not be located\n" RESET, VMoutputName);
+        return EXIT_FAILURE;
+    }
 
 
     //now what...
@@ -1267,7 +1267,7 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         printf("%ld %s %d %d\n", i, op_name, code[i].L, code[i].M);
-        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     

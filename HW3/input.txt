@@ -1,7 +1,6 @@
-var x, y, z;
-begin 
-    x := 5;
-    if x > 0
-    then while x >= 0
-    do x := 1 + x;     
+var x, y;
+begin
+    x := 6;
+    y := x / 0;
+    write y;
 end.
