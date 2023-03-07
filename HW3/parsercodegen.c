@@ -26,6 +26,7 @@
         - add terminating errors for scanner portion
         - remove printf traces
         - prettify output
+        - change const array sizes to compile time
 */
 
 
@@ -115,7 +116,7 @@ typedef struct symbol{
 
 
 /* list of reserved keyword names */
-const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "else", "while", "do", "read", "write", "odd"}; 
+const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
 /* list of ignored symbols */
 const char ignoresym [ignoresymlen] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
@@ -900,10 +901,6 @@ void statement(){
         fscanf(in, "%d", &token);
         tableworkingIndex = symIdx;
         expression();
-        if (token != semicolonsym) {
-            printf("error in expression %d\n", token);
-            emitError(ARITHMETIC_ERR, "\0");
-        }
 
         //emit STO (M = table[symIdx].addr)
         printf("emitting STO\n");
