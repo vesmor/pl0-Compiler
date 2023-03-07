@@ -326,14 +326,13 @@ int main(int argc, char const *argv[])
     // tokens = readTokens();
 
     int numVars;
-    table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, 3);
-    tableSize++;
+    table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, PROC); //adds main procedure to symbol table
     
     emit(JMP, 0, 3);
 
     program(); //literally starts reading program
 
-    printTable(table, MAX_SYMBOL_TABLE_SIZE);
+    printTable(table, tableSize);
     printInstructions();
     
     
@@ -637,6 +636,8 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
     s.addr = addr;
     s.mark = 0;
 
+    tableSize++; //we're probably adding something to the table so increase the size
+
     return s;
 
 }
@@ -805,7 +806,6 @@ void const_declaration(){
             symbol newSym = initSymObj(1, identName, actualNumber, 0, 0);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
-            tableSize++;
 
             // get next token
             fscanf(in, "%d", &token); //hoping for a comma
@@ -855,7 +855,6 @@ int var_declaration(){
             symbol newSym = initSymObj(2, name, 0, 0, numVars + 2);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
-            tableSize++;
 
 
             //get next token and hope its a comma
