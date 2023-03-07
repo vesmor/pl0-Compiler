@@ -223,7 +223,7 @@ void printInstructions();
 int main(int argc, char const *argv[])
 {
 
-    char tokenFileName[] = "HW3/tokens.txt"; //remember to change this before submission lol
+    char tokenFileName[] = "tokens.txt"; //remember to change this before submission lol
 
     in = fopen(argv[1], "r");
     out = fopen(tokenFileName, "w");
@@ -242,6 +242,7 @@ int main(int argc, char const *argv[])
 
         printf(RED "Fatal Error: File unable to be created:\n" RESET);
         printf("Program failed to create the file " RED "%s" RESET " possibly due to a non-existent directory.\n", tokenFileName);
+        printf("\t-Try changing the 'char tokenFileName[]' variable in main from HW3/tokens.txt' to 'tokens.txt\n");
         return EXIT_FAILURE;
     }
 
