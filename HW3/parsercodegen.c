@@ -645,12 +645,12 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 void printTable(symbol table[], int tableSize){
 
     printf("table size %d\n", tableSize);
-    printf("Kind | Name       | Value | Level | Address | Mark\n");
+    printf("Kind | Name   \t| Value | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
 
     for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
     {
-        printf("   %d |\t\t%s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+        printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
     
 }
@@ -1087,7 +1087,30 @@ void expression(){
 
     printf("%d in expression\n", token);
 
-    if (token == minussym){
+    term();
+
+    while (token == plussym || token == minussym){
+        fscanf(in, "%d", &token);
+        printf("token is plus or minus\n");
+    
+        if (token == plussym){
+            fscanf(in, "%d", &token);
+            term();
+            //emit add
+            printf("token in expression is add\n");
+            emit(OPR, LexLevel, ADD);
+        }
+        else{
+            fscanf(in, "%d", &token);
+            term();
+            //emit sub
+            printf("token in expression is sub\n");
+            emit(OPR, LexLevel, SUB);
+        }    
+    }
+
+
+   /* if (token == minussym){
         printf("token in exp is minus sym\n");
         
         fscanf(in, "%d", &token);
@@ -1147,7 +1170,7 @@ void expression(){
             }    
         }
 
-    }
+    }*/
 
 }
 
