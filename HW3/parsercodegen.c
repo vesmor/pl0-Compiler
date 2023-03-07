@@ -1107,6 +1107,9 @@ void expression(){
             emit(OPR, LexLevel, SUB);
         }    
     }
+    if (token != semicolonsym) {
+        emitError(ARITHMETIC_ERR, "\0");
+    }
 
 
    /* if (token == minussym){
@@ -1244,6 +1247,7 @@ void factor(){
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
         expression();
+        printf("exiting expresion to factor parentheses token: %d\n", token);
         if(token != rparentsym){
             emitError(INCOMPLETE_PARENTHEIS_ERR, "\0");
         }
