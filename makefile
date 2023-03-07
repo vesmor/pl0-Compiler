@@ -7,7 +7,7 @@ all: codegen vm
 
 .PHONY: codegen
 codegen: $(HW3_DIR)/parsercodegen.c $(HW3_DIR)/input.txt
-	cd $(HW3_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen input.txt
+	cd $(HW3_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen error15.txt
 
 .PHONY: vm
 vm: $(HW1_DIR)/vm.c $(HW1_DIR)/input.txt

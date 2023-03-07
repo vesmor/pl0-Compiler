@@ -902,6 +902,11 @@ void statement(){
         tableworkingIndex = symIdx;
         expression();
 
+        if (token != semicolonsym && token != endsym){
+            printf("missing semicolon %d\n", token);
+            emitError(ARITHMETIC_ERR, "\0");
+        }
+
         //emit STO (M = table[symIdx].addr)
         printf("emitting STO\n");
         emit(STO, LexLevel, table[symIdx].addr);
@@ -1090,7 +1095,7 @@ void expression(){
     term();
 
     while (token == plussym || token == minussym){
-        fscanf(in, "%d", &token);
+        // fscanf(in, "%d", &token);
         printf("token is plus or minus\n");
     
         if (token == plussym){
@@ -1177,7 +1182,7 @@ void expression(){
 
 void term(){
 
-    printf("in term\n");
+    printf("in term %d\n", token);
     factor();
 
     while(token == multsym || token == slashsym){
@@ -1207,7 +1212,7 @@ void term(){
 
 //still need to figure out error
 void factor(){
-    printf("in factor\n");
+    printf("in factor %d\n", token);
     if (token == identsym){
 
         char identifierStr[cmax];
