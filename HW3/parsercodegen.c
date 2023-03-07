@@ -181,10 +181,8 @@ FILE *out;
 //parser global variables
 
 symbol table[MAX_SYMBOL_TABLE_SIZE];
-lexeme *tokens;
 instruction code[MAX_CODE_SIZE];
 int cx; //working code arr index
-int tokensIndex;//working index of tokens array
 int tableworkingIndex;//working index of symbol table
 int tableSize;
 int token;
@@ -206,7 +204,6 @@ int symboltablecheck(char *target);
 int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
-lexeme* readTokens();
 void emitError(int errorSignal, char *invalidIdent);
 int isStartStatement();
 void program();
@@ -308,15 +305,22 @@ int main(int argc, char const *argv[])
     fclose(out);
     in = NULL;
     out = NULL;
+    
+    char VMoutputName[] = "../HW1/input.txt";
 
     in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
-    // out = fopen("HW1/input.txt", "w");
+    // out = fopen(VMoutputName, "w");
 
     if(in == NULL){
-        printf(RED "Fatal Error: the expected tokens.txt file not found:\n" RESET);
+        printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
         printf("the program should be reading the tokens.txt file but tried to open " RED "%s" RESET " instead.\nIf the names match, the file might have never been created.", tokenFileName);
         return EXIT_FAILURE;
     }
+
+    // if(out == NULL){
+    //     printf(RED "File File Error: %s could not be located\n" RESET, VMoutputName);
+    //     return EXIT_FAILURE;
+    // }
 
 
     //now what...
@@ -658,34 +662,6 @@ void printTable(symbol table[], int tableSize){
 }
 
 
-lexeme* readTokens(){
-
-    lexeme *temp = NULL;
-
-    int token_holder;
-
-    for(int i = 0; fscanf(in, "%d", &token_holder) > 0; i++){
-
-        temp = realloc(temp , (i+1) * sizeof(lexeme));
-
-        // printf("tokenholder %d\n", token_holder);
-        if(token_holder == numbersym || token_holder == identsym){
-
-            char buffer[cmax+1];
-            fscanf(in, "%s", buffer);
-            int len = strlen(buffer);
-
-            temp[i].token_name = (char*)malloc((len+1) * sizeof(char));
-            strcpy(temp[i].token_name, buffer);
-
-        }
-
-        temp[i].token_type = token_holder;
-        
-    }
-
-}
-
 
 //Print error message to console corresponding to error signal passed in. pass "\0" into invalidIdent if not an undeclared_ident error
 void emitError(int errorSignal, char *invalidIdent){
@@ -697,12 +673,10 @@ void emitError(int errorSignal, char *invalidIdent){
     if(invalidIdent[0] != '\0'){
         strcat(error_message, " "); //add space
         strcat(error_message, invalidIdent); //insert the wrong variable
-        printf("%s\n", error_message);
     }
 
-    else{
-        printf("%s\n", error_message);
-    }    
+
+    printf(RED "%s\n" RESET, error_message); //remove coloring before submission
     
     printTable(table, tableSize);
     _Exit(EXIT_SUCCESS);
@@ -1158,13 +1132,13 @@ void expression(){
 
         while (token == plussym || token == minussym){
             fscanf(in, "%d", &token);
-            printf("token is plus or minus\n");
+            printf("factor: else: token is plus or minus\n");
 
             if (token == plussym){
                 fscanf(in, "%d", &token);
                 term();
                 //emit add
-                printf("token in expression is add\n");
+                printf("factor: else: token in expression is add\n");
                 emit(OPR, LexLevel, SUB);
             }
             else{
