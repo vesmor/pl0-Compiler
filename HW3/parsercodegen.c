@@ -900,6 +900,10 @@ void statement(){
         fscanf(in, "%d", &token);
         tableworkingIndex = symIdx;
         expression();
+        if (token != semicolonsym) {
+            printf("error in expression %d\n", token);
+            emitError(ARITHMETIC_ERR, "\0");
+        }
 
         //emit STO (M = table[symIdx].addr)
         printf("emitting STO\n");
@@ -1107,9 +1111,7 @@ void expression(){
             emit(OPR, LexLevel, SUB);
         }    
     }
-    if (token != semicolonsym) {
-        emitError(ARITHMETIC_ERR, "\0");
-    }
+    
 
 
    /* if (token == minussym){
