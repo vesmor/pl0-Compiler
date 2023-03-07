@@ -6,3 +6,4 @@ HW2/example.c
 *.txt
 *.vscode
 HW3/input.txt
+!readme.txt
