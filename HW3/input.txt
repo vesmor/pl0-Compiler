@@ -1,5 +1,5 @@
 var x, y, z;
-x := 5
 begin 
+    x := 5;
     x := y * 2; 
 end.

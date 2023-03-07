@@ -225,7 +225,7 @@ void printInstructions();
 int main(int argc, char const *argv[])
 {
 
-    char tokenFileName[] = "HW3/tokens.txt"; //remember to change this before submission lol
+    char tokenFileName[] = "tokens.txt"; //remember to change this before submission lol
 
     in = fopen(argv[1], "r");
     out = fopen(tokenFileName, "w");
@@ -412,7 +412,7 @@ char* readProgram(int *arrSize){
 
 
 
-        // printf("%c", charArr[i]);
+        printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
@@ -587,7 +587,7 @@ int tokenize(char *chunk){
 
 void printLexemes(lexeme *list, size_t size){
 
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i <= size; i++)  //changed due to only printing last lexeme to terminal but not to file sometimes but only sometimes. Im so fucking baffled why
     {
         if(list[i].token_name == NULL || list[i].token_type <= 0){
             continue;
@@ -613,12 +613,12 @@ int symboltablecheck(char *target){
     //also check that name isn't empty to avoid seg fault and to save time
     for (size_t index = 0; index < MAX_SYMBOL_TABLE_SIZE && table[index].name[0] != '\0'; index++)
     {
-        // printf("\tI: %d\n", index);
+        // printf("\tI: %ld\n", index);
         if(strcmp(table[index].name, target) == 0){
             return index;
         }
     }
-
+    // printf("not found\n");
     return NOT_FOUND;
     
 
@@ -719,9 +719,11 @@ int isStartStatement(){
 
 void program(){
     printf("starting program\n");
+    
 
     block();
     printf("after block in program\n");
+    printf("%d\n", token);
     if(token != periodsym){
         emitError(MISSING_PERIOD_ERR, "\0");
     }
@@ -738,9 +740,13 @@ void block(){
         printf("Error: token list is empty\n");
         _Exit(EXIT_SUCCESS);
     }
-
-    const_declaration();
-    int numVars = var_declaration();
+    // fscanf(in, "%d", &token):
+    int numVars = 0;
+    while (token == constsym || token == varsym) {
+        const_declaration();
+        
+        numVars = var_declaration();
+    } 
 
     if( numVars < 0 ){  //all error signals are negative numbers
         
@@ -752,7 +758,9 @@ void block(){
     //emit INC(M= 3 + numVars);
     printf("emitting INC numVars: %d\n", numVars);
     emit(INC, LexLevel, numVars + 3);
+    
     statement();
+    
     printf("after statement call in block\n");
 
 }
@@ -766,13 +774,13 @@ void const_declaration(){
             
             fscanf(in, "%d", &token);
             if (token != identsym){
-                emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
+                emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");  // i think this error needs to be changed
             }
             
             char identSymStr[cmax];
             fscanf(in, "%s", identSymStr);
             if (symboltablecheck(identSymStr) != NOT_FOUND){
-                emitError(UNDECLARED_IDENT_ERR, identSymStr);
+                emitError(IDENT_ALR_DECLARED_ERR, '\0');
                 
             }
 
@@ -794,7 +802,7 @@ void const_declaration(){
             int actualNumber;
             fscanf(in ,"%d", &actualNumber);
             // add to symbol table (kind 1, saved name, number, 0, 0) 
-            symbol newSym = initSymObj(identsym, identName, actualNumber, 0, 0);
+            symbol newSym = initSymObj(1, identName, actualNumber, 0, 0);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
             tableSize++;
@@ -826,20 +834,14 @@ int var_declaration(){
     if(token == varsym){
         do
         {   
-            
-            if(fscanf(in, "%d", &token) <= 0){
+            fscanf(in, "%d", &token);
+            if( token != identsym){
                 return IDENTIFIER_EXPECTED_ERR;
             }
         
             char name[12];
             if(fscanf(in, "%s", name) <= 0){
                 return IDENTIFIER_EXPECTED_ERR;
-            }
-
-            // printf("%d and %s\n", token, name);
-
-            if(token != identsym){
-                return ILLEGAL_CONST_CHANGE_ERR;
             }
             
             // printTable(table, tableworkingIndex);
@@ -850,7 +852,7 @@ int var_declaration(){
             numVars++;
             
             //Add to symbol table
-            symbol newSym = initSymObj(identsym, name, 0, 0, numVars + 2);
+            symbol newSym = initSymObj(2, name, 0, 0, numVars + 2);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
             tableSize++;
@@ -886,7 +888,7 @@ void statement(){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
 
-        if (table[symIdx].kind != identsym){
+        if (table[symIdx].kind != 2){
             emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
@@ -924,6 +926,7 @@ void statement(){
         } while (token == semicolonsym);
         
         //if statements need a semicolon check for it here and do an error mess
+
 
         if(token != endsym){    //make sure end is followed by beginning
             emitError(END_MISSING_ERR, "\0");
@@ -1082,7 +1085,7 @@ void condition(){
 
 void expression(){
 
-    printf("in expression\n");
+    printf("%d in expression\n", token);
 
     if (token == minussym){
         printf("token in exp is minus sym\n");
