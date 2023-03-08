@@ -217,6 +217,7 @@ void expression();
 void condition();
 void emit(int op, int L, int M);
 void printInstructions();
+void markTable();
 /*-----------------------------------------------*/
 
 
@@ -337,6 +338,8 @@ int main(int argc, char const *argv[])
     emit(JMP, 0, 3);
 
     program(); //literally starts reading program
+
+    markTable(); //since we only have 1 function this is called in main
 
     printTable(table, tableSize);
     printInstructions();
@@ -1272,4 +1275,11 @@ void printInstructions(){
     }
     
 
+}
+
+void markTable() {
+
+    for (int i = 0; i < tableSize; ++i) {
+        table[i].mark = 1;
+    }
 }

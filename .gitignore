@@ -4,5 +4,7 @@ main
 *.code-workspace
 HW2/example.c
 *.vscode
-*.txt
 !readme.txt
+HW3/*.txt
+HW1/*.txt
+
