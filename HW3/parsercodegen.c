@@ -341,8 +341,8 @@ int main(int argc, char const *argv[])
 
     markTable(); //since we only have 1 function this is called in main
 
-    printTable(table, tableSize);
     printInstructions();
+    printTable(table, tableSize);
     
     
 
@@ -654,7 +654,8 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 //TODO: Make the table print prettier, and align the tabs
 void printTable(symbol table[], int tableSize){
 
-    printf("table size %d\n", tableSize);
+    printf("\nSymbol Table:\n\n");
+    // printf("table size %d\n", tableSize);
     printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
 
