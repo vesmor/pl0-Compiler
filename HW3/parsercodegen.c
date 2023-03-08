@@ -655,7 +655,7 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 void printTable(symbol table[], int tableSize){
 
     printf("table size %d\n", tableSize);
-    printf("Kind | Name   \t| Value | Level | Address | Mark\n");
+    printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
 
     for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)

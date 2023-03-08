@@ -6,5 +6,6 @@ HW2/example.c
 *.vscode
 !readme.txt
 HW3/*.txt
+HW2/*.txt
 HW1/*.txt
 
