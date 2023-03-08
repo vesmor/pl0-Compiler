@@ -21,8 +21,6 @@
 /*
     TODO:
         - original program provided in syllabus isnt completely working
-        - line number 4 is giving the wrong OPR code: its 3, should be 4
-        - figure out the lex level stuff
         - add terminating errors for scanner portion
         - remove printf traces
         - prettify output
@@ -43,12 +41,8 @@
 
 
 
-#define  norw                    12       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
 #define  strmax                 256       /* maximum length of strings */
-#define  ignoresymlen             7       /* length of ignoresym array*/
-#define  ssymlen                 17       /*len of special symbol arr*/
-#define  symlen                  34       /*master sym array length*/
 #define  MAX_SYMBOL_TABLE_SIZE  500
 #define  MAX_CODE_SIZE         1000
 
@@ -116,14 +110,20 @@ typedef struct symbol{
 
 
 /* list of reserved keyword names */
-const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
+const char  *word [] = { "const", "var", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
 /* list of ignored symbols */
-const char ignoresym [ignoresymlen] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
+const char ignoresym [] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
-const char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
+const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':', '!'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
-const char *sym[symlen] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
-    ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
+const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
+    ":=", "begin", "end", "if", "then", "while", "do", "", "const", "var", "", "write", "read", ""};
+
+
+const int norw        = sizeof(word)/sizeof(word[0]);             /* number of reserved words */
+const int ignoresymlen= sizeof(ignoresym)/sizeof(ignoresym[0]);   /* length of ignoresym array*/
+const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of special symbol arr*/
+const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
 //Error signals
