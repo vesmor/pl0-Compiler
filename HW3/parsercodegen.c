@@ -24,7 +24,6 @@
         - add terminating errors for scanner portion
         - remove printf traces
         - prettify output
-        - change const array sizes to compile time
 */
 
 
@@ -171,7 +170,13 @@ const char *err_messages[] =  {
                             "Error: while must be followed by do",
                             "Error: condition must contain comparison operator",
                             "Error: right parenthesis must follow left parenthesis",
-                            "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols"
+                            "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols",
+
+                            "Error: Variable name does not start with letter.",
+                            "Error: Number too long.",
+                            "Error: Name too long.",
+                            "Error: Invalid Symbols.",
+                            "Error: Comment does not end."
                         };
 
 
@@ -347,13 +352,12 @@ int main(int argc, char const *argv[])
     //clean up
     for (size_t index = 0; index < lex_size; index++)
     {
-        // free(lex_list[index].token_name);
+        free(lex_list[index].token_name);
     }
-    // free(lex_list);
-    // free(charArr);
-    // free(tokens);
+    free(lex_list);
+    free(charArr);
     fclose(in);
-    // fclose(out);
+    fclose(out);
 
     return 0;
 }
