@@ -1,1 +1,1 @@
-29 2 fib 17 2 prevOne 17 2 prevTwo 17 2 count 18 21 2 fib 20 3 1 18 2 prevOne 20 3 1 18 2 prevTwo 20 3 1 18 32 2 count 18 31 3 0 18 2 count 20 2 count 5 3 1 18 25 2 count 13 3 0 26 21 2 count 20 2 count 5 3 1 18 31 2 fib 18 2 fib 20 2 prevOne 18 2 prevOne 20 2 prevTwo 4 2 prevOne 18 2 prevTwo 20 2 fib 18 22 22 19 
+28 2 x 9 3 7 

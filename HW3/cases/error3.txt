@@ -1,3 +1,4 @@
+/* symbol name has already been declared */
 var x, y, z;
 var z;
 begin 

@@ -1,3 +1,4 @@
+/* assignment statements must use := */
 var x, y, z;
 begin 
     x 5;
