@@ -1,3 +1,4 @@
+/* while must be followed by do */
 var x, y, z;
 begin 
     while x > 5;

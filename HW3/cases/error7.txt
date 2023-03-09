@@ -1,3 +1,4 @@
+/* undeclared identifier */
 var y, z;
 begin 
     x := 5;

@@ -1,3 +1,4 @@
+/* constant and variable declarations must be followed by a semicolon */
 var x, y, z
 begin 
     x := 5;

@@ -1,3 +1,4 @@
+/* const, var, and read keywords must be followed by identifier */
 var;
 begin 
     x := 5;

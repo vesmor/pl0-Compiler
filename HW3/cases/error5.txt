@@ -1,3 +1,4 @@
+/* constants must be assigned an integer value */
 const x = y;
 begin 
     x := 5;
