@@ -21,12 +21,9 @@
 /*
     TODO:
         - original program provided in syllabus isnt completely working
-        - line number 4 is giving the wrong OPR code: its 3, should be 4
-        - figure out the lex level stuff
         - add terminating errors for scanner portion
         - remove printf traces
         - prettify output
-        - change const array sizes to compile time
 */
 
 
@@ -43,12 +40,8 @@
 
 
 
-#define  norw                    12       /* number of reserved words */
 #define  cmax                    11       /* maximum number of chars for idents */
 #define  strmax                 256       /* maximum length of strings */
-#define  ignoresymlen             7       /* length of ignoresym array*/
-#define  ssymlen                 17       /*len of special symbol arr*/
-#define  symlen                  34       /*master sym array length*/
 #define  MAX_SYMBOL_TABLE_SIZE  500
 #define  MAX_CODE_SIZE         1000
 
@@ -116,14 +109,20 @@ typedef struct symbol{
 
 
 /* list of reserved keyword names */
-const char  *word [norw] = { "const", "var", "call", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
+const char  *word [] = { "const", "var", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
 /* list of ignored symbols */
-const char ignoresym [ignoresymlen] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
+const char ignoresym [] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
-const char ssym[ssymlen] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', '#', '$', ':', '!'};
+const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':', '!'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
-const char *sym[symlen] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
-    ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", "else"};
+const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
+    ":=", "begin", "end", "if", "then", "while", "do", "", "const", "var", "", "write", "read", ""};
+
+
+const int norw        = sizeof(word)/sizeof(word[0]);             /* number of reserved words */
+const int ignoresymlen= sizeof(ignoresym)/sizeof(ignoresym[0]);   /* length of ignoresym array*/
+const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of special symbol arr*/
+const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
 //Error signals
@@ -133,7 +132,7 @@ typedef enum errors{
     END_OF_COMMENT_ERR = -20,
     NAME_TOO_LONG_ERR,
     INT_TOO_LONG_ERR, 
-    INVALID_INT_ERR,
+    INVALID_VAR_ERR,
     INVALID_SYM_ERR,
 
     //Parser Errors
@@ -171,7 +170,13 @@ const char *err_messages[] =  {
                             "Error: while must be followed by do",
                             "Error: condition must contain comparison operator",
                             "Error: right parenthesis must follow left parenthesis",
-                            "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols"
+                            "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols",
+
+                            "Error: Invalid Symbols.",
+                            "Error: Variable name does not start with letter.",
+                            "Error: Number too long.",
+                            "Error: Name too long.",
+                            "Error: Comment does not end."
                         };
 
 
@@ -244,6 +249,7 @@ int main(int argc, char const *argv[])
         printf(RED "Fatal Error: File unable to be created:\n" RESET);
         printf("Program failed to create the file " RED "%s" RESET " possibly due to a non-existent directory.\n", tokenFileName);
         printf("\t-Try changing the 'char tokenFileName[]' variable in main from HW3/tokens.txt' to 'tokens.txt\n");
+        fclose(in);
         return EXIT_FAILURE;
     }
 
@@ -254,7 +260,7 @@ int main(int argc, char const *argv[])
     char bufferArr[strmax];     //used to help seperate into tokens
     lexeme *lex_list = NULL;
 
-    printf("Lexeme Table:\n\nlexeme\ttoken type\n");
+    printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
     
     //tokenize program using a buffer array
@@ -276,9 +282,15 @@ int main(int argc, char const *argv[])
             lex_size = i;
         }
 
+        if( val < 0 ){
+            // printf("Token b4 emitError is [%s]\n", bufferArr);
+            emitError(val, "\0");
+        }
+
+
         if (val) {
 
-            printf("%s\t%d\n", bufferArr, val);
+            printf("%s\t\t%d\n", bufferArr, val);
             // fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
@@ -299,7 +311,7 @@ int main(int argc, char const *argv[])
     printf("\n");
 
 
-    //________________________________END OF LEXXING SECTION____________________________________________//
+     //________________________________END OF LEXXING SECTION____________________________________________//
     //                                     Time to parse                                                //
 
     
@@ -310,8 +322,8 @@ int main(int argc, char const *argv[])
     
     char VMoutputName[] = "../HW1/input.txt";
 
-    in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
-    out = fopen(VMoutputName, "w");
+    in = fopen(tokenFileName, "r"); 
+    out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
 
     if(in == NULL){
         printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
@@ -350,13 +362,12 @@ int main(int argc, char const *argv[])
     //clean up
     for (size_t index = 0; index < lex_size; index++)
     {
-        // free(lex_list[index].token_name);
+        free(lex_list[index].token_name);
     }
-    // free(lex_list);
-    // free(charArr);
-    // free(tokens);
+    free(lex_list);
+    free(charArr);
     fclose(in);
-    // fclose(out);
+    fclose(out);
 
     return 0;
 }
@@ -381,11 +392,16 @@ int findSymVal(char *chunk){
 
 /* returns index + 1of delim symbol that should be ignored 0 otherwise */
 int shouldBeIgnored(char c){
-    for (size_t i = 0; i < ignoresymlen; i++)
-    {
-        if(c == ignoresym[i])
-            return i + 1;
+
+    if(isspace(c)){
+        return 1;
     }
+
+    // for (size_t i = 0; i < ignoresymlen; i++)
+    // {
+    //     if(c == ignoresym[i])
+    //         return i + 1;
+    // }
     
     return 0;
 }
@@ -416,9 +432,12 @@ char* readProgram(int *arrSize){
 
     char *charArr = (char *) malloc(1 * sizeof(char));
 
-    for (int i = 0; fscanf(in, "%c", &charArr[i]) > 0; ){    //incrementor in statement
-
-
+    for (int i = 0; fscanf(in, "%c", &charArr[i]) > 0;  ){    //incrementor in statement
+        
+        
+        if(feof(in)){
+            break;
+        }
 
         printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
@@ -433,7 +452,7 @@ char* readProgram(int *arrSize){
             exit(EXIT_FAILURE); //exit program since we have no memory
         }
     
-        (*arrSize) = i + 1;
+        (*arrSize) = i;
 
     }
     charArr = realloc(charArr, sizeof(char) * (*arrSize));
@@ -550,7 +569,7 @@ int determinNonReserved(char *chunk){
                 return numbersym;
             }
             if (!isdigit(chunk[i])) {
-                return INVALID_INT_ERR;            
+                return INVALID_VAR_ERR;            
             }
         }
         return INT_TOO_LONG_ERR;
@@ -577,11 +596,23 @@ int determinNonReserved(char *chunk){
 int tokenize(char *chunk){
 
 
-    if (chunk == NULL || shouldBeIgnored(chunk[0])){
+    if (chunk == NULL || shouldBeIgnored(chunk[0]) || 
+        (strcmp(chunk, "\0") == 0)){
+        // printf(RED "\tbein ignored in tokenize\n" RESET);
+        // strcpy(chunk, "\0");
         return 0;
     }
 
-    // printf("tokenize chunk %s\n", chunk);
+    // char *temp = (char*) malloc(sizeof(char) * strlen(chunk));
+    // strcpy(temp, chunk);
+    // for(size_t i = 0; i < strlen(temp); i++){
+    //     if(isspace(temp[i])){
+    //         printf(RED "\tbein ignored in tokenize loop\n" RESET);
+    //         return 0;
+    //     }
+    // }
+
+    // printf("tokenize chunk [%s]\n", chunk);
     int tokenVal = determinNonReserved(chunk);
 
     if (isWord(chunk) > 0 || isSpecialSym(chunk[0])){
@@ -704,13 +735,13 @@ void program(){
     
 
     if(fscanf(in, "%d", &token) <= 0){ //get first token
-        printf("Error: token list is empty\n");
+        printf(RED "Error: token list is empty\n" RESET);
         _Exit(EXIT_SUCCESS);
     }
 
     block();
     printf("after block in program\n");
-    printf("%d\n", token);
+    printf("final token is%d\n", token);
     if(token != periodsym){
         emitError(MISSING_PERIOD_ERR, "\0");
     }
@@ -1021,7 +1052,7 @@ void condition(){
         fscanf(in, "%d", &token);
         expression();
         printf("emit ODD\n");
-        emit(ODD, LexLevel, 0);
+        emit(OPR, LexLevel, ODD);
     }
 
     else{
@@ -1277,7 +1308,9 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
-        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
+        
+        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     
