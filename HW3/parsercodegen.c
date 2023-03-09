@@ -222,6 +222,7 @@ void expression();
 void condition();
 void emit(int op, int L, int M);
 void printInstructions();
+void markTable();
 /*-----------------------------------------------*/
 
 
@@ -350,8 +351,10 @@ int main(int argc, char const *argv[])
 
     program(); //literally starts reading program
 
-    printTable(table, tableSize);
+    markTable(); //since we only have 1 function this is called in main
+
     printInstructions();
+    printTable(table, tableSize);
     
     
 
@@ -682,8 +685,9 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 //TODO: Make the table print prettier, and align the tabs
 void printTable(symbol table[], int tableSize){
 
-    printf("table size %d\n", tableSize);
-    printf("Kind | Name   \t| Value | Level | Address | Mark\n");
+    printf("\nSymbol Table:\n\n");
+    // printf("table size %d\n", tableSize);
+    printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
 
     for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
@@ -1291,16 +1295,24 @@ void printInstructions(){
 
     const char *op_code_names[] = { "LIT", "OPR", "LOD", "STO", "CAL", "INC", "JMP", "JPC", "SYS" };
 
-
+    printf("Assembly Code:\n\n");
+    printf("Line\tOP\tL\tM\n");
     for (size_t i = 0; i < cx; i++)
     {
         char op_name[4];
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
-        printf("%ld %s %d %d\n", i, op_name, code[i].L, code[i].M);
+        printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
         fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     
 
+}
+
+void markTable() {
+
+    for (int i = 0; i < tableSize; ++i) {
+        table[i].mark = 1;
+    }
 }
