@@ -1,0 +1,6 @@
+/*ident does not start with letter*/
+var 2x, y, z;
+begin 
+    x := 5;
+    x := y + 2; 
+end.

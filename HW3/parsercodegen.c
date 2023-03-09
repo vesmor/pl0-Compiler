@@ -205,7 +205,6 @@ int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, size_t size);
-int symboltablecheck(char *target);
 int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
@@ -323,7 +322,9 @@ int main(int argc, char const *argv[])
     char VMoutputName[] = "../HW1/input.txt";
 
     in = fopen(tokenFileName, "r"); 
-    out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
+    out = fopen("output.txt", "w"); //possibly may need to comment this out for submission
+
+    // out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
 
     if(in == NULL){
         printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
@@ -677,13 +678,17 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 void printTable(symbol table[], int tableSize){
 
     printf("\nSymbol Table:\n\n");
+    fprintf(out, "\nSymbol Table:\n\n");
     // printf("table size %d\n", tableSize);
     printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
+    fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
+    fprintf(out, "---------------------------------------------------\n");
 
     for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
     {
         printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+        fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
     
 }
@@ -703,11 +708,17 @@ void emitError(int errorSignal, char *invalidIdent){
     }
 
 
+    out = fopen("output.txt", "w");
+
     printf("%s\n", error_message);
+    fprintf(out, "%s\n", error_message);
+
+
     
+    fclose(out);
     // printTable(table, tableSize);
     // printInstructions();
-    _Exit(EXIT_SUCCESS);
+    _Exit(EXIT_FAILURE);
 
 }
 
@@ -1293,7 +1304,10 @@ void printInstructions(){
     const char *op_code_names[] = { "LIT", "OPR", "LOD", "STO", "CAL", "INC", "JMP", "JPC", "SYS" };
 
     printf("Assembly Code:\n\n");
+    fprintf(out, "Assembly Code:\n\n");
+    
     printf("Line\tOP\tL\tM\n");
+    fprintf(out, "Line\tOP\tL\tM\n");
     for (size_t i = 0; i < cx; i++)
     {
         char op_name[4];

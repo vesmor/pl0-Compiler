@@ -6,11 +6,10 @@ HW2/example.c
 *.vscode
 !readme.txt
 
-HW3/*.txt
-HW2/*.txt
-HW1/*.txt
-HW3/cases/*.txt
-HW3/errs
-HW3/*.txt
 HW1/*.txt
 
+HW3/output.txt
+HW3/parsercodegen
+
+HW3/*.txt
+!HW3/cases
