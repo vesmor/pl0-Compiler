@@ -1,17 +1,7 @@
-/* Correct example */
-var fib, prevOne, prevTwo, count;
-begin
-    fib := 1;
-    prevOne := 1;
-    prevTwo := 1;
-    read count;
-    write 0;
-    count := count - 1;
-    while count > 0 do begin
-        count := count - 1;
-        write fib;
-        fib := prevOne;
-        prevOne := prevTwo + prevOne;
-        prevTwo := fib;
-    end
+const u = ;
+var x, y;
+begin 
+    y := 5;
+    y := 6;
+    x := y + 2; 
 end.

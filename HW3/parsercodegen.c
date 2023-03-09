@@ -346,7 +346,7 @@ int main(int argc, char const *argv[])
     // tokens = readTokens();
 
     int numVars;
-    table[tableworkingIndex++] = initSymObj(numbersym, "main", 0, LexLevel, PROC); //adds main procedure to symbol table
+    table[tableworkingIndex++] = initSymObj(PROC, "main", 0, LexLevel, 3); //adds main procedure to symbol table
     
     emit(JMP, 0, 3);
 
@@ -710,7 +710,7 @@ void emitError(int errorSignal, char *invalidIdent){
     }
 
 
-    out = fopen("output.txt", "w");
+    // out = fopen("output.txt", "w");
 
     printf("%s\n", error_message);
     fprintf(out, "%s\n", error_message);
@@ -793,7 +793,7 @@ void const_declaration(){
                 emitError(IDENTIFIER_EXPECTED_ERR,"\0");
             }   
             if (token != identsym){
-                emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");  // i think this error needs to be changed
+                emitError(IDENTIFIER_EXPECTED_ERR, "\0");  // i think this error needs to be changed
             }
             
             char identSymStr[cmax];
@@ -821,7 +821,7 @@ void const_declaration(){
             int actualNumber;
             fscanf(in ,"%d", &actualNumber);
             // add to symbol table (kind 1, saved name, number, 0, 0) 
-            symbol newSym = initSymObj(1, identName, actualNumber, 0, 0);
+            symbol newSym = initSymObj(CONST, identName, actualNumber, 0, 0);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
 
@@ -872,7 +872,7 @@ int var_declaration(){
             numVars++;
             
             //Add to symbol table
-            symbol newSym = initSymObj(2, name, 0, 0, numVars + 2);
+            symbol newSym = initSymObj(VAR, name, 0, 0, numVars + 2);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
 
@@ -1251,6 +1251,9 @@ void factor(){
             // printf("Emit LOD in factor\n");
             emit(LOD, LexLevel, table[symIdx].addr);
         }
+
+        // table[tableworkingIndex].val = table[symIdx].val;
+
         fscanf(in, "%d", &token);
     }
 
@@ -1258,7 +1261,7 @@ void factor(){
         int actualNumber;
         fscanf(in, "%d", &actualNumber); //get the actual number after numbersym
 
-        table[tableworkingIndex].val = actualNumber;
+        // table[tableworkingIndex].val = actualNumber;
 
         //emit LIT
         // printf("Emitting numbersym LIT %d from factor\n", actualNumber);
