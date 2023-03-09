@@ -260,7 +260,7 @@ int main(int argc, char const *argv[])
     char bufferArr[strmax];     //used to help seperate into tokens
     lexeme *lex_list = NULL;
 
-    printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
+    // printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
     
     //tokenize program using a buffer array
@@ -290,7 +290,7 @@ int main(int argc, char const *argv[])
 
         if (val) {
 
-            printf("%s\t\t%d\n", bufferArr, val);
+            // printf("%s\t\t%d\n", bufferArr, val);
             // fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
@@ -302,13 +302,13 @@ int main(int argc, char const *argv[])
         lex_size = i; //store index for lex_list size
     }
     
-    printf("\n");
-    printf("Lexeme List:\n");
+    // printf("\n");
+    // printf("Lexeme List:\n");
     
     printLexemes(lex_list, lex_size);
 
-    printf("\n");
-    printf("\n");
+    // printf("\n");
+    // printf("\n");
 
 
      //________________________________END OF LEXXING SECTION____________________________________________//
@@ -427,7 +427,7 @@ int isSpecialSym(char c){
 */
 char* readProgram(int *arrSize){
 
-    printf("Source Program:\n");
+    // printf("Source Program:\n");
     // fprintf(out, "Source Program:\n");
 
     char *charArr = (char *) malloc(1 * sizeof(char));
@@ -439,7 +439,7 @@ char* readProgram(int *arrSize){
             break;
         }
 
-        printf("%c", charArr[i]);
+        // printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
@@ -458,7 +458,7 @@ char* readProgram(int *arrSize){
     charArr = realloc(charArr, sizeof(char) * (*arrSize));
     charArr[*arrSize] = '\0'; //signify end of arr
 
-    printf("\n\n");
+    // printf("\n\n");
 
     return charArr;
 }
@@ -599,18 +599,9 @@ int tokenize(char *chunk){
     if (chunk == NULL || shouldBeIgnored(chunk[0]) || 
         (strcmp(chunk, "\0") == 0)){
         // printf(RED "\tbein ignored in tokenize\n" RESET);
-        // strcpy(chunk, "\0");
         return 0;
     }
 
-    // char *temp = (char*) malloc(sizeof(char) * strlen(chunk));
-    // strcpy(temp, chunk);
-    // for(size_t i = 0; i < strlen(temp); i++){
-    //     if(isspace(temp[i])){
-    //         printf(RED "\tbein ignored in tokenize loop\n" RESET);
-    //         return 0;
-    //     }
-    // }
 
     // printf("tokenize chunk [%s]\n", chunk);
     int tokenVal = determinNonReserved(chunk);
@@ -632,10 +623,10 @@ void printLexemes(lexeme *list, size_t size){
             continue;
         }  
 
-        printf("|%d ", list[i].token_type);
+        // printf("|%d ", list[i].token_type);
         fprintf(out, "%d ", list[i].token_type);
         if (list[i].token_type == identsym || list[i].token_type == numbersym){
-            printf("%s ", list[i].token_name);
+            // printf("%s ", list[i].token_name);
             fprintf(out, "%s ", list[i].token_name);
         }
     }
@@ -712,10 +703,10 @@ void emitError(int errorSignal, char *invalidIdent){
     }
 
 
-    printf(RED "%s\n" RESET, error_message); //remove coloring before submission
+    printf("%s\n", error_message);
     
-    printTable(table, tableSize);
-    printInstructions();
+    // printTable(table, tableSize);
+    // printInstructions();
     _Exit(EXIT_SUCCESS);
 
 }
@@ -731,28 +722,29 @@ int isStartStatement(){
 }
 
 void program(){
-    printf("starting program\n");
+    // printf("starting program\n");
     
 
     if(fscanf(in, "%d", &token) <= 0){ //get first token
-        printf(RED "Error: token list is empty\n" RESET);
-        _Exit(EXIT_SUCCESS);
+        printf(RED "\nError: token list is empty\n" RESET);
+        printf("Internal program logic might either did not write to/had trouble reading from the token.txt file or the source code was empty.\n");
+        _Exit(EXIT_FAILURE);
     }
 
     block();
-    printf("after block in program\n");
-    printf("final token is%d\n", token);
+    // printf("after block in program\n");
+    // printf("final token is%d\n", token);
     if(token != periodsym){
         emitError(MISSING_PERIOD_ERR, "\0");
     }
     //emit halt
-    printf("HALT\n");
+    // printf("HALT\n");
     emit(SYS, 0, EOP);//HALT
 }
 
 void block(){
 
-    printf("in block\n");
+    // printf("in block\n");
 
     int numVars = 0;
     while (token == varsym || token == constsym) {
@@ -768,19 +760,19 @@ void block(){
     }
 
     //emit INC(M= 3 + numVars);
-    printf("emitting INC numVars: %d\n", numVars);
+    // printf("emitting INC numVars: %d\n", numVars);
     emit(INC, LexLevel, numVars + 3);
     
     statement();
     
-    printf("after statement call in block\n");
+    // printf("after statement call in block\n");
 
 }
 
 void const_declaration(){
 
     if(token == constsym){
-        printf("in const is const\n");
+        // printf("in const is const\n");
         do
         {
             
@@ -841,7 +833,7 @@ void const_declaration(){
 //    returns number of vars
 //    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
 int var_declaration(){
-    printf("in var declaration\n");
+    // printf("in var declaration\n");
     int numVars = 0;
 
     if(token == varsym){
@@ -890,11 +882,11 @@ int var_declaration(){
 //still need if, while, read, write
 void statement(){
 
-    printf("%d in statement\n", token);
+    // printf("%d in statement\n", token);
 
     if(token == identsym){
 
-        printf("identsym in statement\n");
+        // printf("identsym in statement\n");
         char identName[cmax];
         fscanf(in, "%s", identName);
         int symIdx = symboltablecheck(identName);
@@ -917,20 +909,20 @@ void statement(){
         expression();
 
         if (token != semicolonsym && token != endsym){
-            printf("missing semicolon %d\n", token);
+            // printf("missing semicolon %d\n", token);
             emitError(ARITHMETIC_ERR, "\0");
         }
 
         //emit STO (M = table[symIdx].addr)
-        printf("emitting STO\n");
+        // printf("emitting STO\n");
         emit(STO, LexLevel, table[symIdx].addr);
-        printf("token is after STO %d\n", token);
+        // printf("token is after STO %d\n", token);
         return;
 
     }
 
     if(token == beginsym){
-        printf("begin in statement\n");
+        // printf("begin in statement\n");
         do
         {
 
@@ -938,10 +930,10 @@ void statement(){
                 break;
             }
 
-            printf("out of statement BEFORE recurse token is %d\n", token);
+            // printf("out of statement BEFORE recurse token is %d\n", token);
             statement(token);
 
-            printf("out of statement after recurse token is %d\n", token);
+            // printf("out of statement after recurse token is %d\n", token);
         } while (token == semicolonsym);
         
         //if statements need a semicolon check for it here and do an error mess
@@ -962,9 +954,9 @@ void statement(){
 
         condition();
 
-        int jpcIndex = cx; //IDK what this means yet
+        int jpcIndex = cx;
 
-        printf("emit JPC");
+        // printf("emit JPC\n");
         emit(JPC, LexLevel, 0);
 
         if(token != thensym){
@@ -991,7 +983,7 @@ void statement(){
 
         fscanf(in, "%d", &token);
         int jpcIndex = cx;
-        printf("emit JPC\n"); //M = loopIndex
+        // printf("emit JPC\n"); //M = loopIndex
         emit(JPC, LexLevel, 0);
 
         statement();
@@ -1023,10 +1015,10 @@ void statement(){
 
         fscanf(in, "%d", &token);
         
-        printf("emit READ\n");
+        // printf("emit READ\n");
         emit(SYS, LexLevel, 2); //READ
 
-        printf("emit STO\n"); //M = table[symIndex].addr
+        // printf("emit STO\n"); //M = table[symIndex].addr
         emit(STO, LexLevel, table[symIndex].addr);
 
         return;
@@ -1036,7 +1028,7 @@ void statement(){
     if(token == writesym){
         fscanf(in, "%d", &token);
         expression();
-        printf("emit WRITE\n");
+        // printf("emit WRITE\n");
         emit(SYS, LexLevel, SOU); //WRITE
 
         return;
@@ -1051,7 +1043,7 @@ void condition(){
     if(token == oddsym){
         fscanf(in, "%d", &token);
         expression();
-        printf("emit ODD\n");
+        // printf("emit ODD\n");
         emit(OPR, LexLevel, ODD);
     }
 
@@ -1061,37 +1053,37 @@ void condition(){
         if(token == eqlsym){
             fscanf(in, "%d", &token);
             expression();
-            printf("emit EQL\n");
+            // printf("emit EQL\n");
             emit(OPR, LexLevel, EQL);
         }
         else if(token == neqsym){
             fscanf(in, "%d", &token);
             expression();
-            printf("emit NEQ\n");
+            // printf("emit NEQ\n");
             emit(OPR, LexLevel, NEQ);
         }
         else if(token == lessym){
             fscanf(in, "%d", &token);
             expression();
-            printf("emit LSS\n");
+            // printf("emit LSS\n");
             emit(OPR, LexLevel, LSS);
         }
         else if(token == leqsym){
             fscanf(in, "%d", &token);
             expression();
-            printf("emit LEQ\n");
+            // printf("emit LEQ\n");
             emit(OPR, LexLevel, LEQ);
         }
         else if(token == gtrsym){
             fscanf(in, "%d", &token);
             expression();
-            printf("emit GTR\n");
+            // printf("emit GTR\n");
             emit(OPR, LexLevel, GTR);
         }
         else if(token == geqsym){
             fscanf(in, "%d", &token);
             expression();
-            printf("emit GEQ\n");
+            // printf("emit GEQ\n");
             emit(OPR, LexLevel, GEQ);
         }
         else{
@@ -1104,26 +1096,26 @@ void condition(){
 
 void expression(){
 
-    printf("%d in expression\n", token);
+    // printf("%d in expression\n", token);
 
     term();
 
     while (token == plussym || token == minussym){
         // fscanf(in, "%d", &token);
-        printf("token is plus or minus\n");
+        // printf("token is plus or minus\n");
     
         if (token == plussym){
             fscanf(in, "%d", &token);
             term();
             //emit add
-            printf("token in expression is add\n");
+            // printf("token in expression is add\n");
             emit(OPR, LexLevel, ADD);
         }
         else{
             fscanf(in, "%d", &token);
             term();
             //emit sub
-            printf("token in expression is sub\n");
+            // printf("token in expression is sub\n");
             emit(OPR, LexLevel, SUB);
         }    
     }
@@ -1196,7 +1188,7 @@ void expression(){
 
 void term(){
 
-    printf("in term %d\n", token);
+    // printf("in term %d\n", token);
     factor();
 
     while(token == multsym || token == slashsym){
@@ -1215,7 +1207,7 @@ void term(){
             fscanf(in, "%d", &token);
             factor();
             //emit DIV 
-            printf("emit DIV in term\n");
+            // printf("emit DIV in term\n");
             emit(OPR, LexLevel, DIV);
 
         }
@@ -1226,7 +1218,7 @@ void term(){
 
 //still need to figure out error
 void factor(){
-    printf("in factor %d\n", token);
+    // printf("in factor %d\n", token);
     if (token == identsym){
 
         char identifierStr[cmax];
@@ -1238,12 +1230,12 @@ void factor(){
 
         if(table[symIdx].kind == CONST){
             //emit LIT(m = table[sym.idx].addr)
-            printf("Emit LIT in factor\n");
+            // printf("Emit LIT in factor\n");
             emit(LIT, LexLevel, table[symIdx].addr);
         }
         else if(table[symIdx].kind == VAR){
             //emit LOD (M = table[symIdx].addr)
-            printf("Emit LOD in factor\n");
+            // printf("Emit LOD in factor\n");
             emit(LOD, LexLevel, table[symIdx].addr);
         }
         fscanf(in, "%d", &token);
@@ -1256,7 +1248,7 @@ void factor(){
         table[tableworkingIndex].val = actualNumber;
 
         //emit LIT
-        printf("Emitting numbersym LIT %d from factor\n", actualNumber);
+        // printf("Emitting numbersym LIT %d from factor\n", actualNumber);
         emit(LIT, LexLevel, actualNumber);
 
         fscanf(in, "%d", &token);
@@ -1265,7 +1257,7 @@ void factor(){
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
         expression();
-        printf("exiting expresion to factor parentheses token: %d\n", token);
+        // printf("exiting expresion to factor parentheses token: %d\n", token);
         if(token != rparentsym){
             emitError(INCOMPLETE_PARENTHEIS_ERR, "\0");
         }
