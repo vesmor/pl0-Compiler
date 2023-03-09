@@ -361,12 +361,14 @@ int main(int argc, char const *argv[])
 
 
     //clean up
-    for (size_t index = 0; index < lex_size; index++)
-    {
-        free(lex_list[index].token_name);
-    }
-    free(lex_list);
-    free(charArr);
+    // for (size_t index = 0; index < lex_size; index++)
+    // {
+    //     // if(lex_list[index].token_name == NULL)
+    //     free(lex_list[index].token_name);
+    
+    // }
+    // free(lex_list);
+    // free(charArr);
     fclose(in);
     fclose(out);
 

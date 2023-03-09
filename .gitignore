@@ -6,6 +6,8 @@ HW2/example.c
 *.vscode
 !readme.txt
 
+tokens.txt
+
 HW1/*.txt
 
 HW3/output.txt
