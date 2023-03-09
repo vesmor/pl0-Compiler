@@ -735,7 +735,7 @@ void program(){
     
 
     if(fscanf(in, "%d", &token) <= 0){ //get first token
-        printf("Error: token list is empty\n");
+        printf(RED "Error: token list is empty\n" RESET);
         _Exit(EXIT_SUCCESS);
     }
 
@@ -1047,7 +1047,7 @@ void condition(){
         fscanf(in, "%d", &token);
         expression();
         printf("emit ODD\n");
-        emit(ODD, LexLevel, 0);
+        emit(OPR, LexLevel, ODD);
     }
 
     else{
@@ -1303,7 +1303,9 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
-        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
+        
+        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     
