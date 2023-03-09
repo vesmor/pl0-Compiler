@@ -1,0 +1,5 @@
+/* only variable values may be altered */
+const x = 3;
+begin 
+    x := 5;
+end.
