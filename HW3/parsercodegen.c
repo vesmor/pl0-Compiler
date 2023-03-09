@@ -132,7 +132,7 @@ typedef enum errors{
     END_OF_COMMENT_ERR = -20,
     NAME_TOO_LONG_ERR,
     INT_TOO_LONG_ERR, 
-    INVALID_INT_ERR,
+    INVALID_VAR_ERR,
     INVALID_SYM_ERR,
 
     //Parser Errors
@@ -172,10 +172,10 @@ const char *err_messages[] =  {
                             "Error: right parenthesis must follow left parenthesis",
                             "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols",
 
+                            "Error: Invalid Symbols.",
                             "Error: Variable name does not start with letter.",
                             "Error: Number too long.",
                             "Error: Name too long.",
-                            "Error: Invalid Symbols.",
                             "Error: Comment does not end."
                         };
 
@@ -248,6 +248,7 @@ int main(int argc, char const *argv[])
         printf(RED "Fatal Error: File unable to be created:\n" RESET);
         printf("Program failed to create the file " RED "%s" RESET " possibly due to a non-existent directory.\n", tokenFileName);
         printf("\t-Try changing the 'char tokenFileName[]' variable in main from HW3/tokens.txt' to 'tokens.txt\n");
+        fclose(in);
         return EXIT_FAILURE;
     }
 
@@ -258,7 +259,7 @@ int main(int argc, char const *argv[])
     char bufferArr[strmax];     //used to help seperate into tokens
     lexeme *lex_list = NULL;
 
-    printf("Lexeme Table:\n\nlexeme\ttoken type\n");
+    printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
     
     //tokenize program using a buffer array
@@ -280,9 +281,15 @@ int main(int argc, char const *argv[])
             lex_size = i;
         }
 
+        if( val < 0 ){
+            // printf("Token b4 emitError is [%s]\n", bufferArr);
+            emitError(val, "\0");
+        }
+
+
         if (val) {
 
-            printf("%s\t%d\n", bufferArr, val);
+            printf("%s\t\t%d\n", bufferArr, val);
             // fprintf(out, "%s \t\t\t%d\n", bufferArr, val);
 
             int len = strlen(bufferArr);
@@ -303,7 +310,7 @@ int main(int argc, char const *argv[])
     printf("\n");
 
 
-    //________________________________END OF LEXXING SECTION____________________________________________//
+     //________________________________END OF LEXXING SECTION____________________________________________//
     //                                     Time to parse                                                //
 
     
@@ -314,8 +321,8 @@ int main(int argc, char const *argv[])
     
     char VMoutputName[] = "../HW1/input.txt";
 
-    in = fopen(tokenFileName, "r"); //possibly may need to change this for submission
-    out = fopen(VMoutputName, "w");
+    in = fopen(tokenFileName, "r"); 
+    out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
 
     if(in == NULL){
         printf(RED "Fatal File Error: the expected tokens.txt file not found:\n" RESET);
@@ -382,11 +389,16 @@ int findSymVal(char *chunk){
 
 /* returns index + 1of delim symbol that should be ignored 0 otherwise */
 int shouldBeIgnored(char c){
-    for (size_t i = 0; i < ignoresymlen; i++)
-    {
-        if(c == ignoresym[i])
-            return i + 1;
+
+    if(isspace(c)){
+        return 1;
     }
+
+    // for (size_t i = 0; i < ignoresymlen; i++)
+    // {
+    //     if(c == ignoresym[i])
+    //         return i + 1;
+    // }
     
     return 0;
 }
@@ -417,9 +429,12 @@ char* readProgram(int *arrSize){
 
     char *charArr = (char *) malloc(1 * sizeof(char));
 
-    for (int i = 0; fscanf(in, "%c", &charArr[i]) > 0; ){    //incrementor in statement
-
-
+    for (int i = 0; fscanf(in, "%c", &charArr[i]) > 0;  ){    //incrementor in statement
+        
+        
+        if(feof(in)){
+            break;
+        }
 
         printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
@@ -434,7 +449,7 @@ char* readProgram(int *arrSize){
             exit(EXIT_FAILURE); //exit program since we have no memory
         }
     
-        (*arrSize) = i + 1;
+        (*arrSize) = i;
 
     }
     charArr = realloc(charArr, sizeof(char) * (*arrSize));
@@ -551,7 +566,7 @@ int determinNonReserved(char *chunk){
                 return numbersym;
             }
             if (!isdigit(chunk[i])) {
-                return INVALID_INT_ERR;            
+                return INVALID_VAR_ERR;            
             }
         }
         return INT_TOO_LONG_ERR;
@@ -578,11 +593,23 @@ int determinNonReserved(char *chunk){
 int tokenize(char *chunk){
 
 
-    if (chunk == NULL || shouldBeIgnored(chunk[0])){
+    if (chunk == NULL || shouldBeIgnored(chunk[0]) || 
+        (strcmp(chunk, "\0") == 0)){
+        // printf(RED "\tbein ignored in tokenize\n" RESET);
+        // strcpy(chunk, "\0");
         return 0;
     }
 
-    // printf("tokenize chunk %s\n", chunk);
+    // char *temp = (char*) malloc(sizeof(char) * strlen(chunk));
+    // strcpy(temp, chunk);
+    // for(size_t i = 0; i < strlen(temp); i++){
+    //     if(isspace(temp[i])){
+    //         printf(RED "\tbein ignored in tokenize loop\n" RESET);
+    //         return 0;
+    //     }
+    // }
+
+    // printf("tokenize chunk [%s]\n", chunk);
     int tokenVal = determinNonReserved(chunk);
 
     if (isWord(chunk) > 0 || isSpecialSym(chunk[0])){
@@ -710,7 +737,7 @@ void program(){
 
     block();
     printf("after block in program\n");
-    printf("%d\n", token);
+    printf("final token is%d\n", token);
     if(token != periodsym){
         emitError(MISSING_PERIOD_ERR, "\0");
     }
