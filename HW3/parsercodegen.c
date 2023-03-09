@@ -723,10 +723,11 @@ void block(){
 
     printf("in block\n");
 
-    
-
-    const_declaration();
-    int numVars = var_declaration();
+    int numVars = 0;
+    while (token == varsym || token == constsym) {
+        const_declaration();
+        numVars = var_declaration();
+    }
 
     if( numVars < 0 ){  //all error signals are negative numbers
         
@@ -752,7 +753,9 @@ void const_declaration(){
         do
         {
             
-            fscanf(in, "%d", &token);
+            if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
+                emitError(IDENTIFIER_EXPECTED_ERR,"\0");
+            }   
             if (token != identsym){
                 emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");  // i think this error needs to be changed
             }
@@ -813,7 +816,9 @@ int var_declaration(){
     if(token == varsym){
         do
         {   
-            fscanf(in, "%d", &token);
+            if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
+                emitError(IDENTIFIER_EXPECTED_ERR,"\0");
+            }
             if( token != identsym){
                 return IDENTIFIER_EXPECTED_ERR;
             }
@@ -971,7 +976,7 @@ void statement(){
         fscanf(in, "%d", &token);
 
         if(token != identsym){
-            emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
+            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
         }
         
         char tokenName[cmax];
