@@ -1,0 +1,6 @@
+/* undeclared identifier */
+var y, z;
+begin 
+    x := 5;
+    x := y * 2; 
+end.

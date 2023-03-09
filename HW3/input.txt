@@ -1,5 +1,0 @@
-var x, y, z;
-x := 5
-begin 
-    x := y * 2; 
-end.

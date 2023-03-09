@@ -3,6 +3,15 @@
 main
 *.code-workspace
 HW2/example.c
-*.txt
 *.vscode
-HW3/input.txt
+!readme.txt
+
+tokens.txt
+
+HW1/*.txt
+
+HW3/output.txt
+HW3/parsercodegen
+
+HW3/*.txt
+!HW3/cases

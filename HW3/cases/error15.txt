@@ -1,0 +1,6 @@
+/* arithmetic equations must contain operands, parentheses, numbers, or symbols */
+var x, y, z;
+begin 
+    x := 5;
+    x := y + 2; 
+.
