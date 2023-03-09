@@ -1,2 +1,0 @@
-/* Constants must be assigned with = */
-const x := 6;

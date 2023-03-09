@@ -1,3 +1,0 @@
-/* Program must end with period */
-begin
-end

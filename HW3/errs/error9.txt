@@ -1,2 +1,0 @@
-/* Variable declarations must be followed by semicolon */
-var x

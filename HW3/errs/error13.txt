@@ -1,2 +1,0 @@
-/* Begin must be followed by end */
-begin

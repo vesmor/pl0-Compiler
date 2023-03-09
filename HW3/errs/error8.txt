@@ -1,2 +1,0 @@
-/* Constant declarations must be followed by semicolon */
-const x = 7
