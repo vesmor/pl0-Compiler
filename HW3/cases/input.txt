@@ -1,3 +1,4 @@
+/* Correct example */
 var fib, prevOne, prevTwo, count;
 begin
     fib := 1;
