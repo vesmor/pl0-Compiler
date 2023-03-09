@@ -1,5 +1,0 @@
-const x = y;
-begin 
-    x := 5;
-    x := y * 2; 
-end.

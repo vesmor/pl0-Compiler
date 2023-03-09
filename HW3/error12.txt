@@ -1,5 +1,0 @@
-var x, y, z;
-begin 
-    while x > 5;
-     
-end.
