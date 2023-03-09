@@ -1,0 +1,5 @@
+const x 3;
+begin 
+    x := 5;
+    x := y * 2; 
+end.
