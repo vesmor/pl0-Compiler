@@ -1,5 +1,0 @@
-/* Assignment statements must use := */
-var x;
-begin
-	x = 6;
-end.
