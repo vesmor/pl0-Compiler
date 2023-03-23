@@ -57,7 +57,7 @@ typedef enum token_type{
     multsym,  slashsym, oddsym, eqlsym, neqsym, lessym, leqsym, 
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym, 
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,  
-    whilesym, dosym, callsym9, constsym, varsym, procsym9, writesym, 
+    whilesym, dosym, callsym, constsym, varsym, procsym, writesym, 
     readsym , elsesym9
 }token_type;
 
@@ -109,14 +109,14 @@ typedef struct symbol{
 
 
 /* list of reserved keyword names */
-const char  *word [] = { "const", "var", "begin", "end", "if", "then", "while", "do", "read", "write", "odd"}; 
+const char  *word [] = { "const", "var", "begin", "end", "if", "then", "while", "do", "read", "write", "odd", "procedure", "call"}; 
 /* list of ignored symbols */
 const char ignoresym [] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
 const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':', '!'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
 const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
-    ":=", "begin", "end", "if", "then", "while", "do", "", "const", "var", "", "write", "read", ""};
+    ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", ""};
 
 
 const int norw        = sizeof(word)/sizeof(word[0]);             /* number of reserved words */
