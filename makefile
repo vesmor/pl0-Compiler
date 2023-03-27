@@ -8,7 +8,11 @@ all: codegen vm
 
 .PHONY: proc
 proc: $(HW4_DIR)/parsercodegen.c $(HW4_DIR)/input.txt
-	cd $(HW4_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen cases/input.txt out/input_out.txt
+	cd $(HW4_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen input.txt out/input_out.txt
+
+.PHONY: proc_debug
+proc: $(HW4_DIR)/parsercodegen.c $(HW4_DIR)/input.txt
+	cd $(HW4_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen input.txt out/input_out.txt
 
 .PHONY: codegen
 codegen: $(HW3_DIR)/parsercodegen.c $(HW3_DIR)/input.txt
