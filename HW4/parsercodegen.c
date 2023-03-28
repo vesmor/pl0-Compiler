@@ -4,26 +4,33 @@
     Romsev Charles
     Brandon Sheridan
 
-    March 8th 2023
+    April 14th 2023
 */ 
 
-/*  ________________ERROR CODE DOCUMENTATION____________________ 
-        -1 - Identigiers cannot begin with a digit.
-        -2 - Number too long.
-        -3 - Name too long.
-        -4 - Invalid symbols.
-        -5 - The input ends during a comment (i.e. a comment was started but not 
-            fnished when an end-of-file was seen reading from the input file).
 
-    ________________WILL BE IMPORTIANT TO SEE NEXT PROJECT_________________
+/*
+    TODOS
+    [] The Compiler output should Display on screen: 
+        The input program and a message indicating that the program is syntactically correct. Otherwise, show an error message. 
+
 */
 
 /*
-    TODO:
-        - original program provided in syllabus isnt completely working
-        - add terminating errors for scanner portion
-        - remove printf traces
-        - prettify output
+    Correct output:
+        1.- Print input (program in PL/0) 
+    
+        2.- Print out the message “No errors, program is syntactically correct”  
+        
+        2.- Print out the generated code 
+        
+        3.- Create file with executable for your VM virtual machine (HW1)
+
+    Error code output:
+        1. print input
+        
+        2. a message alon gthe lines of:
+              ***** Error number xxx, period expected
+
 */
 
 
@@ -887,6 +894,14 @@ int var_declaration(){
             return SEMICOLON_MISSING_ERR;
         }
         fscanf(in, "%d", &token);
+    }
+
+
+    if( numVars < 0 ){  //all error signals are negative numbers
+        
+        int error = numVars;
+        emitError(error, "\0");
+    
     }
 
     return numVars;
