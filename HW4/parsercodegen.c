@@ -783,8 +783,9 @@ void block(){
     // printf("emitting INC numVars: %d\n", numVars);
     emit(INC, LexLevel, numVars + 3);
     
-    statement();
-    
+    do{
+        statement();
+    }while(token != periodsym);
     // printf("after statement call in block\n");
 
 }
@@ -862,6 +863,7 @@ int var_declaration(){
             if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
                 emitError(IDENTIFIER_EXPECTED_ERR,"\0");
             }
+
             if( token != identsym){
                 return IDENTIFIER_EXPECTED_ERR;
             }
@@ -914,7 +916,7 @@ void statement(){
 
     if(token == identsym){
 
-        // printf("identsym in statement\n");
+        // printf("in identsym statement\n");
         char identName[cmax];
         fscanf(in, "%s", identName);
         int symIdx = symboltablecheck(identName);
@@ -928,6 +930,7 @@ void statement(){
 
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
+            // printf("was expecting := got %d\n", token);
             //it might also be the arithmetic error
             emitError(ASSGN_MISSING_ERR, "\0");
         }
@@ -936,10 +939,10 @@ void statement(){
         tableworkingIndex = symIdx;
         expression();
 
-        if (token != semicolonsym && token != endsym){
-            // printf("missing semicolon %d\n", token);
-            emitError(ARITHMETIC_ERR, "\0");
-        }
+        // if (token != semicolonsym && token != endsym){
+        //     // printf("missing semicolon %d\n", token);
+        //     emitError(ARITHMETIC_ERR, "\0");
+        // }
 
         //emit STO (M = table[symIdx].addr)
         // printf("emitting STO\n");
@@ -977,6 +980,7 @@ void statement(){
 
     //if statement
     if(token == ifsym){
+        // printf("in if statement\n");
 
         fscanf(in, "%d", &token);
 
@@ -1054,6 +1058,7 @@ void statement(){
     }
 
     if(token == writesym){
+        // printf("in write statement\n");
         fscanf(in, "%d", &token);
         expression();
         // printf("emit WRITE\n");
@@ -1139,7 +1144,7 @@ void expression(){
             // printf("token in expression is add\n");
             emit(OPR, LexLevel, ADD);
         }
-        else{
+        else if (token == minussym){
             fscanf(in, "%d", &token);
             term();
             //emit sub
@@ -1257,9 +1262,9 @@ void factor(){
         }
 
         if(table[symIdx].kind == CONST){
-            //emit LIT(m = table[sym.idx].addr)
+            //emit LIT(m = table[sym.idx].val)
             // printf("Emit LIT in factor\n");
-            emit(LIT, LexLevel, table[symIdx].addr);
+            emit(LIT, LexLevel, table[symIdx].val);
         }
         else if(table[symIdx].kind == VAR){
             //emit LOD (M = table[symIdx].addr)
