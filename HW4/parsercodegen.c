@@ -1029,7 +1029,7 @@ void statement(){
         fscanf(in, "%d", &token);
         
         // printf("emit READ\n");
-        emit(SYS, LexLevel, 2); //READ
+        emit(SYS, LexLevel, SIN); //READ
 
         // printf("emit STO\n"); //M = table[symIndex].addr
         emit(STO, LexLevel, table[symIndex].addr);
