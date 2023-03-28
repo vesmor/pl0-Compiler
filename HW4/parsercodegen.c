@@ -687,17 +687,17 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 void printTable(symbol table[], int tableSize){
 
     printf("\nSymbol Table:\n\n");
-    fprintf(out, "\nSymbol Table:\n\n");
+    // fprintf(out, "\nSymbol Table:\n\n");
     // printf("table size %d\n", tableSize);
     printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
-    fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
-    fprintf(out, "---------------------------------------------------\n");
+    // fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
+    // fprintf(out, "---------------------------------------------------\n");
 
     for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
     {
         printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
-        fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
+        // fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
     }
     
 }
@@ -783,9 +783,7 @@ void block(){
     // printf("emitting INC numVars: %d\n", numVars);
     emit(INC, LexLevel, numVars + 3);
     
-    do{
-        statement();
-    }while(token != periodsym);
+    statement();
     // printf("after statement call in block\n");
 
 }
@@ -863,7 +861,7 @@ int var_declaration(){
             if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
                 emitError(IDENTIFIER_EXPECTED_ERR,"\0");
             }
-
+            
             if( token != identsym){
                 return IDENTIFIER_EXPECTED_ERR;
             }
@@ -930,7 +928,7 @@ void statement(){
 
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
-            // printf("was expecting := got %d\n", token);
+            printf("was expecting := got %d\n", token);
             //it might also be the arithmetic error
             emitError(ASSGN_MISSING_ERR, "\0");
         }
@@ -1329,19 +1327,19 @@ void printInstructions(){
     const char *op_code_names[] = { "LIT", "OPR", "LOD", "STO", "CAL", "INC", "JMP", "JPC", "SYS" };
 
     printf("Assembly Code:\n\n");
-    fprintf(out, "Assembly Code:\n\n");
+    // fprintf(out, "Assembly Code:\n\n");
     
     printf("Line\tOP\tL\tM\n");
-    fprintf(out, "Line\tOP\tL\tM\n");
+    // fprintf(out, "Line\tOP\tL\tM\n");
     for (size_t i = 0; i < cx; i++)
     {
         char op_name[4];
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
-        fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
+        // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
         
-        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
     
     }
     
