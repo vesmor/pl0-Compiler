@@ -122,7 +122,7 @@ const char ignoresym [] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};
 /* list of special symbols such as arithmetic*/
 const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':', '!'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
-const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "!=", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
+const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", ""};
 
 
@@ -326,10 +326,10 @@ int main(int argc, char const *argv[])
     in = NULL;
     out = NULL;
     
-    char VMoutputName[] = "../HW1/input.txt";
+    char VMoutputName[] = "output.txt";
 
     in = fopen(tokenFileName, "r"); 
-    out = fopen("output.txt", "w"); //possibly may need to comment this out for submission
+    out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
 
     // out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
 
@@ -512,7 +512,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
 
         //if the character we landed on is a special sym we break the chunk here
         if (isSpecialSym(arr[index])){
-            if( (arr[index] == ':' && arr[index+1] == '=') || (arr[index] == '!' && arr[index+1] == '=') || 
+            if( (arr[index] == ':' && arr[index+1] == '=') || (arr[index] == '<' && arr[index+1] == '>') || 
                 (arr[index] == '<' && arr[index+1] == '=') || (arr[index] == '>' && arr[index+1] == '=')){
 
                 bufferSize += 2;
