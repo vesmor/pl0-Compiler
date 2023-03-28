@@ -7,11 +7,11 @@ HW4_DIR = HW4
 all: proc vm
 
 .PHONY: proc
-proc: $(HW4_DIR)/parsercodegen.c $(HW4_DIR)/input.txt
+proc: $(HW4_DIR)/hw4compiler.c $(HW4_DIR)/input.txt
 	cd $(HW4_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen input.txt out/input_out.txt
 
 .PHONY: proc_debug
-proc: $(HW4_DIR)/parsercodegen.c $(HW4_DIR)/input.txt
+proc: $(HW4_DIR)/hw4compiler.c $(HW4_DIR)/input.txt
 	cd $(HW4_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen input.txt out/input_out.txt
 
 .PHONY: codegen
