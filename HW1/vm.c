@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
         pc += 3; //move program counter up to next instruction
 
         char charInput;
-
+        int retval;
         switch (IR.op)
         {
             case LIT:       //pushes value of m onto stack
@@ -116,8 +116,8 @@ int main(int argc, char *argv[]){
                     case RTN:
                         pipe[bp] = 0;
                         sp = bp + 1;
-                        bp = pas[sp - 2];
-                        pc = pas[sp - 3];
+                        bp = pas[sp + 2];
+                        pc = pas[sp + 3];
                         break;
                     case ADD:
                         pas[sp + 1] = pas[sp + 1] + pas[sp];
@@ -136,27 +136,33 @@ int main(int argc, char *argv[]){
                         ++sp;
                         break;
                     case EQL:
-                        pas[sp + 1] = pas[sp + 1] == pas[sp];
+                        retval = (pas[sp + 1] == pas[sp]) ? 1 : 0;
+                        pas[sp + 1] = retval;
                         ++sp;
                         break;
                     case NEQ:
-                        pas[sp + 1] = pas[sp + 1] != pas[sp];
+                        retval = (pas[sp + 1] != pas[sp]) ? 1 : 0;
+                        pas[sp + 1] = retval;
                         ++sp;
                         break;
                     case LSS:
-                        pas[sp + 1] = pas[sp + 1] < pas[sp];
+                        retval = (pas[sp + 1] < pas[sp]) ? 1 : 0;
+                        pas[sp + 1] = retval;
                         ++sp;
                         break;
                     case LEQ:
-                        pas[sp + 1] = pas[sp + 1] <= pas[sp];
+                        retval = (pas[sp + 1] <= pas[sp]) ? 1 : 0;
+                        pas[sp + 1] = retval;
                         ++sp;
                         break;
                     case GTR:
-                        pas[sp + 1] = pas[sp + 1] > pas[sp];
+                        retval = (pas[sp + 1] > pas[sp]) ? 1 : 0;
+                        pas[sp + 1] = retval;
                         ++sp;
                         break;
                     case GEQ:
-                        pas[sp + 1] = pas[sp + 1] >= pas[sp];
+                        retval = (pas[sp + 1] >= pas[sp]) ? 1 : 0;
+                        pas[sp + 1] = retval;
                         ++sp;
                         break;
                     
@@ -194,8 +200,8 @@ int main(int argc, char *argv[]){
                 break;
 
             case JPC:
-                if (pas[sp] == 0) pc = IR.m;
-                ++sp;
+                if (pas[sp] == 0){ pc = (IR.m * 3);} //times 3 since counter counts by 3
+                sp++;
                 break;
 
             case SYS: //used for SOU SIN OR EOP
