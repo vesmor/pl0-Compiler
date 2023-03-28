@@ -104,7 +104,7 @@ typedef struct instruction{
 */
 typedef struct symbol{
 
-    int kind;       //ex: const = 1, varsym = 29
+    int kind;       //ex: const = 1, var = 2, const = 3
     char name[12];  //name like str is variables name
     int val;        //literal value of a number
     int level;      //lexographical level
@@ -922,7 +922,7 @@ void statement(){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
 
-        if (table[symIdx].kind != 2){
+        if (table[symIdx].kind != VAR){
             emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
