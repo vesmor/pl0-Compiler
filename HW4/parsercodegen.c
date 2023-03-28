@@ -762,7 +762,7 @@ void block(){
     int numVars = 0;
     while (token == varsym || token == constsym) {
         const_declaration();
-        numVars = var_declaration();
+        numVars += var_declaration();
     }
 
     if( numVars < 0 ){  //all error signals are negative numbers
