@@ -10,6 +10,7 @@
 
 /*
     TODOS
+    [x]: retconned all past hw bugs
     [] The Compiler output should Display on screen: 
         The input program and a message indicating that the program is syntactically correct. Otherwise, show an error message. 
 
