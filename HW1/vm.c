@@ -6,7 +6,7 @@
 */
 
 
-
+//FIXME: need to put the "odd" condition under OPR I believe
 
 
 
@@ -165,7 +165,10 @@ int main(int argc, char *argv[]){
                         pas[sp + 1] = retval;
                         ++sp;
                         break;
-                    
+                    case ODD:
+                        pas[sp] = pas[sp] % 2;
+                        break;
+
                     default:    //error invalid command
                         printf("%d is an Invalid m for OPR opcode\nEnding process...\n", IR.m);
                         eop = 0;    //ending the loop
@@ -224,9 +227,6 @@ int main(int argc, char *argv[]){
                         printf("%d is an Invalid m for SYS opcode\nEnding process...\n", IR.m);
                         eop = 0;
                 }
-                break;
-            case ODD:
-                pas[sp] <-- pas[sp] % 2;
                 break;
 
             default:
