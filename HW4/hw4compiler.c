@@ -485,7 +485,7 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
     const int init_arrPointer = arrPointer;   //holds where we initially started with the array
 
     //makes space in buffer arr until we land at the index of an ignorable element
-    while( !shouldBeIgnored(arr[index]) ){
+    while( !shouldBeIgnored(arr[index]) && index < arrSize){
 
 
         //checks for signal to start comment and skips portion of array until end of comment signal
