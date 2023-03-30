@@ -207,7 +207,7 @@ int findSymVal(char *chunk);
 int shouldBeIgnored(char c);
 int isSpecialSym(char c);
 char* readProgram(int *arrSize);
-int chunkify(char buffer[], char arr[], int arrPointer);
+int chunkify(char buffer[], char arr[], int arrPointer, int arrSize);
 int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
@@ -273,8 +273,7 @@ int main(int argc, char const *argv[])
     size_t lex_size;   //track size of lex_list
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
 
-
-        indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
+        indexPointer = chunkify(bufferArr, charArr, indexPointer, arrSize);   //returns the index where we left off
         
         lex_list = realloc(lex_list, (i+1) * sizeof(lexeme));
     
@@ -478,7 +477,7 @@ char* readProgram(int *arrSize){
     seperates known symbols into chunks to be organized later
     returns 'working' position in charArr
 */
-int chunkify(char buffer[], char arr[], int arrPointer){
+int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
 
     
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
@@ -527,11 +526,12 @@ int chunkify(char buffer[], char arr[], int arrPointer){
         }
 
         //peek to see if next char is a spec sym so we just break it here
-        if( isSpecialSym(arr[index + 1]) ){
-            bufferSize++;
-            break;
+        if((index + 1) < arrSize){
+            if( isSpecialSym(arr[index + 1]) ){
+                bufferSize++;
+                break;
+            }
         }
-
         // printf("in yk char is %c next is %c\n\n", arr[index], arr[index+1]);
 
         bufferSize++;
