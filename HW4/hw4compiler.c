@@ -16,6 +16,10 @@
 */
 
 /*
+    TODO: figure out which symbol table implementation we should use
+*/
+
+/*
     Correct output:
         1.- Print input (program in PL/0) 
     
@@ -162,7 +166,7 @@ typedef enum errors{
     //General errors
     NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
 }errors;
-const char *err_messages[] =  {
+const char *error_messages[] =  {
                             "Error: program must end with period",
                             "Error: const, var, and read keywords must be followed by identifier",
                             "Error: symbol name has already been declared",
@@ -185,6 +189,38 @@ const char *err_messages[] =  {
                             "Error: Name too long.",
                             "Error: Comment does not end."
                         };
+
+
+
+const char *err_messages[] =  {
+            "Use = instead of := ", 
+            "= must be followed by a number ", 
+            "Identifier must be followed by = ", 
+            "const , var , procedure must be followed by identifier" , 
+            "Semicolon or comma missing" , 
+            "Incorrect symbol after procedure declaration" , 
+            "Statement expected , "
+            "Incorrect symbol after statement part in block" , 
+            "Period expected ", 
+            "Semicolon between statements missing" , 
+            "Undeclared identifier" , 
+            "Assignment to constant or procedure is not allowed" , 
+            "Assignment operator expected" , 
+            "call must be followed by an identifier" , 
+            "Call of a constant or variable is meaningless" , 
+            "then  expected ", 
+            "Semicolon or end expected ", 
+            "do expected" , 
+            "Incorrect symbol following statement" , 
+            "Relational operator expected" , 
+            "Expression must not contain a procedure identifier" , 
+            "Right parenthesis missing" , 
+            "The preceding factor cannot begin with this symbol" , 
+            "An expression cannot begin with this symbol" , 
+            "This number is too large" , 
+            "Identifier too long" , 
+            "Invalid symbol" ,
+};
 
 
 FILE *in;
@@ -325,7 +361,7 @@ int main(int argc, char const *argv[])
     in = NULL;
     out = NULL;
     
-    char VMoutputName[] = "output.txt";
+    char VMoutputName[] = "elf.text";
 
     in = fopen(tokenFileName, "r"); 
     out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
@@ -766,6 +802,7 @@ void block(){
 
     // printf("in block\n");
 
+    //grab number of variables and constants we need
     int numVars = 0;
     while (token == varsym || token == constsym) {
         const_declaration();
@@ -778,6 +815,15 @@ void block(){
         emitError(error, "\0");
     
     }
+
+    // while (token == procsym){
+    //     fscanf(in, "%d", &token);
+    //     if(token != identsym){
+    //         //some type of error
+    //         printf("Emitting Error: procedure must have name\n");
+
+    //     }
+    // }
 
     //emit INC(M= 3 + numVars);
     // printf("emitting INC numVars: %d\n", numVars);

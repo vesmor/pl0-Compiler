@@ -20,7 +20,7 @@ codegen: $(HW3_DIR)/parsercodegen.c $(HW3_DIR)/input.txt
 
 .PHONY: vm
 vm: $(HW1_DIR)/vm.c $(HW1_DIR)/input2.txt
-	cd $(HW1_DIR) && gcc -g -o vm vm.c && ./vm ../$(HW4_DIR)/output.txt
+	cd $(HW1_DIR) && gcc -g -o vm vm.c && ./vm ../$(HW4_DIR)/elf.text
 
 .PHONY: clean
 clean:
