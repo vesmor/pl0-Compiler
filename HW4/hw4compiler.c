@@ -760,7 +760,7 @@ void emitError(int errorSignal, char *invalidIdent){
 
     // out = fopen("output.txt", "w");
 
-    printf("%s\n", error_message);
+    printf("Error number %d, %s\n", errorSignal, error_message);
     fprintf(out, "%s\n", error_message);
 
 
