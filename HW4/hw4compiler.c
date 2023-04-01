@@ -17,6 +17,10 @@
 */
 
 /*
+    TODO: figure out which symbol table implementation we should use
+*/
+
+/*
     Correct output:
         1.- Print input (program in PL/0) 
     
@@ -105,7 +109,7 @@ typedef struct instruction{
 */
 typedef struct symbol{
 
-    int kind;       //ex: const = 1, varsym = 29
+    int kind;       //ex: const = 1, var = 2, const = 3
     char name[12];  //name like str is variables name
     int val;        //literal value of a number
     int level;      //lexographical level
@@ -133,59 +137,95 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-//Error signals
+#define NUM_ERRORS 29
+const char *err_messages[NUM_ERRORS] =  {
+ 
+        "Use = instead of := ", 
+        "= must be followed by a number ", 
+        "Identifier must be followed by = ", 
+        "const , var , procedure must be followed by identifier" , 
+        "Semicolon or comma missing" , 
+        "Incorrect symbol after procedure declaration" , 
+        "Statement expected",
+        "Incorrect symbol after statement part in block",
+        "Period expected ",
+        "Semicolon between statements missing",
+        "Undeclared identifier",
+        "Assignment to constant or procedure is not allowed",
+        "Assignment operator expected",
+        "call must be followed by an identifier",
+        "Call of a constant or variable is meaningless" , 
+        "then  expected ", 
+        "Semicolon or end expected ", 
+        "do expected",
+        "Incorrect symbol following statement",
+        "Relational operator expected", 
+        "Expression must not contain a procedure identifier", 
+        "Right parenthesis missing",
+        "The preceding factor cannot begin with this symbol", 
+
+        //scanner errors
+        "An expression cannot begin with this symbol", 
+        "This number is too large", 
+        "Identifier too long", 
+        "Invalid symbol",
+
+        //extra errors not given in instructions
+        "Comment does not have ending '*/'",
+        "Identifier already declared",
+
+};
+
+
+
+//Error Signals
+//starts from -1 to leave space for the not found error
+//doesn't match up with array indexing so that we can make all error signals a negative, less than 0 number
 typedef enum errors{
 
-    //Scanner Errors
-    END_OF_COMMENT_ERR = -20,
-    NAME_TOO_LONG_ERR,
-    INT_TOO_LONG_ERR, 
-    INVALID_VAR_ERR,
-    INVALID_SYM_ERR,
+    /* extra errors not given in instructions */
+    IDENT_ALR_DECLARED_ERR = (-NUM_ERRORS - 1), //"Identifier already declared"
+    END_OF_COMMENT_ERR, //"Comment does not have ending '*/'"
 
-    //Parser Errors
-    ARITHMETIC_ERR = -15,
-    INCOMPLETE_PARENTHEIS_ERR,
-    NEEDS_COMPARE_ERR,
-    DO_MISSING_ERR,
-    THEN_MISSING_ERR,
-    END_MISSING_ERR,
-    ASSGN_MISSING_ERR,
-    ILLEGAL_CONST_CHANGE_ERR,
-    UNDECLARED_IDENT_ERR,
-    SEMICOLON_MISSING_ERR, 
-    CONST_NOT_INT_ERR, 
-    CONST_NEEDS_EQ_ERR, 
-    IDENT_ALR_DECLARED_ERR, 
-    IDENTIFIER_EXPECTED_ERR, 
-    MISSING_PERIOD_ERR, 
+    /* Scanner Errors */
+    INVALID_SYM_ERR, //"Invalid symbol"
+    IDENT_TOO_LONG_ERR, //"Identifier too long"
+    NUM_TOO_LONG_ERR, //"This number is too large"
+    INVALID_VAR_ERR, //"An expression cannot begin with this symbol"
 
-    //General errors
-    NOT_FOUND = -1/*Error if there is no variable after Var declaration*/
+    /* Parser Errors */
+    ARITHMETIC_ERR, //"The preceding factor cannot begin with this symbol"
+    INCOMPLETE_PARENTHEIS_ERR, //"Right parenthesis missing"
+    EXPRESSION_PROCEDURE_ERR, //"Expression must not contain a procedure identifier"
+    NEEDS_COMPARE_ERR, //"Relational operator expected"
+    WRONG_SYM_AFTER_STMNT_ERR, //"Incorrect symbol following statement"
+    DO_MISSING_ERR, //"do expected"
+    END_MISSING_ERR, //"Semicolon or end expected "
+    THEN_MISSING_ERR, //"then  expected "
+    IMPROPER_CALL_ERR, //"Call of a constant or variable is meaningless"
+    CALL_NEEDS_IDENT_ERR, //"call must be followed by an identifier"
+    ASSGN_MISSING_ERR, //"Assignment operator expected"
+    ILLEGAL_CONST_CHANGE_ERR, //"Assignment to constant or procedure is not allowed"
+    UNDECLARED_IDENT_ERR, //"Undeclared identifier"
+    SEMICOLON_MISSING_ERR, //"Semicolon between statements missing"
+    MISSING_PERIOD_ERR, //"Period expected "
+    STMNT_BLOCK_INCORRECT_ERR, //"Incorrect symbol after statement part in block"
+    STMN_EXPECTED_ERR, //"Statement expected"
+    WRONG_SYM_AFTER_PROC_ERR, //"Incorrect symbol after procedure declaration"
+    SEMI_OR_COLON_MISSING_ERR, //"Semicolon or comma missing"
+    IDENT_AFTER_KEYWORD_ERR, // "const , var , procedure must be followed by identifier"
+    CONST_NEEDS_EQ_ERR, //"Identifier must be followed by = "
+    IDENTIFIER_EXPECTED_ERR, //"= must be followed by a number "
+    USE_EQ_NOT_BECOME_ERR, //"Use = instead of := ", 
+
+
+    // if identifier not found in symbol table
+    NOT_FOUND = -1 
 }errors;
-const char *err_messages[] =  {
-                            "Error: program must end with period",
-                            "Error: const, var, and read keywords must be followed by identifier",
-                            "Error: symbol name has already been declared",
-                            "Error: constants must be assigned with =",
-                            "Error: constants must be assigned an integer value",
-                            "Error: constant and variable declarations must be followed by a semicolon",
-                            "Error: undeclared identifier",
-                            "Error: only variable values may be altered",
-                            "Error: assignment statements must use :=",
-                            "Error: begin must be followed by end",
-                            "Error: if must be followed by then",
-                            "Error: while must be followed by do",
-                            "Error: condition must contain comparison operator",
-                            "Error: right parenthesis must follow left parenthesis",
-                            "Error: arithmetic equations must contain operands, parentheses, numbers, or symbols",
 
-                            "Error: Invalid Symbols.",
-                            "Error: Variable name does not start with letter.",
-                            "Error: Number too long.",
-                            "Error: Name too long.",
-                            "Error: Comment does not end."
-                        };
+
+
+
 
 
 FILE *in;
@@ -208,7 +248,7 @@ int findSymVal(char *chunk);
 int shouldBeIgnored(char c);
 int isSpecialSym(char c);
 char* readProgram(int *arrSize);
-int chunkify(char buffer[], char arr[], int arrPointer);
+int chunkify(char buffer[], char arr[], int arrPointer, int arrSize);
 int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
@@ -274,8 +314,7 @@ int main(int argc, char const *argv[])
     size_t lex_size;   //track size of lex_list
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
 
-
-        indexPointer = chunkify(bufferArr, charArr, indexPointer);   //returns the index where we left off
+        indexPointer = chunkify(bufferArr, charArr, indexPointer, arrSize);   //returns the index where we left off
         
         lex_list = realloc(lex_list, (i+1) * sizeof(lexeme));
     
@@ -327,7 +366,7 @@ int main(int argc, char const *argv[])
     in = NULL;
     out = NULL;
     
-    char VMoutputName[] = "output.txt";
+    char VMoutputName[] = "elf.text";
 
     in = fopen(tokenFileName, "r"); 
     out = fopen(VMoutputName, "w"); //possibly may need to comment this out for submission
@@ -479,7 +518,7 @@ char* readProgram(int *arrSize){
     seperates known symbols into chunks to be organized later
     returns 'working' position in charArr
 */
-int chunkify(char buffer[], char arr[], int arrPointer){
+int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
 
     
     int bufferSize = 0;  //keeps track of size buffer needs to be so we can allocate enough space for it
@@ -487,7 +526,7 @@ int chunkify(char buffer[], char arr[], int arrPointer){
     const int init_arrPointer = arrPointer;   //holds where we initially started with the array
 
     //makes space in buffer arr until we land at the index of an ignorable element
-    while( !shouldBeIgnored(arr[index]) ){
+    while( !shouldBeIgnored(arr[index]) && index < arrSize){
 
 
         //checks for signal to start comment and skips portion of array until end of comment signal
@@ -528,11 +567,12 @@ int chunkify(char buffer[], char arr[], int arrPointer){
         }
 
         //peek to see if next char is a spec sym so we just break it here
-        if( isSpecialSym(arr[index + 1]) ){
-            bufferSize++;
-            break;
+        if((index + 1) < arrSize){
+            if( isSpecialSym(arr[index + 1]) ){
+                bufferSize++;
+                break;
+            }
         }
-
         // printf("in yk char is %c next is %c\n\n", arr[index], arr[index+1]);
 
         bufferSize++;
@@ -583,7 +623,7 @@ int determinNonReserved(char *chunk){
                 return INVALID_VAR_ERR;            
             }
         }
-        return INT_TOO_LONG_ERR;
+        return NUM_TOO_LONG_ERR;
     }
     else if (isalpha(chunk[0])) {
         for(i; i <= cmax; ++i) {
@@ -591,7 +631,7 @@ int determinNonReserved(char *chunk){
                 return identsym;
             }
         }
-        return NAME_TOO_LONG_ERR;
+        return IDENT_TOO_LONG_ERR;
     }
 
     return INVALID_SYM_ERR;
@@ -684,7 +724,6 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 
 }
 
-//TODO: Make the table print prettier, and align the tabs
 void printTable(symbol table[], int tableSize){
 
     printf("\nSymbol Table:\n\n");
@@ -708,8 +747,10 @@ void printTable(symbol table[], int tableSize){
 //Print error message to console corresponding to error signal passed in. pass "\0" into invalidIdent if not an undeclared_ident error
 void emitError(int errorSignal, char *invalidIdent){
 
+    int offset = 2; // offset so that array messages match up with the errors enumerations
+
     char error_message[strmax] = "";
-    errorSignal = abs(errorSignal) - 1; //get index of err message w offset
+    errorSignal = abs(errorSignal) - offset; //get index of err message w offset of 
     strcat(error_message, err_messages[errorSignal]);
     
     if(invalidIdent[0] != '\0'){
@@ -720,7 +761,7 @@ void emitError(int errorSignal, char *invalidIdent){
 
     // out = fopen("output.txt", "w");
 
-    printf("%s\n", error_message);
+    printf("Error number %d, %s\n", errorSignal, error_message);
     fprintf(out, "%s\n", error_message);
 
 
@@ -767,6 +808,7 @@ void block(){
 
     // printf("in block\n");
 
+    //grab number of variables and constants we need
     int numVars = 0;
     while (token == varsym || token == constsym) {
         const_declaration();
@@ -779,6 +821,15 @@ void block(){
         emitError(error, "\0");
     
     }
+
+    // while (token == procsym){
+    //     fscanf(in, "%d", &token);
+    //     if(token != identsym){
+    //         //some type of error
+    //         printf("Emitting Error: procedure must have name\n");
+
+    //     }
+    // }
 
     //emit INC(M= 3 + numVars);
     // printf("emitting INC numVars: %d\n", numVars);
@@ -806,7 +857,7 @@ void const_declaration(){
             char identSymStr[cmax];
             fscanf(in, "%s", identSymStr);
             if (symboltablecheck(identSymStr) != NOT_FOUND){
-                emitError(IDENT_ALR_DECLARED_ERR, '\0');
+                emitError(IDENT_ALR_DECLARED_ERR, "\0");
                 
             }
 
@@ -822,13 +873,14 @@ void const_declaration(){
             // get next token 
             fscanf(in, "%d", &token);
             if(token != numbersym){
-                emitError(CONST_NOT_INT_ERR, "\0");
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
             int actualNumber;
             fscanf(in ,"%d", &actualNumber);
-            // add to symbol table (kind 1, saved name, number, 0, 0) 
-            symbol newSym = initSymObj(CONST, identName, actualNumber, 0, 0);
+            
+            // add to symbol table 
+            symbol newSym = initSymObj(CONST, identName, actualNumber, LexLevel, 0);
             table[tableworkingIndex] = newSym;
             tableworkingIndex++;
 
@@ -839,7 +891,7 @@ void const_declaration(){
         } while (token == commasym);
         
         if(token != semicolonsym){
-            emitError(SEMICOLON_MISSING_ERR, "\0");
+            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
         fscanf(in, "%d", &token);
@@ -849,9 +901,8 @@ void const_declaration(){
 }
 
 
-//    Function that for when a "var" is about to be declared
+//    Function for when a variable is about to be declared
 //    returns number of vars
-//    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
 int var_declaration(){
     // printf("in var declaration\n");
     int numVars = 0;
@@ -864,17 +915,17 @@ int var_declaration(){
             }
             
             if( token != identsym){
-                return IDENTIFIER_EXPECTED_ERR;
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
         
             char name[12];
             if(fscanf(in, "%s", name) <= 0){
-                return IDENTIFIER_EXPECTED_ERR;
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
             // printTable(table, tableworkingIndex);
             if(symboltablecheck(name) != NOT_FOUND){
-                return IDENT_ALR_DECLARED_ERR;
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
 
             numVars++;
@@ -890,9 +941,10 @@ int var_declaration(){
             fscanf(in, "%d", &token);
                 
         }while (token == commasym);
+
         
         if (token != semicolonsym){
-            return SEMICOLON_MISSING_ERR;
+            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
         fscanf(in, "%d", &token);
     }
@@ -923,7 +975,7 @@ void statement(){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
 
-        if (table[symIdx].kind != 2){
+        if (table[symIdx].kind != VAR){
             emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
