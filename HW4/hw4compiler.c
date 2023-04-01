@@ -136,7 +136,8 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-const char *err_messages[] =  {
+#define NUM_ERRORS 29
+const char *err_messages[NUM_ERRORS] =  {
  
         "Use = instead of := ", 
         "= must be followed by a number ", 
@@ -169,52 +170,52 @@ const char *err_messages[] =  {
         "Invalid symbol",
 
         //extra errors not given in instructions
-        "Comment does not have ending '*/'"
+        "Comment does not have ending '*/'",
         "Identifier already declared",
 
 };
 
-const int num_of_errors = sizeof(err_messages)/sizeof(err_messages[0]);
 
 
-
-//Error signals
+//Error Signals
+//starts from -1 to leave space for the not found error
+//doesn't match up with array indexing so that we can make all error signals a negative, less than 0 number
 typedef enum errors{
 
-    //extra errors not given in instructions
-    IDENT_ALR_DECLARED_ERR = -30,
-    END_OF_COMMENT_ERR,
+    /* extra errors not given in instructions */
+    IDENT_ALR_DECLARED_ERR = (-NUM_ERRORS - 1), //"Identifier already declared"
+    END_OF_COMMENT_ERR, //"Comment does not have ending '*/'"
 
-    //Scanner Errors
-    INVALID_SYM_ERR,
-    IDENT_TOO_LONG_ERR,
-    NUM_TOO_LONG_ERR,
-    INVALID_VAR_ERR,
+    /* Scanner Errors */
+    INVALID_SYM_ERR, //"Invalid symbol"
+    IDENT_TOO_LONG_ERR, //"Identifier too long"
+    NUM_TOO_LONG_ERR, //"This number is too large"
+    INVALID_VAR_ERR, //"An expression cannot begin with this symbol"
 
-    //Parser Errors
-    ARITHMETIC_ERR,
-    INCOMPLETE_PARENTHEIS_ERR,
-    EXPRESSION_PROCEDURE_ERR,
-    NEEDS_COMPARE_ERR,
-    WRONG_SYM_AFTER_STMNT_ERR,
-    DO_MISSING_ERR,
-    END_MISSING_ERR,
-    THEN_MISSING_ERR,
-    IMPROPER_CALL_ERR,
-    CALL_NEEDS_IDENT_ERR,
-    ASSGN_MISSING_ERR,
-    ILLEGAL_CONST_CHANGE_ERR,
-    UNDECLARED_IDENT_ERR,
-    SEMICOLON_MISSING_ERR,
-    MISSING_PERIOD_ERR,
-    STMNT_BLOCK_INCORRECT_ERR,
-    STMN_EXPECTED_ERR,
-    WRONG_SYM_AFTER_PROC_ERR,
-    SEMI_OR_COLON_MISSING_ERR,
-    CONST_NOT_ASSGND_INT_ERR,
-    CONST_NEEDS_EQ_ERR,
-    IDENTIFIER_EXPECTED_ERR,
-    USE_EQ_NOT_BECOME_ERR,
+    /* Parser Errors */
+    ARITHMETIC_ERR, //"The preceding factor cannot begin with this symbol"
+    INCOMPLETE_PARENTHEIS_ERR, //"Right parenthesis missing"
+    EXPRESSION_PROCEDURE_ERR, //"Expression must not contain a procedure identifier"
+    NEEDS_COMPARE_ERR, //"Relational operator expected"
+    WRONG_SYM_AFTER_STMNT_ERR, //"Incorrect symbol following statement"
+    DO_MISSING_ERR, //"do expected"
+    END_MISSING_ERR, //"Semicolon or end expected "
+    THEN_MISSING_ERR, //"then  expected "
+    IMPROPER_CALL_ERR, //"Call of a constant or variable is meaningless"
+    CALL_NEEDS_IDENT_ERR, //"call must be followed by an identifier"
+    ASSGN_MISSING_ERR, //"Assignment operator expected"
+    ILLEGAL_CONST_CHANGE_ERR, //"Assignment to constant or procedure is not allowed"
+    UNDECLARED_IDENT_ERR, //"Undeclared identifier"
+    SEMICOLON_MISSING_ERR, //"Semicolon between statements missing"
+    MISSING_PERIOD_ERR, //"Period expected "
+    STMNT_BLOCK_INCORRECT_ERR, //"Incorrect symbol after statement part in block"
+    STMN_EXPECTED_ERR, //"Statement expected"
+    WRONG_SYM_AFTER_PROC_ERR, //"Incorrect symbol after procedure declaration"
+    SEMI_OR_COLON_MISSING_ERR, //"Semicolon or comma missing"
+    IDENT_AFTER_KEYWORD_ERR, // "const , var , procedure must be followed by identifier"
+    CONST_NEEDS_EQ_ERR, //"Identifier must be followed by = "
+    IDENTIFIER_EXPECTED_ERR, //"= must be followed by a number "
+    USE_EQ_NOT_BECOME_ERR, //"Use = instead of := ", 
 
 
     // if identifier not found in symbol table
@@ -855,7 +856,7 @@ void const_declaration(){
             char identSymStr[cmax];
             fscanf(in, "%s", identSymStr);
             if (symboltablecheck(identSymStr) != NOT_FOUND){
-                emitError(IDENT_ALR_DECLARED_ERR, '\0');
+                emitError(IDENT_ALR_DECLARED_ERR, "\0");
                 
             }
 
@@ -871,7 +872,7 @@ void const_declaration(){
             // get next token 
             fscanf(in, "%d", &token);
             if(token != numbersym){
-                emitError(CONST_NOT_ASSGND_INT_ERR, "\0");
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
             int actualNumber;
@@ -889,7 +890,7 @@ void const_declaration(){
         } while (token == commasym);
         
         if(token != semicolonsym){
-            emitError(SEMICOLON_MISSING_ERR, "\0");
+            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
         fscanf(in, "%d", &token);
@@ -899,9 +900,8 @@ void const_declaration(){
 }
 
 
-//    Function that for when a "var" is about to be declared
+//    Function for when a variable is about to be declared
 //    returns number of vars
-//    Can emit: IDENTIFIER_EXPECTED_ERR, IDENT_ALR_DECLARED_ERR, SEMICOLON_MISSING_ERR
 int var_declaration(){
     // printf("in var declaration\n");
     int numVars = 0;
@@ -914,17 +914,17 @@ int var_declaration(){
             }
             
             if( token != identsym){
-                return IDENTIFIER_EXPECTED_ERR;
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
         
             char name[12];
             if(fscanf(in, "%s", name) <= 0){
-                return IDENTIFIER_EXPECTED_ERR;
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
             // printTable(table, tableworkingIndex);
             if(symboltablecheck(name) != NOT_FOUND){
-                return IDENT_ALR_DECLARED_ERR;
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
 
             numVars++;
@@ -940,9 +940,10 @@ int var_declaration(){
             fscanf(in, "%d", &token);
                 
         }while (token == commasym);
+
         
         if (token != semicolonsym){
-            return SEMICOLON_MISSING_ERR;
+            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
         fscanf(in, "%d", &token);
     }
