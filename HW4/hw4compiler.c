@@ -1061,7 +1061,7 @@ void statement(){
             }
 
             // printf("out of statement BEFORE recurse token is %d\n", token);
-            statement(token);
+            statement();
             // printf("out of statement after recurse token is %d\n", token);
 
         } while (token == semicolonsym);
@@ -1106,7 +1106,7 @@ void statement(){
 
         fscanf(in, "%d", &token);
         int loopIndex = cx; //the counter where the loop is happening
-        // printf("loop index in whilesym: %d\n", loopIndex);
+        printf("loop index in whilesym: %d\n", loopIndex);
         condition();
 
         if (token != dosym){
