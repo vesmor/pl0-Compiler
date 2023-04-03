@@ -20,6 +20,12 @@
 */
 
 /*
+
+    TODO: add emit error function overloading when time permits so we dont keep forgetting the "\0"
+
+*/
+
+/*
     Correct output:
         1.- Print input (program in PL/0) 
     
@@ -199,7 +205,7 @@ typedef enum errors{
     NEEDS_COMPARE_ERR, //"Relational operator expected"
     WRONG_SYM_AFTER_STMNT_ERR, //"Incorrect symbol following statement"
     DO_MISSING_ERR, //"do expected"
-    END_MISSING_ERR, //"Semicolon or end expected "
+    SEMI_OR_END_MISSING_ERR, //"Semicolon or end expected "
     THEN_MISSING_ERR, //"then  expected "
     IMPROPER_CALL_ERR, //"Call of a constant or variable is meaningless"
     CALL_NEEDS_IDENT_ERR, //"call must be followed by an identifier"
@@ -392,11 +398,13 @@ int main(int argc, char const *argv[])
     // tokens = readTokens();
 
     int numVars;
-    table[tableworkingIndex++] = initSymObj(PROC, "main", 0, LexLevel, 3); //adds main procedure to symbol table
+    table[tableworkingIndex++] = initSymObj(PROC, "main", 0, LexLevel, 3); //adds main procedure to symbol table at index 0
     
     emit(JMP, 0, 3);
 
     program(); //literally starts reading program
+
+    code[0].M = cx;//jmp to where main procedure is
 
     markTable(); //since we only have 1 function this is called in main
 
@@ -821,14 +829,49 @@ void block(){
     
     }
 
-    // while (token == procsym){
-    //     fscanf(in, "%d", &token);
-    //     if(token != identsym){
-    //         //some type of error
-    //         printf("Emitting Error: procedure must have name\n");
+    //continously read procedure blocks
+    while (token == procsym){
+        
+        fscanf(in, "%d", &token);
+        
+        if(token != identsym){
+            // printf("In proc from from block:\n");
+            //procedure missing identifier
+            emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
+        }
 
-    //     }
-    // }
+        //grab procedure name
+        char procName[cmax + 1];
+        fscanf(in, "%s", procName);
+
+        if( symboltablecheck(procName) != NOT_FOUND){
+            // printf("In proc from from block:\n");
+            emitError(IDENT_ALR_DECLARED_ERR, "\0");
+        }
+
+        symbol procsym = initSymObj(PROC, procName, 0, LexLevel, 0);
+
+        table[tableworkingIndex] = procsym;
+        tableworkingIndex++;
+        
+        
+        fscanf(in, "%d", &token);
+        if (token != semicolonsym){
+            // printf("In proc from from block:\n");
+            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
+        }
+
+        fscanf(in, "%d", &token);    //expecting begin so we can start defining the procedure
+        block();
+
+        if (token != semicolonsym){
+            // printf("In proc from from block:\n");
+            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
+        }
+
+        fscanf(in, "%d", &token); //expecting another procedure keyword or begin to signify "main" function
+
+    }
 
     //emit INC(M= 3 + numVars);
     // printf("emitting INC numVars: %d\n", numVars);
@@ -847,31 +890,35 @@ void const_declaration(){
         {
             
             if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
+                // printf("in const_decl\n");
                 emitError(IDENTIFIER_EXPECTED_ERR,"\0");
             }   
             if (token != identsym){
                 emitError(IDENTIFIER_EXPECTED_ERR, "\0");  // i think this error needs to be changed
             }
             
-            char identSymStr[cmax];
+            char identSymStr[cmax + 1];
             fscanf(in, "%s", identSymStr);
             if (symboltablecheck(identSymStr) != NOT_FOUND){
+                // printf("in const_decl\n");
                 emitError(IDENT_ALR_DECLARED_ERR, "\0");
                 
             }
 
             
             //save ident name 
-            char identName[cmax];
+            char identName[cmax + 1];
             strcpy(identName, identSymStr);
         
             fscanf(in, "%d", &token);
             if (token != eqlsym) {
+                // printf("in const_decl\n");
                 emitError(CONST_NEEDS_EQ_ERR, "\0");
             }
             // get next token 
             fscanf(in, "%d", &token);
             if(token != numbersym){
+                // printf("in const_decl\n");
                 emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
@@ -879,8 +926,8 @@ void const_declaration(){
             fscanf(in ,"%d", &actualNumber);
             
             // add to symbol table 
-            symbol newSym = initSymObj(CONST, identName, actualNumber, LexLevel, 0);
-            table[tableworkingIndex] = newSym;
+            symbol constSym = initSymObj(CONST, identName, actualNumber, LexLevel, 0);
+            table[tableworkingIndex] = constSym;
             tableworkingIndex++;
 
             // get next token
@@ -890,6 +937,7 @@ void const_declaration(){
         } while (token == commasym);
         
         if(token != semicolonsym){
+            // printf("in const_decl\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
@@ -930,8 +978,8 @@ int var_declaration(){
             numVars++;
             
             //Add to symbol table
-            symbol newSym = initSymObj(VAR, name, 0, 0, numVars + 2);
-            table[tableworkingIndex] = newSym;
+            symbol varSym = initSymObj(VAR, name, 0, 0, numVars + 2);
+            table[tableworkingIndex] = varSym;
             tableworkingIndex++;
 
 
@@ -943,6 +991,7 @@ int var_declaration(){
 
         
         if (token != semicolonsym){
+            // printf("in var_decl:\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
         fscanf(in, "%d", &token);
@@ -974,13 +1023,13 @@ void statement(){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
 
-        if (table[symIdx].kind != VAR){
+        if (table[symIdx].kind != VAR && table[symIdx].kind != PROC){
             emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
-            printf("was expecting := got %d\n", token);
+            // printf("was expecting := got %d\n", token);
             //it might also be the arithmetic error
             emitError(ASSGN_MISSING_ERR, "\0");
         }
@@ -1003,7 +1052,7 @@ void statement(){
     }
 
     if(token == beginsym){
-        // printf("begin in statement\n");
+        // printf("begin in statement token\n");
         do
         {
 
@@ -1013,15 +1062,16 @@ void statement(){
 
             // printf("out of statement BEFORE recurse token is %d\n", token);
             statement(token);
-
             // printf("out of statement after recurse token is %d\n", token);
+
         } while (token == semicolonsym);
         
         //if statements need a semicolon check for it here and do an error mess
 
 
-        if(token != endsym){    //make sure end is followed by beginning
-            emitError(END_MISSING_ERR, "\0");
+        if(token != endsym){    //make sure end is followed by begin
+            // printf("in begin of statement: %d\n", token);
+            emitError(SEMI_OR_END_MISSING_ERR, "\0");
         }
          
         fscanf(in, "%d", &token);
@@ -1055,8 +1105,8 @@ void statement(){
     if(token == whilesym){
 
         fscanf(in, "%d", &token);
-        int loopIndex = cx; //idk what this means yet
-
+        int loopIndex = cx; //the counter where the loop is happening
+        // printf("loop index in whilesym: %d\n", loopIndex);
         condition();
 
         if (token != dosym){
@@ -1113,6 +1163,26 @@ void statement(){
         expression();
         // printf("emit WRITE\n");
         emit(SYS, LexLevel, SOU); //WRITE
+
+        return;
+    }
+
+    if (token == callsym){
+        fscanf(in, "%d", &token);
+        if (token != identsym){
+            emitError(CALL_NEEDS_IDENT_ERR, "\0");
+        }
+        
+        //get procedures name
+        char procName[cmax + 1];
+        fscanf(in, "%s", procName);
+
+        if (symboltablecheck(procName) == NOT_FOUND){
+            // printf("in callsym of statement:\n");
+            emitError(UNDECLARED_IDENT_ERR, procName);
+        }
+
+        fscanf(in, "%d", &token);
 
         return;
     }
@@ -1205,68 +1275,6 @@ void expression(){
     
 
 
-   /* if (token == minussym){
-        printf("token in exp is minus sym\n");
-        
-        fscanf(in, "%d", &token);
-        term();
-
-        //emit neg ?
-        printf("Emit neg\n");
-        emit(OPR, LexLevel, SUB);
-
-        while (token == plussym || token == minussym){
-            fscanf(in, "%d", &token);
-            printf("token is plus or minus\n");
-
-            if (token == plussym){
-                fscanf(in, "%d", &token);
-                term();
-                //emit add
-                printf("token in expression is add\n");
-                emit(OPR, LexLevel, ADD);
-            }
-            else{
-                fscanf(in, "%d", &token);
-                term();
-                //emit sub
-                printf("token in expression is sub\n");
-                emit(OPR, LexLevel, SUB);
-            }    
-        }
-
-    }
-
-    else{
-        if(token == plussym){
-            fscanf(in, "%d", &token);
-            printf("token is plus\n");
-        }
-
-        term();
-
-        while (token == plussym || token == minussym){
-            fscanf(in, "%d", &token);
-            printf("factor: else: token is plus or minus\n");
-
-            if (token == plussym){
-                fscanf(in, "%d", &token);
-                term();
-                //emit add
-                printf("factor: else: token in expression is add\n");
-                emit(OPR, LexLevel, SUB);
-            }
-            else{
-                fscanf(in, "%d", &token);
-                term();
-                //emit sub
-                printf("token in expression is sub\n");
-                emit(OPR, LexLevel, SUB);
-            }    
-        }
-
-    }*/
-
 }
 
 void term(){
@@ -1299,7 +1307,7 @@ void term(){
 
 }
 
-//still need to figure out error
+//
 void factor(){
     // printf("in factor %d\n", token);
     if (token == identsym){
@@ -1374,6 +1382,7 @@ void emit(int op, int L, int M){
 
 }
 
+//prints the vm instructions in human readable format
 void printInstructions(){
 
     const char *op_code_names[] = { "LIT", "OPR", "LOD", "STO", "CAL", "INC", "JMP", "JPC", "SYS" };
@@ -1388,10 +1397,14 @@ void printInstructions(){
         char op_name[4];
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
+        // if(code[i].op == OPR){
+
+        // }
+
         printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
         // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
         
-        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes to file for VM to run
+        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
     
     }
     
