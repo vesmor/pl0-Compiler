@@ -17,6 +17,8 @@
 
 /*
     TODO: figure out which symbol table implementation we should use
+
+    TODO: delete the symbol or mark the variable as deleted once we've reached the end of the scope of where it was declared
 */
 
 /*
@@ -269,7 +271,8 @@ void term(int LexLevel);
 void factor(int LexLevel);
 void block(int LexLevel);
 void const_declaration(int LexLevel);
-int symboltablecheck(char *target);
+int seekSymbol(char *targetName, int target_LexLevel);
+int symboltablecheck(char *targetName);
 void expression(int LexLevel);
 void condition(int LexLevel);
 void emit(int op, int L, int M);
@@ -406,7 +409,7 @@ int main(int argc, char const *argv[])
 
     // code[0].M = cx;//jmp to where main procedure is
 
-    markTable(); //since we only have 1 function this is called in main
+    // markTable(); //since we only have 1 function this is called in main
 
     printInstructions();
     printTable(table, tableSize);
@@ -696,22 +699,41 @@ void printLexemes(lexeme *list, size_t size){
 /*                               START PARSER FUNCS                    */
 
 //TODO: possibly search backwards for symbol and check if the lexlevel matches too
-//searches thru symbol table for a target name and checks if theyre on the same lexlevel 
+//searches thru symbol table for a targetName name and checks if theyre on the same lexlevel 
 //returns index if name and level match, if not returns NOT_FOUND
-int symboltablecheck(char *target){
+int seekSymbol(char *targetName, int target_LexLevel){
 
     //moves backward thru symbol table
     for (int index = tableSize - 1; index >= 0; index--)
     {
         // printf("\tI: %d\n", index);
-        if(strcmp(table[index].name, target) == 0){
+        if(strcmp(table[index].name, targetName) == 0 && table[index].level == target_LexLevel){
             return index;
         }
+
     }
     // printf("not found\n");
     return NOT_FOUND;
     
 
+}
+
+//checks if a symbol with targetName exists in general
+//returns index if found, returns NOT_FOUND if not
+int symboltablecheck(char *targetName){
+
+    
+    //moves backward thru symbol table
+    for (int index = tableSize - 1; index >= 0; index--)
+    {
+        // printf("\tI: %d\n", index);
+        if(strcmp(table[index].name, targetName) == 0){
+            return index;
+        }
+
+    }
+
+    return NOT_FOUND;
 }
 
 
@@ -1022,7 +1044,7 @@ void statement(int LexLevel){
         // printf("in identsym statement\n");
         char identName[cmax];
         fscanf(in, "%s", identName);
-        int symIdx = symboltablecheck(identName);
+        int symIdx = seekSymbol(identName, LexLevel);
         if (symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
@@ -1140,7 +1162,7 @@ void statement(int LexLevel){
         
         char tokenName[cmax];
         fscanf(in, "%s", tokenName);
-        int symIndex = symboltablecheck(tokenName);
+        int symIndex = seekSymbol(tokenName, LexLevel);
         if(symIndex == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, tokenName);
         }
@@ -1181,7 +1203,7 @@ void statement(int LexLevel){
         char procName[cmax + 1];
         fscanf(in, "%s", procName);
 
-        if (symboltablecheck(procName) == NOT_FOUND){
+        if (seekSymbol(procName, LexLevel) == NOT_FOUND){
             // printf("in callsym of statement:\n");
             emitError(UNDECLARED_IDENT_ERR, procName);
         }
@@ -1318,7 +1340,7 @@ void factor(int LexLevel){
 
         char identifierStr[cmax];
         fscanf(in, "%s", identifierStr);
-        int symIdx = symboltablecheck(identifierStr);
+        int symIdx = seekSymbol(identifierStr, LexLevel);
         if(symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identifierStr);
         }
