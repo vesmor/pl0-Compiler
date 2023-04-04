@@ -868,7 +868,7 @@ void block(int LexLevel){
         char procName[cmax + 1];
         fscanf(in, "%s", procName);
 
-        if( symboltablecheck(procName) != NOT_FOUND){
+        if( seekSymbol(procName, LexLevel) != NOT_FOUND){ //if no name exists at all, we cant tell where this came from
             // printf("In proc from from block:\n");
             emitError(IDENT_ALR_DECLARED_ERR, "\0");
         }
@@ -925,7 +925,7 @@ void const_declaration(int LexLevel){
             
             char identSymStr[cmax + 1];
             fscanf(in, "%s", identSymStr);
-            if (symboltablecheck(identSymStr) != NOT_FOUND){
+            if (seekSymbol(identSymStr, LexLevel) != NOT_FOUND){
                 // printf("in const_decl\n");
                 emitError(IDENT_ALR_DECLARED_ERR, "\0");
                 
@@ -996,7 +996,7 @@ int var_declaration(int LexLevel){
                 emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
-            if(symboltablecheck(name) != NOT_FOUND){
+            if(seekSymbol(name, LexLevel) != NOT_FOUND){
                 // printTable(table, tableworkingIndex);
                 emitError(IDENT_ALR_DECLARED_ERR, "\0");
             }
@@ -1044,7 +1044,7 @@ void statement(int LexLevel){
         // printf("in identsym statement\n");
         char identName[cmax];
         fscanf(in, "%s", identName);
-        int symIdx = seekSymbol(identName, LexLevel);
+        int symIdx = symboltablecheck(identName);
         if (symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
@@ -1162,7 +1162,7 @@ void statement(int LexLevel){
         
         char tokenName[cmax];
         fscanf(in, "%s", tokenName);
-        int symIndex = seekSymbol(tokenName, LexLevel);
+        int symIndex = symboltablecheck(tokenName);
         if(symIndex == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, tokenName);
         }
@@ -1203,7 +1203,7 @@ void statement(int LexLevel){
         char procName[cmax + 1];
         fscanf(in, "%s", procName);
 
-        if (seekSymbol(procName, LexLevel) == NOT_FOUND){
+        if (symboltablecheck(procName) == NOT_FOUND){
             // printf("in callsym of statement:\n");
             emitError(UNDECLARED_IDENT_ERR, procName);
         }
@@ -1340,7 +1340,7 @@ void factor(int LexLevel){
 
         char identifierStr[cmax];
         fscanf(in, "%s", identifierStr);
-        int symIdx = seekSymbol(identifierStr, LexLevel);
+        int symIdx = symboltablecheck(identifierStr);
         if(symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identifierStr);
         }
