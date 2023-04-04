@@ -830,6 +830,11 @@ void program(int LexLevel){
     if(token != periodsym){
         emitError(MISSING_PERIOD_ERR, "\0");
     }
+
+    //mark off all global variables from main
+    printf("marking off procedure: %s\n", "main");
+    markTable(LexLevel);
+    printTable(table, tableSize);
     //emit halt
     // printf("HALT\n");
     emit(SYS, 0, EOP);//HALT
@@ -868,7 +873,7 @@ void block(int LexLevel){
         char procName[cmax + 1];
         fscanf(in, "%s", procName);
 
-        if( seekSymbol(procName, LexLevel) != NOT_FOUND){ //if no name exists at all, we cant tell where this came from
+        if( seekSymbol(procName, LexLevel) != NOT_FOUND){ //if no name exists in the same lex level we can create one
             // printf("In proc from from block:\n");
             emitError(IDENT_ALR_DECLARED_ERR, "\0");
         }
@@ -887,16 +892,18 @@ void block(int LexLevel){
 
         fscanf(in, "%d", &token);    //expecting an isStartStatement type keyword
         
-        LexLevel = LexLevel + 1;
+        
+        LexLevel = LexLevel + 1; //increase lexlevel by 1 since we're going into a procedure scope
 
-        block(LexLevel); //increase lexlevel by 1 in a procedure
+        block(LexLevel); 
 
         if (token != semicolonsym){
             // printf("In proc from from block:\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
-        //mark tables on the same lex level
+        //mark off (clean) variables in scope of procedures
+        printf("marking off procedure: %s\n", procName);
         markTable(LexLevel);
         printTable(table, tableSize);
         
