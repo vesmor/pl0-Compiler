@@ -51,12 +51,12 @@
 #include <ctype.h>
 
 
-//these are here cuz romsev wants to be extra
+//these are here cuz romsev wants to be extra with terminal coloring
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
 
 
-
+#define  nmax                     5       /* maximum amount of digits in a number*/
 #define  cmax                    11       /* maximum number of chars for idents */
 #define  strmax                 256       /* maximum length of strings */
 #define  MAX_SYMBOL_TABLE_SIZE  500
@@ -242,8 +242,8 @@ symbol table[MAX_SYMBOL_TABLE_SIZE];
 instruction code[MAX_CODE_SIZE];
 int cx; //working code arr index
 int tableworkingIndex;//working index of symbol table
-int tableSize;
-int token;
+int tableSize; //size of symbol table
+int token; 
 // int LexLevel;
 
 
@@ -622,7 +622,7 @@ int isWord (char *chunk){
 int determinNonReserved(char *chunk){
     int i = 1;
     if (isdigit(chunk[0])){
-        for(i; i <= 5; ++i) {
+        for(i; i <= nmax; ++i) {
             if (chunk[i] == '\0') {
                 return numbersym;
             }
@@ -695,13 +695,15 @@ void printLexemes(lexeme *list, size_t size){
 //________________________________END LEXER FUNCS_______________________//
 /*                               START PARSER FUNCS                    */
 
-//searches thru symbol table for a target name, returns index if found, NOT_FOUND if not
+//TODO: possibly search backwards for symbol and check if the lexlevel matches too
+//searches thru symbol table for a target name and checks if theyre on the same lexlevel 
+//returns index if name and level match, if not returns NOT_FOUND
 int symboltablecheck(char *target){
 
-    //also check that name isn't empty to avoid seg fault and to save time
-    for (size_t index = 0; index < MAX_SYMBOL_TABLE_SIZE && table[index].name[0] != '\0'; index++)
+    //moves backward thru symbol table
+    for (int index = tableSize - 1; index >= 0; index--)
     {
-        // printf("\tI: %ld\n", index);
+        // printf("\tI: %d\n", index);
         if(strcmp(table[index].name, target) == 0){
             return index;
         }
@@ -776,7 +778,7 @@ void emitError(int errorSignal, char *invalidIdent){
     fclose(out);
     // printTable(table, tableSize);
     // printInstructions();
-    _Exit(EXIT_FAILURE);
+    _Exit(EXIT_SUCCESS);
 
 }
 
@@ -972,9 +974,9 @@ int var_declaration(int LexLevel){
                 emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
-            // printTable(table, tableworkingIndex);
             if(symboltablecheck(name) != NOT_FOUND){
-                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
+                // printTable(table, tableworkingIndex);
+                emitError(IDENT_ALR_DECLARED_ERR, "\0");
             }
 
             numVars++;
