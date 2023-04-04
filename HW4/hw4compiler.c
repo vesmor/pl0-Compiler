@@ -277,7 +277,7 @@ void expression(int LexLevel);
 void condition(int LexLevel);
 void emit(int op, int L, int M);
 void printInstructions();
-void markTable();
+void markTable(int current_LexLevel);
 /*-----------------------------------------------*/
 
 
@@ -885,16 +885,21 @@ void block(int LexLevel){
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
-        fscanf(in, "%d", &token);    //expecting begin so we can start defining the procedure
+        fscanf(in, "%d", &token);    //expecting an isStartStatement type keyword
         
+        LexLevel = LexLevel + 1;
 
-        block(LexLevel + 1); //increase lexlevel by 1 in a procedure
+        block(LexLevel); //increase lexlevel by 1 in a procedure
 
         if (token != semicolonsym){
             // printf("In proc from from block:\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
+        //mark tables on the same lex level
+        markTable(LexLevel);
+        printTable(table, tableSize);
+        
         fscanf(in, "%d", &token); //expecting another procedure keyword or begin to signify "main" function
 
     }
@@ -1448,9 +1453,16 @@ void printInstructions(){
 
 }
 
-void markTable() {
+void markTable(int current_LexLevel) {
 
-    for (int i = 0; i < tableSize; ++i) {
-        table[i].mark = 1;
+    for (int i = tableSize - 1; i >= 0; i--) {
+        
+        //break the loop once we get to any levels below us
+        if(table[i].level < current_LexLevel)
+            break;
+
+        if(table[i].level == current_LexLevel)
+            table[i].mark = 1;
+
     }
 }
