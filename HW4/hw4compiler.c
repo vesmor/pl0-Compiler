@@ -188,7 +188,7 @@ const char *err_messages[NUM_ERRORS] =  {
 //doesn't match up with array indexing so that we can make all error signals a negative, less than 0 number
 typedef enum errors{
 
-    /* extra errors not given in instructions */
+    /* extra errors not given in instructions starts minus 1 to let*/
     IDENT_ALR_DECLARED_ERR = (-NUM_ERRORS - 1), //"Identifier already declared"
     END_OF_COMMENT_ERR, //"Comment does not have ending '*/'"
 
@@ -398,9 +398,9 @@ int main(int argc, char const *argv[])
     // tokens = readTokens();
 
     int numVars;
-    table[tableworkingIndex++] = initSymObj(PROC, "main", 0, 0, 3); //adds main procedure to symbol table at index 0
+    table[tableworkingIndex++] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index 0
     
-    emit(JMP, 0, 3);
+    emit(JMP, 0, 1);
 
     program(LexLevel); //literally starts reading program
 
@@ -754,7 +754,7 @@ void printTable(symbol table[], int tableSize){
 //Print error message to console corresponding to error signal passed in. pass "\0" into invalidIdent if not an undeclared_ident error
 void emitError(int errorSignal, char *invalidIdent){
 
-    int offset = 2; // offset so that array messages match up with the errors enumerations
+    int offset = 2; // offset factors in that array starts at 0 and the enums start 1 less than the amount of errors
 
     char error_message[strmax] = "";
     errorSignal = abs(errorSignal) - offset; //get index of err message w offset of 
@@ -768,7 +768,7 @@ void emitError(int errorSignal, char *invalidIdent){
 
     // out = fopen("output.txt", "w");
 
-    printf("Error number %d, %s\n", errorSignal, error_message);
+    printf("Error number %d, %s\n", (errorSignal + 1), error_message);
     fprintf(out, "%s\n", error_message);
 
 
@@ -849,7 +849,7 @@ void block(int LexLevel){
             emitError(IDENT_ALR_DECLARED_ERR, "\0");
         }
 
-        symbol procsym = initSymObj(PROC, procName, 0, 0, 0);
+        symbol procsym = initSymObj(PROC, procName, 0, LexLevel, 0);
 
         table[tableworkingIndex] = procsym;
         tableworkingIndex++;
@@ -862,7 +862,9 @@ void block(int LexLevel){
         }
 
         fscanf(in, "%d", &token);    //expecting begin so we can start defining the procedure
-        block(LexLevel);
+        
+
+        block(LexLevel + 1); //increase lexlevel by 1 in a procedure
 
         if (token != semicolonsym){
             // printf("In proc from from block:\n");
@@ -978,7 +980,7 @@ int var_declaration(int LexLevel){
             numVars++;
             
             //Add to symbol table
-            symbol varSym = initSymObj(VAR, name, 0, 0, numVars + 2);
+            symbol varSym = initSymObj(VAR, name, 0, LexLevel, numVars + 2);
             table[tableworkingIndex] = varSym;
             tableworkingIndex++;
 
@@ -1148,7 +1150,7 @@ void statement(int LexLevel){
         fscanf(in, "%d", &token);
         
         // printf("emit READ\n");
-        emit(SYS, LexLevel, SIN); //READ
+        emit(SYS, 0, SIN); //READ
 
         // printf("emit STO\n"); //M = table[symIndex].addr
         emit(STO, LexLevel, table[symIndex].addr);
@@ -1162,7 +1164,7 @@ void statement(int LexLevel){
         fscanf(in, "%d", &token);
         expression(LexLevel);
         // printf("emit WRITE\n");
-        emit(SYS, LexLevel, SOU); //WRITE
+        emit(SYS, 0, SOU); //WRITE
 
         return;
     }
@@ -1197,47 +1199,47 @@ void condition(int LexLevel){
         fscanf(in, "%d", &token);
         expression(LexLevel);
         // printf("emit ODD\n");
-        emit(OPR, LexLevel, ODD);
+        emit(OPR, 0, ODD);
     }
 
     else{
 
-        expression(LexLevel);
+        expression(0);
         if(token == eqlsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
             // printf("emit EQL\n");
-            emit(OPR, LexLevel, EQL);
+            emit(OPR, 0, EQL);
         }
         else if(token == neqsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
             // printf("emit NEQ\n");
-            emit(OPR, LexLevel, NEQ);
+            emit(OPR, 0, NEQ);
         }
         else if(token == lessym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
             // printf("emit LSS\n");
-            emit(OPR, LexLevel, LSS);
+            emit(OPR, 0, LSS);
         }
         else if(token == leqsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
             // printf("emit LEQ\n");
-            emit(OPR, LexLevel, LEQ);
+            emit(OPR, 0, LEQ);
         }
         else if(token == gtrsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
             // printf("emit GTR\n");
-            emit(OPR, LexLevel, GTR);
+            emit(OPR, 0, GTR);
         }
         else if(token == geqsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
             // printf("emit GEQ\n");
-            emit(OPR, LexLevel, GEQ);
+            emit(OPR, 0, GEQ);
         }
         else{
             emitError(NEEDS_COMPARE_ERR, "\0");
@@ -1322,7 +1324,7 @@ void factor(int LexLevel){
         if(table[symIdx].kind == CONST){
             //emit LIT(m = table[sym.idx].val)
             // printf("Emit LIT in factor\n");
-            emit(LIT, LexLevel, table[symIdx].val);
+            emit(LIT, 0, table[symIdx].val);
         }
         else if(table[symIdx].kind == VAR){
             //emit LOD (M = table[symIdx].addr)
@@ -1343,7 +1345,7 @@ void factor(int LexLevel){
 
         //emit LIT
         // printf("Emitting numbersym LIT %d from factor\n", actualNumber);
-        emit(LIT, LexLevel, actualNumber);
+        emit(LIT, 0, actualNumber);
 
         fscanf(in, "%d", &token);
     }
