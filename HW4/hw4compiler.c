@@ -57,18 +57,25 @@
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
 
-
+/*------Lexer Use----------*/
 #define  nmax                     5       /* maximum amount of digits in a number*/
 #define  cmax                    11       /* maximum number of chars for idents */
 #define  strmax                 256       /* maximum length of strings */
 #define  MAX_SYMBOL_TABLE_SIZE  500
 #define  MAX_CODE_SIZE         1000
+/*------------------------*/
 
+
+/*----Symbol Tables use----*/
 //for symbol table kinds
 #define CONST   1
 #define VAR     2
 #define PROC    3
 
+//symbol table marks
+#define UNUSED  0
+#define USED    1
+/*----------------------*/
 
 //added 9 to the token_type enum(???)
 typedef enum token_type{
@@ -706,8 +713,12 @@ int seekSymbol(char *targetName, int target_LexLevel){
     //moves backward thru symbol table
     for (int index = tableSize - 1; index >= 0; index--)
     {
+        
         // printf("\tI: %d\n", index);
-        if(strcmp(table[index].name, targetName) == 0 && table[index].level == target_LexLevel){
+        if(strcmp(table[index].name, targetName) == 0 && 
+            table[index].level == target_LexLevel &&
+            table[index].mark == UNUSED)
+        {
             return index;
         }
 
