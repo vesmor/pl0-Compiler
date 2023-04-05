@@ -836,18 +836,14 @@ void program(int LexLevel){
     }
 
     block(LexLevel);
-    // printf("after block in program\n");
-    // printf("final token is%d\n", token);
+
     if(token != periodsym){
         emitError(MISSING_PERIOD_ERR, "\0");
     }
 
     //mark off all global variables from main
-    printf("marking off procedure: %s\n", "main");
     markTable(LexLevel);
-    printTable(table, tableSize);
-    //emit halt
-    // printf("HALT\n");
+
     emit(SYS, 0, EOP);//HALT
 }
 
@@ -886,7 +882,7 @@ void block(int LexLevel){
 
         if( seekSymbol(procName, LexLevel) != NOT_FOUND){ //if no name exists in the same lex level we can create one
             // printf("In proc from from block:\n");
-            emitError(IDENT_ALR_DECLARED_ERR, "\0");
+            emitError(IDENT_ALR_DECLARED_ERR, procName);
         }
 
         symbol procsym = initSymObj(PROC, procName, 0, LexLevel, 0);
@@ -904,9 +900,8 @@ void block(int LexLevel){
         fscanf(in, "%d", &token);    //expecting an isStartStatement type keyword
         
         
-        LexLevel = LexLevel + 1; //increase lexlevel by 1 since we're going into a procedure scope
-
-        block(LexLevel); 
+       //increase lexlevel by 1 in block and markTable since we're going into a procedure scope
+        block(LexLevel + 1); 
 
         if (token != semicolonsym){
             // printf("In proc from from block:\n");
@@ -914,20 +909,16 @@ void block(int LexLevel){
         }
 
         //mark off (clean) variables in scope of procedures
-        printf("marking off procedure: %s\n", procName);
-        markTable(LexLevel);
-        printTable(table, tableSize);
+        markTable(LexLevel + 1);
         
         fscanf(in, "%d", &token); //expecting another procedure keyword or begin to signify "main" function
 
     }
 
-    //emit INC(M= 3 + numVars);
-    // printf("emitting INC numVars: %d\n", numVars);
+
     emit(INC, 0, numVars + 3);
     
     statement(LexLevel);
-    // printf("after statement call in block\n");
 
 }
 
@@ -950,7 +941,7 @@ void const_declaration(int LexLevel){
             fscanf(in, "%s", identSymStr);
             if (seekSymbol(identSymStr, LexLevel) != NOT_FOUND){
                 // printf("in const_decl\n");
-                emitError(IDENT_ALR_DECLARED_ERR, "\0");
+                emitError(IDENT_ALR_DECLARED_ERR, identSymStr);
                 
             }
 
@@ -1021,7 +1012,7 @@ int var_declaration(int LexLevel){
             
             if(seekSymbol(name, LexLevel) != NOT_FOUND){
                 // printTable(table, tableworkingIndex);
-                emitError(IDENT_ALR_DECLARED_ERR, "\0");
+                emitError(IDENT_ALR_DECLARED_ERR, name);
             }
 
             numVars++;
@@ -1155,7 +1146,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         int loopIndex = cx; //the counter where the loop is happening
-        printf("loop index in whilesym: %d\n", loopIndex);
+        // printf("loop index in whilesym: %d\n", loopIndex);
         condition(LexLevel);
 
         if (token != dosym){
