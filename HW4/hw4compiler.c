@@ -495,7 +495,7 @@ int isSpecialSym(char c){
 */
 char* readProgram(int *arrSize){
 
-    // printf("Source Program:\n");
+    printf("Source Program:\n");
     // fprintf(out, "Source Program:\n");
 
     char *charArr = (char *) malloc(1 * sizeof(char));
@@ -507,7 +507,7 @@ char* readProgram(int *arrSize){
             break;
         }
 
-        // printf("%c", charArr[i]);
+        printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
@@ -526,7 +526,7 @@ char* readProgram(int *arrSize){
     charArr = realloc(charArr, sizeof(char) * (*arrSize));
     charArr[*arrSize] = '\0'; //signify end of arr
 
-    // printf("\n\n");
+    printf("\n\n----------------------------\n\n");
 
     return charArr;
 }
