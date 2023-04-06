@@ -187,7 +187,7 @@ int main(int argc, char *argv[]){
                 pas[sp - 2] = bp;
                 pas[sp - 3] = pc;
                 bp = sp - 1;
-                pc = IR.m; 
+                pc = IR.m * 3; //times 3 since counter counts by 3
                 pipe[bp] = 1;
                 break;
 
@@ -196,11 +196,11 @@ int main(int argc, char *argv[]){
                 break;
 
             case JMP:
-                pc = IR.m; 
+                pc = IR.m * 3; //times 3 since counter counts by 3
                 break;
 
             case JPC:
-                if (pas[sp] == 0){ pc = (IR.m);}
+                if (pas[sp] == 0){ pc = (IR.m * 3);} //times 3 since counter counts by 3
                 sp++;
                 break;
 
