@@ -410,7 +410,7 @@ int main(int argc, char const *argv[])
     int numVars;
     table[tableworkingIndex++] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index 0
     
-    emit(JMP, 0, 1);
+    emit(JMP, 0, 3);
 
     program(LexLevel); //literally starts reading program
 
@@ -1137,7 +1137,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         statement(LexLevel);
-        code[jpcIndex].M = cx; //I think this has something to do with making a new instructions struct
+        code[jpcIndex].M = cx * 3; //I think this has something to do with making a new instructions struct
 
         return;
     }
@@ -1161,7 +1161,7 @@ void statement(int LexLevel){
         statement(LexLevel);
 
         emit(JMP, LexLevel, loopIndex);
-        code[jpcIndex].M = cx;
+        code[jpcIndex].M = cx * 3;
         return;
 
     }
