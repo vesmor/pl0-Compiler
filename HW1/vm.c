@@ -226,7 +226,7 @@ int main(int argc, char *argv[]){
                 }
                 break;
             case ODD:
-                pas[sp] <-- pas[sp] % 2;
+                pas[sp] = pas[sp] % 2;
                 break;
 
             default:
