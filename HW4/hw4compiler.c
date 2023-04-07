@@ -1,5 +1,5 @@
 /*
-    pm/0 Scanner
+    pl/0 Compiler
     COP3402 Euripedes Montagne
     Romsev Charles
     Brandon Sheridan
@@ -9,21 +9,15 @@
 
 
 /*
-    TODOS
-    [] The Compiler output should Display on screen: 
-        The input program and a message indicating that the program is syntactically correct. Otherwise, show an error message. 
+    FIXME: Need to look over the factorial test case and see why that's not running properly; last time it was ran the ans1 was not increasing in size like expected
+    It may have to do with the load and store stuff, we'll investigate later
 
 */
 
-/*
-    TODO: figure out which symbol table implementation we should use
-
-    TODO: delete the symbol or mark the variable as deleted once we've reached the end of the scope of where it was declared
-*/
 
 /*
 
-    TODO: add emit error function overloading when time permits so we dont keep forgetting the "\0"
+    TODO: maybe add emit error function overloading when time permits so we dont keep forgetting the "\0"
 
 */
 
@@ -255,7 +249,6 @@ int where_main_starts;//line where the main function starts in assembly
 int tableworkingIndex;//working index of symbol table
 int tableSize; //size of symbol table
 int token; 
-// int LexLevel;
 
 
 /*---------Function Declarations-----------------*/
@@ -431,7 +424,7 @@ int main(int argc, char const *argv[])
     printInstructions();
     // printTable(table, tableSize);
     
-    
+
 
 
     //clean up
@@ -1174,13 +1167,15 @@ void statement(int LexLevel){
 
         emit(STO, LexLevel, table[symIndex].addr);
 
+        fscanf(in, "%d", &token); //expecting semicolon
+
         return;
 
     }
 
     if(token == writesym){
 
-        fscanf(in, "%d", &token);
+        fscanf(in, "%d", &token); //get what we're writing (expecting var 2 or const 3)
         expression(LexLevel);
 
         emit(SYS, 0, SOU); //WRITE
