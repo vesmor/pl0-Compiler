@@ -116,8 +116,8 @@ int main(int argc, char *argv[]){
                     case RTN:
                         pipe[bp] = 0;
                         sp = bp + 1;
-                        bp = pas[sp + 2];
-                        pc = pas[sp + 3];
+                        bp = pas[sp - 2];
+                        pc = pas[sp - 3];
                         break;
                     case ADD:
                         pas[sp + 1] = pas[sp + 1] + pas[sp];
