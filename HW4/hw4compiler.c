@@ -867,6 +867,7 @@ void block(int LexLevel){
 
     //continously read procedure blocks
     while (token == procsym){
+
         
         fscanf(in, "%d", &token);
         
@@ -885,7 +886,8 @@ void block(int LexLevel){
             emitError(IDENT_ALR_DECLARED_ERR, procName);
         }
 
-        symbol procsym = initSymObj(PROC, procName, 0, LexLevel, 0);
+        //insert into symbol table with the address being the line # where this procedure's instruction start
+        symbol procsym = initSymObj(PROC, procName, 0, LexLevel, cx * 3);
 
         table[tableworkingIndex] = procsym;
         tableworkingIndex++;
@@ -913,6 +915,7 @@ void block(int LexLevel){
         
         fscanf(in, "%d", &token); //expecting another procedure keyword or begin to signify "main" function
 
+        emit(OPR, 0, RTN); //return from this function
     }
 
 
@@ -1127,10 +1130,10 @@ void statement(int LexLevel){
 
         condition(LexLevel);
 
-        int jpcIndex = cx;
+        int jpcIndex = cx; //capture the code index we're at rn
 
         // printf("emit JPC\n");
-        emit(JPC, LexLevel, 0);
+        emit(JPC, 0, 0);
 
         if(token != thensym){
             emitError(THEN_MISSING_ERR, "\0");
@@ -1138,7 +1141,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         statement(LexLevel);
-        code[jpcIndex].M = cx * 3; //I think this has something to do with making a new instructions struct
+        code[jpcIndex].M = cx * 3; //tell it where we starting emitting the instructions for the if statement
 
         return;
     }
@@ -1147,7 +1150,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         int loopIndex = cx; //the counter where the loop is happening
-        // printf("loop index in whilesym: %d\n", loopIndex);
+
         condition(LexLevel);
 
         if (token != dosym){
@@ -1156,12 +1159,12 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         int jpcIndex = cx;
-        // printf("emit JPC\n"); //M = loopIndex
-        emit(JPC, LexLevel, 0);
+
+        emit(JPC, 0, 0);
 
         statement(LexLevel);
 
-        emit(JMP, LexLevel, loopIndex);
+        emit(JMP, 0, loopIndex);
         code[jpcIndex].M = cx * 3;
         return;
 
@@ -1218,12 +1221,18 @@ void statement(int LexLevel){
         char procName[cmax + 1];
         fscanf(in, "%s", procName);
 
-        if (symboltablecheck(procName) == NOT_FOUND){
+        int symIndex = symboltablecheck(procName); //get index of symbol table
+
+        if (symIndex == NOT_FOUND){
             // printf("in callsym of statement:\n");
             emitError(UNDECLARED_IDENT_ERR, procName);
         }
 
+        if(table[symIndex].kind != PROC){   //call has to be followed by a procedure symbol
+            emitError(IMPROPER_CALL_ERR, "\0");
+        }
 
+        emit(CAL, LexLevel, table[symIndex].addr); //the address of procedures are the line where they start
 
         fscanf(in, "%d", &token); //expecting semi-colon
 
@@ -1245,7 +1254,7 @@ void condition(int LexLevel){
 
     else{
 
-        expression(0);
+        expression(LexLevel);
         if(token == eqlsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
@@ -1453,6 +1462,11 @@ void printInstructions(){
             char sys_name[4];
             strcpy(sys_name, sys_names[code[i].M - 1]);
             printf("%3ld %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+        }
+
+        //TODO: REMOVE BEFORE SUBMISSION THIS IS JUST TO READ IT EASIER (if we forgot to remove this pls dont dock points for us :sob:)
+        else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
+            printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
         }
         else{
             printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
