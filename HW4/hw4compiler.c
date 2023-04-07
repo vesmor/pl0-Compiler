@@ -56,6 +56,7 @@
 //these are here cuz romsev wants to be extra with terminal coloring
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
+#define GREEN "\x1B[32m"
 
 /*------Lexer Use----------*/
 #define  nmax                     5       /* maximum amount of digits in a number*/
@@ -286,6 +287,7 @@ void condition(int LexLevel);
 void emit(int op, int L, int M);
 void printInstructions();
 void markTable(int current_LexLevel);
+void printSourceCode(char *charArr, int arrSize);
 /*-----------------------------------------------*/
 
 
@@ -400,8 +402,9 @@ int main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
 
+    printSourceCode(charArr, arrSize);
+    printf("\n");
 
-    //now what...
     int LexLevel = 0;
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
@@ -418,8 +421,9 @@ int main(int argc, char const *argv[])
     code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
+    printf(GREEN "\n\nNo errors, program is syntatically correct\n\n" RESET);
     printInstructions();
-    printTable(table, tableSize);
+    // printTable(table, tableSize);
     
     
 
@@ -435,7 +439,7 @@ int main(int argc, char const *argv[])
     // free(charArr);
     fclose(in);
     fclose(out);
-
+    printf(RESET); //just to make sure terminal doesnt stay colored in weird cases
     return 0;
 }
 
@@ -494,7 +498,7 @@ int isSpecialSym(char c){
 */
 char* readProgram(int *arrSize){
 
-    // printf("Source Program:\n");
+    // printf("-------Source Program:-----\n");
     // fprintf(out, "Source Program:\n");
 
     char *charArr = (char *) malloc(1 * sizeof(char));
@@ -525,7 +529,7 @@ char* readProgram(int *arrSize){
     charArr = realloc(charArr, sizeof(char) * (*arrSize));
     charArr[*arrSize] = '\0'; //signify end of arr
 
-    // printf("\n\n");
+    // printf("\n----End of Source Program----\n");
 
     return charArr;
 }
@@ -682,7 +686,7 @@ int tokenize(char *chunk){
     return tokenVal;
 }
 
-
+//prints lexemes to the tokens file
 void printLexemes(lexeme *list, size_t size){
 
     for (size_t i = 0; i <= size; i++)  //changed due to only printing last lexeme to terminal but not to file sometimes but only sometimes. Im so fucking baffled why
@@ -705,7 +709,6 @@ void printLexemes(lexeme *list, size_t size){
 //________________________________END LEXER FUNCS_______________________//
 /*                               START PARSER FUNCS                    */
 
-//TODO: possibly search backwards for symbol and check if the lexlevel matches too
 //searches thru symbol table for a targetName name and checks if theyre on the same lexlevel 
 //returns index if name and level match, if not returns NOT_FOUND
 int seekSymbol(char *targetName, int target_LexLevel){
@@ -802,8 +805,7 @@ void emitError(int errorSignal, char *invalidIdent){
 
 
     // out = fopen("output.txt", "w");
-
-    printf("Error number %d, %s\n", (errorSignal + 1), error_message);
+    printf(RED "Error: " RESET "Error number %d: %s\n", (errorSignal + 1), error_message); //add 1 to realign it away from the array indexes
     fprintf(out, "%s\n", error_message);
 
 
@@ -1491,4 +1493,16 @@ void markTable(int current_LexLevel) {
             table[i].mark = 1;
 
     }
+}
+
+
+void printSourceCode(char *charArr, int arrSize){
+
+    // printf("-------Source Program:------\n");
+    
+    for (size_t i = 0; i < arrSize; i++){
+        printf("%c", charArr[i]);
+    }
+
+    // printf("\n----End of Source Program----\n");
 }
