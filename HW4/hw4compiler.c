@@ -295,6 +295,12 @@ void printSourceCode(char *charArr, int arrSize);
 int main(int argc, char const *argv[])
 {
 
+    if(argc < 2){
+        printf(RED "Fatal Error: " RESET);
+        printf("No file argument provided.\n");
+        return EXIT_FAILURE;
+    }
+
     char tokenFileName[] = "tokens.txt"; //remember to change this before submission lol
 
     in = fopen(argv[1], "r");
@@ -303,7 +309,7 @@ int main(int argc, char const *argv[])
     if(in == NULL){
 
         printf(RED "Fatal File Error: " RESET);
-        printf("No input file provided or no input file of that name found.\n");
+        printf("No input file of the name " RED "%s" RESET " was found.\n", argv[1]);
         printf("If a file was provided make sure you called it from the proper directory.\n");
         
         fclose(out);
