@@ -325,9 +325,10 @@ int main(int argc, char const *argv[])
     char bufferArr[strmax];     //used to help seperate into tokens
     lexeme *lex_list = NULL;
 
+    printSourceCode(charArr, arrSize);
+
     // printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
-    
     //tokenize program using a buffer array
     size_t lex_size;   //track size of lex_list
     for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
@@ -402,8 +403,6 @@ int main(int argc, char const *argv[])
         return EXIT_FAILURE;
     }
 
-    printSourceCode(charArr, arrSize);
-    printf("\n");
 
     int LexLevel = 0;
     tableSize = 0; //symbol table size
@@ -421,7 +420,7 @@ int main(int argc, char const *argv[])
     code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
-    printf(GREEN "\n\nNo errors, program is syntatically correct\n\n" RESET);
+    printf(GREEN "\nNo errors, program is syntatically correct\n\n\n" RESET);
     printInstructions();
     // printTable(table, tableSize);
     
@@ -769,6 +768,7 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 
 }
 
+//print out symbol table
 void printTable(symbol table[], int tableSize){
 
     printf("\nSymbol Table:\n\n");
@@ -1498,7 +1498,7 @@ void markTable(int current_LexLevel) {
 
 void printSourceCode(char *charArr, int arrSize){
 
-    // printf("-------Source Program:------\n");
+    printf("-------Source Program:------\n");
     
     for (size_t i = 0; i < arrSize; i++){
         printf("%c", charArr[i]);
