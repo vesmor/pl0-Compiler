@@ -250,6 +250,7 @@ FILE *out;
 symbol table[MAX_SYMBOL_TABLE_SIZE];
 instruction code[MAX_CODE_SIZE];
 int cx; //working code arr index
+int where_main_starts;//line where the main function starts in assembly
 int tableworkingIndex;//working index of symbol table
 int tableSize; //size of symbol table
 int token; 
@@ -414,9 +415,8 @@ int main(int argc, char const *argv[])
 
     program(LexLevel); //literally starts reading program
 
-    // code[0].M = cx;//jmp to where main procedure is
+    code[0].M = where_main_starts;//jmp to where main procedure is when we start
 
-    // markTable(); //since we only have 1 function this is called in main
 
     printInstructions();
     printTable(table, tableSize);
@@ -916,7 +916,8 @@ void block(int LexLevel){
     }
 
 
-    emit(INC, 0, numVars + 3);
+    where_main_starts = cx;
+    emit(INC, 0, numVars + 3); // plus 3 because we need to go past activation record info
     
     statement(LexLevel);
 
@@ -1222,7 +1223,9 @@ void statement(int LexLevel){
             emitError(UNDECLARED_IDENT_ERR, procName);
         }
 
-        fscanf(in, "%d", &token);
+
+
+        fscanf(in, "%d", &token); //expecting semi-colon
 
         return;
     }
