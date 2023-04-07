@@ -1,5 +1,5 @@
 /*
-    pm/0 Scanner
+    pl/0 Compiler
     COP3402 Euripedes Montagne
     Romsev Charles
     Brandon Sheridan
@@ -9,22 +9,16 @@
 
 
 /*
-    TODOS
-    [x]: retconned all past hw bugs
-    [] The Compiler output should Display on screen: 
-        The input program and a message indicating that the program is syntactically correct. Otherwise, show an error message. 
+
+    FIXME: Need to look over the factorial test case and see why that's not running properly; last time it was ran the ans1 was not increasing in size like expected
+    It may have to do with the load and store stuff, we'll investigate later
 
 */
 
-/*
-    TODO: figure out which symbol table implementation we should use
-
-    TODO: delete the symbol or mark the variable as deleted once we've reached the end of the scope of where it was declared
-*/
 
 /*
 
-    TODO: add emit error function overloading when time permits so we dont keep forgetting the "\0"
+    TODO: maybe add emit error function overloading when time permits so we dont keep forgetting the "\0"
 
 */
 
@@ -57,6 +51,7 @@
 //these are here cuz romsev wants to be extra with terminal coloring
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
+#define GREEN "\x1B[32m"
 
 /*------Lexer Use----------*/
 #define  nmax                     5       /* maximum amount of digits in a number*/
@@ -251,10 +246,10 @@ FILE *out;
 symbol table[MAX_SYMBOL_TABLE_SIZE];
 instruction code[MAX_CODE_SIZE];
 int cx; //working code arr index
+int where_main_starts;//line where the main function starts in assembly
 int tableworkingIndex;//working index of symbol table
 int tableSize; //size of symbol table
 int token; 
-// int LexLevel;
 
 
 /*---------Function Declarations-----------------*/
@@ -267,7 +262,7 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize);
 int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
-void printLexemes(lexeme *list, size_t size);
+void printLexemes(lexeme *list, int size);
 int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
@@ -286,11 +281,19 @@ void condition(int LexLevel);
 void emit(int op, int L, int M);
 void printInstructions();
 void markTable(int current_LexLevel);
+void printSourceCode(char *charArr, int arrSize);
 /*-----------------------------------------------*/
+
 
 
 int main(int argc, char const *argv[])
 {
+
+    if(argc < 2){
+        printf(RED "Fatal Error: " RESET);
+        printf("No file argument provided.\n");
+        return EXIT_FAILURE;
+    }
 
     char tokenFileName[] = "tokens.txt"; //remember to change this before submission lol
 
@@ -300,7 +303,7 @@ int main(int argc, char const *argv[])
     if(in == NULL){
 
         printf(RED "Fatal File Error: " RESET);
-        printf("No input file provided or no input file of that name found.\n");
+        printf("No input file of the name " RED "%s" RESET " was found.\n", argv[1]);
         printf("If a file was provided make sure you called it from the proper directory.\n");
         
         fclose(out);
@@ -323,12 +326,14 @@ int main(int argc, char const *argv[])
     char bufferArr[strmax];     //used to help seperate into tokens
     lexeme *lex_list = NULL;
 
+    printSourceCode(charArr, arrSize);
+    printf("\n");
+
     // printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
-    
     //tokenize program using a buffer array
-    size_t lex_size;   //track size of lex_list
-    for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
+    int lex_size;   //track size of lex_list
+    for (int i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
 
         indexPointer = chunkify(bufferArr, charArr, indexPointer, arrSize);   //returns the index where we left off
         
@@ -401,32 +406,30 @@ int main(int argc, char const *argv[])
     }
 
 
-    //now what...
     int LexLevel = 0;
     tableSize = 0; //symbol table size
     tableworkingIndex = 0;
     cx = 0;
     // tokens = readTokens();
 
-    int numVars;
     table[tableworkingIndex++] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index 0
     
-    emit(JMP, 0, 1);
+    emit(JMP, 0, 3);
 
     program(LexLevel); //literally starts reading program
 
-    // code[0].M = cx;//jmp to where main procedure is
+    code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
-    // markTable(); //since we only have 1 function this is called in main
 
+    printf(GREEN "\nNo errors, program is syntatically correct\n\n\n" RESET);
     printInstructions();
-    printTable(table, tableSize);
+    // printTable(table, tableSize);
     
-    
+
 
 
     //clean up
-    // for (size_t index = 0; index < lex_size; index++)
+    // for (int index = 0; index < lex_size; index++)
     // {
     //     // if(lex_list[index].token_name == NULL)
     //     free(lex_list[index].token_name);
@@ -436,7 +439,7 @@ int main(int argc, char const *argv[])
     // free(charArr);
     fclose(in);
     fclose(out);
-
+    printf(RESET); //just to make sure terminal doesnt stay colored in weird cases
     return 0;
 }
 
@@ -447,7 +450,7 @@ int main(int argc, char const *argv[])
 /*returns index of symbol found from masterlist*/
 int findSymVal(char *chunk){
 
-    for (size_t i = 0; i < symlen; i++)
+    for (int i = 0; i < symlen; i++)
     {
         if( !strcmp(chunk, sym[i]) ){
             return i;
@@ -464,12 +467,6 @@ int shouldBeIgnored(char c){
     if(isspace(c)){
         return 1;
     }
-
-    // for (size_t i = 0; i < ignoresymlen; i++)
-    // {
-    //     if(c == ignoresym[i])
-    //         return i + 1;
-    // }
     
     return 0;
 }
@@ -477,7 +474,7 @@ int shouldBeIgnored(char c){
 /*checks if character exists in special symbol array*/
 int isSpecialSym(char c){
 
-    for (size_t i = 0; i < ssymlen; i++)
+    for (int i = 0; i < ssymlen; i++)
     {
         if (c == ssym[i]){
             return 1;
@@ -495,7 +492,8 @@ int isSpecialSym(char c){
 */
 char* readProgram(int *arrSize){
 
-    printf("Source Program:\n");
+
+    // printf("-------Source Program:-----\n");
     // fprintf(out, "Source Program:\n");
 
     char *charArr = (char *) malloc(1 * sizeof(char));
@@ -514,7 +512,8 @@ char* readProgram(int *arrSize){
         charArr = realloc(charArr, sizeof(char) * (i + 1));
         if(charArr == NULL){
             free(charArr);
-            printf("Ran out of memory dude. Gotta exit program\n");
+            printf(RED "Fatal Error: " RESET);
+            printf("I don't even know how but the computer ran out of memory, you may need more dedicated wam on your minecraft server.\nGotta exit program\n");
             fprintf(out, "Ran out of memory dude. Gotta exit program\n");
             fclose(out);
             exit(EXIT_FAILURE); //exit program since we have no memory
@@ -526,7 +525,9 @@ char* readProgram(int *arrSize){
     charArr = realloc(charArr, sizeof(char) * (*arrSize));
     charArr[*arrSize] = '\0'; //signify end of arr
 
-    printf("\n\n----------------------------\n\n");
+
+    // printf("\n----End of Source Program----\n");
+
 
     return charArr;
 }
@@ -591,7 +592,6 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
                 break;
             }
         }
-        // printf("in yk char is %c next is %c\n\n", arr[index], arr[index+1]);
 
         bufferSize++;
         index++;
@@ -599,13 +599,11 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
     
 
     //copying the valid word chunk from arr to buffer
-    // printf("\tbuff size %d\n", bufferSize);
     for(int k = 0; k < bufferSize; k++){
         buffer[k] = arr[init_arrPointer + k];
     }
     buffer[bufferSize] = '\0';  //always add terminator to end of strs in c
 
-    // printf("bufferArr %s\n", buffer);
     arrPointer = index + 1;
     return arrPointer;   //continue to next array element
 }
@@ -616,7 +614,7 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
 //returns index number where found 0 if not
 int isWord (char *chunk){
 
-    for (size_t i = 0; i < norw; i++)
+    for (int i = 0; i < norw; i++)
     {
         if( !strcmp(chunk, word[i]) ){
             return i + 1; // +1 so that const does not get looked over in the if statemnt for rtn 0 
@@ -633,7 +631,7 @@ int isWord (char *chunk){
 int determinNonReserved(char *chunk){
     int i = 1;
     if (isdigit(chunk[0])){
-        for(i; i <= nmax; ++i) {
+        for(; i <= nmax; ++i) {
             if (chunk[i] == '\0') {
                 return numbersym;
             }
@@ -644,7 +642,7 @@ int determinNonReserved(char *chunk){
         return NUM_TOO_LONG_ERR;
     }
     else if (isalpha(chunk[0])) {
-        for(i; i <= cmax; ++i) {
+        for(; i <= cmax; ++i) {
             if (chunk[i] == '\0') {
                 return identsym;
             }
@@ -679,23 +677,20 @@ int tokenize(char *chunk){
         tokenVal = findSymVal(chunk);
     }
 
-    // printf("\tchunk %s\n", chunk);
     return tokenVal;
 }
 
+//prints lexemes to the tokens file
+void printLexemes(lexeme *list, int size){
 
-void printLexemes(lexeme *list, size_t size){
-
-    for (size_t i = 0; i <= size; i++)  //changed due to only printing last lexeme to terminal but not to file sometimes but only sometimes. Im so fucking baffled why
+    for (int i = 0; i <= size; i++)  //changed due to only printing last lexeme to terminal but not to file sometimes but only sometimes. Im so fucking baffled why
     {
         if(list[i].token_name == NULL || list[i].token_type <= 0){
             continue;
         }  
 
-        // printf("|%d ", list[i].token_type);
         fprintf(out, "%d ", list[i].token_type);
         if (list[i].token_type == identsym || list[i].token_type == numbersym){
-            // printf("%s ", list[i].token_name);
             fprintf(out, "%s ", list[i].token_name);
         }
     }
@@ -706,7 +701,6 @@ void printLexemes(lexeme *list, size_t size){
 //________________________________END LEXER FUNCS_______________________//
 /*                               START PARSER FUNCS                    */
 
-//TODO: possibly search backwards for symbol and check if the lexlevel matches too
 //searches thru symbol table for a targetName name and checks if theyre on the same lexlevel 
 //returns index if name and level match, if not returns NOT_FOUND
 int seekSymbol(char *targetName, int target_LexLevel){
@@ -715,7 +709,6 @@ int seekSymbol(char *targetName, int target_LexLevel){
     for (int index = tableSize - 1; index >= 0; index--)
     {
         
-        // printf("\tI: %d\n", index);
         if(strcmp(table[index].name, targetName) == 0 && 
             table[index].level == target_LexLevel &&
             table[index].mark == UNUSED)
@@ -724,10 +717,9 @@ int seekSymbol(char *targetName, int target_LexLevel){
         }
 
     }
-    // printf("not found\n");
+
     return NOT_FOUND;
     
-
 }
 
 //checks if a symbol with targetName exists in general
@@ -767,6 +759,7 @@ symbol initSymObj(int kind, char *name, int val, int level, int addr){
 
 }
 
+//print out symbol table
 void printTable(symbol table[], int tableSize){
 
     printf("\nSymbol Table:\n\n");
@@ -777,7 +770,7 @@ void printTable(symbol table[], int tableSize){
     // fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
     // fprintf(out, "---------------------------------------------------\n");
 
-    for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
+    for (int i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
     {
         printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
         // fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
@@ -803,8 +796,7 @@ void emitError(int errorSignal, char *invalidIdent){
 
 
     // out = fopen("output.txt", "w");
-
-    printf("Error number %d, %s\n", (errorSignal + 1), error_message);
+    printf(RED "Error: " RESET "Error number %d: %s\n", (errorSignal + 1), error_message); //add 1 to realign it away from the array indexes
     fprintf(out, "%s\n", error_message);
 
 
@@ -868,11 +860,11 @@ void block(int LexLevel){
 
     //continously read procedure blocks
     while (token == procsym){
+
         
         fscanf(in, "%d", &token);
         
         if(token != identsym){
-            // printf("In proc from from block:\n");
             //procedure missing identifier
             emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
         }
@@ -886,7 +878,8 @@ void block(int LexLevel){
             emitError(IDENT_ALR_DECLARED_ERR, procName);
         }
 
-        symbol procsym = initSymObj(PROC, procName, 0, LexLevel, 0);
+        //insert into symbol table with the address being the line # where this procedure's instruction start
+        symbol procsym = initSymObj(PROC, procName, 0, LexLevel, cx * 3);
 
         table[tableworkingIndex] = procsym;
         tableworkingIndex++;
@@ -894,7 +887,6 @@ void block(int LexLevel){
         
         fscanf(in, "%d", &token);
         if (token != semicolonsym){
-            // printf("In proc from from block:\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
@@ -914,10 +906,12 @@ void block(int LexLevel){
         
         fscanf(in, "%d", &token); //expecting another procedure keyword or begin to signify "main" function
 
+        emit(OPR, 0, RTN); //return from this function
     }
 
 
-    emit(INC, 0, numVars + 3);
+    where_main_starts = cx;
+    emit(INC, 0, numVars + 3); // plus 3 because we need to go past activation record info
     
     statement(LexLevel);
 
@@ -926,12 +920,10 @@ void block(int LexLevel){
 void const_declaration(int LexLevel){
 
     if(token == constsym){
-        // printf("in const is const\n");
         do
         {
             
             if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
-                // printf("in const_decl\n");
                 emitError(IDENTIFIER_EXPECTED_ERR,"\0");
             }   
             if (token != identsym){
@@ -953,13 +945,11 @@ void const_declaration(int LexLevel){
         
             fscanf(in, "%d", &token);
             if (token != eqlsym) {
-                // printf("in const_decl\n");
                 emitError(CONST_NEEDS_EQ_ERR, "\0");
             }
             // get next token 
             fscanf(in, "%d", &token);
             if(token != numbersym){
-                // printf("in const_decl\n");
                 emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
             }
             
@@ -978,7 +968,6 @@ void const_declaration(int LexLevel){
         } while (token == commasym);
         
         if(token != semicolonsym){
-            // printf("in const_decl\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
 
@@ -992,7 +981,7 @@ void const_declaration(int LexLevel){
 //    Function for when a variable is about to be declared
 //    returns number of vars
 int var_declaration(int LexLevel){
-    // printf("in var declaration\n");
+
     int numVars = 0;
 
     if(token == varsym){
@@ -1012,7 +1001,7 @@ int var_declaration(int LexLevel){
             }
             
             if(seekSymbol(name, LexLevel) != NOT_FOUND){
-                // printTable(table, tableworkingIndex);
+
                 emitError(IDENT_ALR_DECLARED_ERR, name);
             }
 
@@ -1025,14 +1014,12 @@ int var_declaration(int LexLevel){
 
 
             //get next token and hope its a comma
-            
             fscanf(in, "%d", &token);
                 
         }while (token == commasym);
 
         
         if (token != semicolonsym){
-            // printf("in var_decl:\n");
             emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
         }
         fscanf(in, "%d", &token);
@@ -1049,14 +1036,14 @@ int var_declaration(int LexLevel){
     return numVars;
 }
 
-//still need if, while, read, write
+
 void statement(int LexLevel){
 
-    // printf("%d in statement\n", token);
+
 
     if(token == identsym){
 
-        // printf("in identsym statement\n");
+
         char identName[cmax];
         fscanf(in, "%s", identName);
         int symIdx = symboltablecheck(identName);
@@ -1070,7 +1057,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token); //expecting := sym
         if(token != becomessym){ //expecting to assign a variable
-            // printf("was expecting := got %d\n", token);
+
             //it might also be the arithmetic error
             emitError(ASSGN_MISSING_ERR, "\0");
         }
@@ -1084,16 +1071,13 @@ void statement(int LexLevel){
         //     emitError(ARITHMETIC_ERR, "\0");
         // }
 
-        //emit STO (M = table[symIdx].addr)
-        // printf("emitting STO\n");
         emit(STO, LexLevel, table[symIdx].addr);
-        // printf("token is after STO %d\n", token);
         return;
 
     }
 
     if(token == beginsym){
-        // printf("begin in statement token\n");
+
         do
         {
 
@@ -1101,9 +1085,7 @@ void statement(int LexLevel){
                 break;
             }
 
-            // printf("out of statement BEFORE recurse token is %d\n", token);
-            statement(LexLevel);
-            // printf("out of statement after recurse token is %d\n", token);
+           statement(LexLevel);
 
         } while (token == semicolonsym);
         
@@ -1111,7 +1093,6 @@ void statement(int LexLevel){
 
 
         if(token != endsym){    //make sure end is followed by begin
-            // printf("in begin of statement: %d\n", token);
             emitError(SEMI_OR_END_MISSING_ERR, "\0");
         }
          
@@ -1121,16 +1102,14 @@ void statement(int LexLevel){
 
     //if statement
     if(token == ifsym){
-        // printf("in if statement\n");
 
         fscanf(in, "%d", &token);
 
         condition(LexLevel);
 
-        int jpcIndex = cx;
+        int jpcIndex = cx; //capture the code index we're at rn
 
-        // printf("emit JPC\n");
-        emit(JPC, LexLevel, 0);
+        emit(JPC, 0, 0);
 
         if(token != thensym){
             emitError(THEN_MISSING_ERR, "\0");
@@ -1138,7 +1117,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         statement(LexLevel);
-        code[jpcIndex].M = cx; //I think this has something to do with making a new instructions struct
+        code[jpcIndex].M = cx * 3; //tell it where we starting emitting the instructions for the if statement
 
         return;
     }
@@ -1147,7 +1126,7 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         int loopIndex = cx; //the counter where the loop is happening
-        // printf("loop index in whilesym: %d\n", loopIndex);
+
         condition(LexLevel);
 
         if (token != dosym){
@@ -1156,13 +1135,13 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         int jpcIndex = cx;
-        // printf("emit JPC\n"); //M = loopIndex
-        emit(JPC, LexLevel, 0);
+
+        emit(JPC, 0, 0);
 
         statement(LexLevel);
 
-        emit(JMP, LexLevel, loopIndex);
-        code[jpcIndex].M = cx;
+        emit(JMP, 0, loopIndex);
+        code[jpcIndex].M = cx * 3;
         return;
 
     }
@@ -1188,21 +1167,21 @@ void statement(int LexLevel){
 
         fscanf(in, "%d", &token);
         
-        // printf("emit READ\n");
         emit(SYS, 0, SIN); //READ
 
-        // printf("emit STO\n"); //M = table[symIndex].addr
         emit(STO, LexLevel, table[symIndex].addr);
+
+        fscanf(in, "%d", &token); //expecting semicolon
 
         return;
 
     }
 
     if(token == writesym){
-        // printf("in write statement\n");
-        fscanf(in, "%d", &token);
+
+        fscanf(in, "%d", &token); //get what we're writing (expecting var 2 or const 3)
         expression(LexLevel);
-        // printf("emit WRITE\n");
+
         emit(SYS, 0, SOU); //WRITE
 
         return;
@@ -1218,17 +1197,23 @@ void statement(int LexLevel){
         char procName[cmax + 1];
         fscanf(in, "%s", procName);
 
-        if (symboltablecheck(procName) == NOT_FOUND){
-            // printf("in callsym of statement:\n");
+        int symIndex = symboltablecheck(procName); //get index of symbol table
+
+        if (symIndex == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, procName);
         }
 
-        fscanf(in, "%d", &token);
+        if(table[symIndex].kind != PROC){   //call has to be followed by a procedure symbol
+            emitError(IMPROPER_CALL_ERR, "\0");
+        }
+
+        emit(CAL, LexLevel, table[symIndex].addr); //the address of procedures are the line where they start
+
+        fscanf(in, "%d", &token); //expecting semi-colon
 
         return;
     }
 
-    // printf("\nThis is a statement.\n\n");
 
 }
 
@@ -1237,47 +1222,40 @@ void condition(int LexLevel){
     if(token == oddsym){
         fscanf(in, "%d", &token);
         expression(LexLevel);
-        // printf("emit ODD\n");
         emit(OPR, 0, ODD);
     }
 
     else{
 
-        expression(0);
+        expression(LexLevel);
         if(token == eqlsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
-            // printf("emit EQL\n");
             emit(OPR, 0, EQL);
         }
         else if(token == neqsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
-            // printf("emit NEQ\n");
             emit(OPR, 0, NEQ);
         }
         else if(token == lessym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
-            // printf("emit LSS\n");
             emit(OPR, 0, LSS);
         }
         else if(token == leqsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
-            // printf("emit LEQ\n");
             emit(OPR, 0, LEQ);
         }
         else if(token == gtrsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
-            // printf("emit GTR\n");
             emit(OPR, 0, GTR);
         }
         else if(token == geqsym){
             fscanf(in, "%d", &token);
             expression(LexLevel);
-            // printf("emit GEQ\n");
             emit(OPR, 0, GEQ);
         }
         else{
@@ -1290,26 +1268,20 @@ void condition(int LexLevel){
 
 void expression(int LexLevel){
 
-    // printf("%d in expression\n", token);
 
     term(LexLevel);
 
     while (token == plussym || token == minussym){
         // fscanf(in, "%d", &token);
-        // printf("token is plus or minus\n");
     
         if (token == plussym){
             fscanf(in, "%d", &token);
             term(LexLevel);
-            //emit add
-            // printf("token in expression is add\n");
             emit(OPR, LexLevel, ADD);
         }
         else if (token == minussym){
             fscanf(in, "%d", &token);
             term(LexLevel);
-            //emit sub
-            // printf("token in expression is sub\n");
             emit(OPR, LexLevel, SUB);
         }    
     }
@@ -1320,7 +1292,6 @@ void expression(int LexLevel){
 
 void term(int LexLevel){
 
-    // printf("in term %d\n", token);
     factor(LexLevel);
 
     while(token == multsym || token == slashsym){
@@ -1338,8 +1309,6 @@ void term(int LexLevel){
 
             fscanf(in, "%d", &token);
             factor(LexLevel);
-            //emit DIV 
-            // printf("emit DIV in term\n");
             emit(OPR, LexLevel, DIV);
 
         }
@@ -1350,7 +1319,7 @@ void term(int LexLevel){
 
 //
 void factor(int LexLevel){
-    // printf("in factor %d\n", token);
+
     if (token == identsym){
 
         char identifierStr[cmax];
@@ -1361,13 +1330,10 @@ void factor(int LexLevel){
         }
 
         if(table[symIdx].kind == CONST){
-            //emit LIT(m = table[sym.idx].val)
-            // printf("Emit LIT in factor\n");
             emit(LIT, 0, table[symIdx].val);
         }
         else if(table[symIdx].kind == VAR){
-            //emit LOD (M = table[symIdx].addr)
-            // printf("Emit LOD in factor\n");
+
             emit(LOD, LexLevel, table[symIdx].addr);
         }
 
@@ -1382,8 +1348,6 @@ void factor(int LexLevel){
 
         // table[tableworkingIndex].val = actualNumber;
 
-        //emit LIT
-        // printf("Emitting numbersym LIT %d from factor\n", actualNumber);
         emit(LIT, 0, actualNumber);
 
         fscanf(in, "%d", &token);
@@ -1392,7 +1356,7 @@ void factor(int LexLevel){
     else if(token == lparentsym){
         fscanf(in, "%d", &token);
         expression(LexLevel);
-        // printf("exiting expresion to factor parentheses token: %d\n", token);
+
         if(token != rparentsym){
             emitError(INCOMPLETE_PARENTHEIS_ERR, "\0");
         }
@@ -1406,9 +1370,6 @@ void factor(int LexLevel){
 
 //pushes opcode into text space array
 void emit(int op, int L, int M){
-
-    // #define RED   "\x1B[31m"
-    // #define RESET "\x1B[0m"
 
     //def dont want to get bigger than the allocated size
     if(cx > MAX_CODE_SIZE){ 
@@ -1433,7 +1394,7 @@ void printInstructions(){
     
     printf("Line\tOP\tL\tM\n");
     // fprintf(out, "Line\tOP\tL\tM\n");
-    for (size_t i = 0; i < cx; i++)
+    for (int i = 0; i < cx; i++)
     {
         char op_name[4];
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
@@ -1443,17 +1404,22 @@ void printInstructions(){
             char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
             char opr_name[4];
             strcpy(opr_name, opr_all_names[code[i].M]);
-            printf("%3ld %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
         }
         //translates for SYS stuff
         else if(code[i].op == SYS){
             char *sys_names[] ={ "SOU", "SIN", "EOP"};
             char sys_name[4];
             strcpy(sys_name, sys_names[code[i].M - 1]);
-            printf("%3ld %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+        }
+
+        //TODO: REMOVE BEFORE SUBMISSION THIS IS JUST TO READ IT EASIER (if we forgot to remove this pls dont dock points for us :sob:)
+        else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
+            printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
         }
         else{
-            printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
+            printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
             // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
         }
         fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
@@ -1475,4 +1441,16 @@ void markTable(int current_LexLevel) {
             table[i].mark = 1;
 
     }
+}
+
+
+void printSourceCode(char *charArr, int arrSize){
+
+    printf("-------Source Program:------\n");
+    
+    for (int i = 0; i < arrSize; i++){
+        printf("%c", charArr[i]);
+    }
+
+    // printf("\n----End of Source Program----\n");
 }

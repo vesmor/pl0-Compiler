@@ -10,7 +10,7 @@ all: proc vm
 
 .PHONY: proc
 proc: $(HW4_DIR)/hw4compiler.c $(HW4_DIR)/input.txt
-	cd $(HW4_DIR) && $(CC) -g hw4compiler.c -o hw4 && ./hw4 input.txt
+	cd $(HW4_DIR) && $(CC) -Wall -Wextra -g hw4compiler.c -o hw4 && ./hw4 input.txt
 
 .PHONY: proc_debug
 proc_debug: $(HW4_DIR)/hw4compiler.c $(HW4_DIR)/input.txt
