@@ -268,7 +268,7 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize);
 int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
-void printLexemes(lexeme *list, size_t size);
+void printLexemes(lexeme *list, int size);
 int var_declaration();
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
@@ -289,6 +289,7 @@ void printInstructions();
 void markTable(int current_LexLevel);
 void printSourceCode(char *charArr, int arrSize);
 /*-----------------------------------------------*/
+
 
 
 int main(int argc, char const *argv[])
@@ -326,12 +327,13 @@ int main(int argc, char const *argv[])
     lexeme *lex_list = NULL;
 
     printSourceCode(charArr, arrSize);
+    printf("\n");
 
     // printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
     //tokenize program using a buffer array
-    size_t lex_size;   //track size of lex_list
-    for (size_t i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
+    int lex_size;   //track size of lex_list
+    for (int i = 0; (i < arrSize) && (indexPointer < arrSize); i++){
 
         indexPointer = chunkify(bufferArr, charArr, indexPointer, arrSize);   //returns the index where we left off
         
@@ -410,7 +412,6 @@ int main(int argc, char const *argv[])
     cx = 0;
     // tokens = readTokens();
 
-    int numVars;
     table[tableworkingIndex++] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index 0
     
     emit(JMP, 0, 3);
@@ -428,7 +429,7 @@ int main(int argc, char const *argv[])
 
 
     //clean up
-    // for (size_t index = 0; index < lex_size; index++)
+    // for (int index = 0; index < lex_size; index++)
     // {
     //     // if(lex_list[index].token_name == NULL)
     //     free(lex_list[index].token_name);
@@ -449,7 +450,7 @@ int main(int argc, char const *argv[])
 /*returns index of symbol found from masterlist*/
 int findSymVal(char *chunk){
 
-    for (size_t i = 0; i < symlen; i++)
+    for (int i = 0; i < symlen; i++)
     {
         if( !strcmp(chunk, sym[i]) ){
             return i;
@@ -473,7 +474,7 @@ int shouldBeIgnored(char c){
 /*checks if character exists in special symbol array*/
 int isSpecialSym(char c){
 
-    for (size_t i = 0; i < ssymlen; i++)
+    for (int i = 0; i < ssymlen; i++)
     {
         if (c == ssym[i]){
             return 1;
@@ -610,7 +611,7 @@ int chunkify(char buffer[], char arr[], int arrPointer, int arrSize){
 //returns index number where found 0 if not
 int isWord (char *chunk){
 
-    for (size_t i = 0; i < norw; i++)
+    for (int i = 0; i < norw; i++)
     {
         if( !strcmp(chunk, word[i]) ){
             return i + 1; // +1 so that const does not get looked over in the if statemnt for rtn 0 
@@ -627,7 +628,7 @@ int isWord (char *chunk){
 int determinNonReserved(char *chunk){
     int i = 1;
     if (isdigit(chunk[0])){
-        for(i; i <= nmax; ++i) {
+        for(; i <= nmax; ++i) {
             if (chunk[i] == '\0') {
                 return numbersym;
             }
@@ -638,7 +639,7 @@ int determinNonReserved(char *chunk){
         return NUM_TOO_LONG_ERR;
     }
     else if (isalpha(chunk[0])) {
-        for(i; i <= cmax; ++i) {
+        for(; i <= cmax; ++i) {
             if (chunk[i] == '\0') {
                 return identsym;
             }
@@ -677,9 +678,9 @@ int tokenize(char *chunk){
 }
 
 //prints lexemes to the tokens file
-void printLexemes(lexeme *list, size_t size){
+void printLexemes(lexeme *list, int size){
 
-    for (size_t i = 0; i <= size; i++)  //changed due to only printing last lexeme to terminal but not to file sometimes but only sometimes. Im so fucking baffled why
+    for (int i = 0; i <= size; i++)  //changed due to only printing last lexeme to terminal but not to file sometimes but only sometimes. Im so fucking baffled why
     {
         if(list[i].token_name == NULL || list[i].token_type <= 0){
             continue;
@@ -766,7 +767,7 @@ void printTable(symbol table[], int tableSize){
     // fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
     // fprintf(out, "---------------------------------------------------\n");
 
-    for (size_t i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
+    for (int i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
     {
         printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
         // fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
@@ -1388,7 +1389,7 @@ void printInstructions(){
     
     printf("Line\tOP\tL\tM\n");
     // fprintf(out, "Line\tOP\tL\tM\n");
-    for (size_t i = 0; i < cx; i++)
+    for (int i = 0; i < cx; i++)
     {
         char op_name[4];
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
@@ -1398,22 +1399,22 @@ void printInstructions(){
             char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
             char opr_name[4];
             strcpy(opr_name, opr_all_names[code[i].M]);
-            printf("%3ld %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
         }
         //translates for SYS stuff
         else if(code[i].op == SYS){
             char *sys_names[] ={ "SOU", "SIN", "EOP"};
             char sys_name[4];
             strcpy(sys_name, sys_names[code[i].M - 1]);
-            printf("%3ld %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
         }
 
         //TODO: REMOVE BEFORE SUBMISSION THIS IS JUST TO READ IT EASIER (if we forgot to remove this pls dont dock points for us :sob:)
         else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
-            printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
+            printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
         }
         else{
-            printf("%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
+            printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
             // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
         }
         fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
@@ -1442,7 +1443,7 @@ void printSourceCode(char *charArr, int arrSize){
 
     printf("-------Source Program:------\n");
     
-    for (size_t i = 0; i < arrSize; i++){
+    for (int i = 0; i < arrSize; i++){
         printf("%c", charArr[i]);
     }
 
