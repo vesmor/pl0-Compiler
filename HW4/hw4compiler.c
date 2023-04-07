@@ -415,7 +415,7 @@ int main(int argc, char const *argv[])
 
     program(LexLevel); //literally starts reading program
 
-    code[0].M = where_main_starts;//jmp to where main procedure is when we start
+    code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
     printInstructions();
