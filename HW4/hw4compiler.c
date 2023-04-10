@@ -146,7 +146,7 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-#define NUM_ERRORS 29
+#define NUM_ERRORS 31
 const char *err_messages[NUM_ERRORS] =  {
  
         "Use = instead of := ", 
@@ -159,7 +159,7 @@ const char *err_messages[NUM_ERRORS] =  {
         "Incorrect symbol after statement part in block",
         "Period expected ",
         "Semicolon between statements missing",
-        "Undeclared identifier",
+        "Undeclared identifier:",
         "Assignment to constant or procedure is not allowed",
         "Assignment operator expected",
         "call must be followed by an identifier",
@@ -182,6 +182,8 @@ const char *err_messages[NUM_ERRORS] =  {
         //extra errors not given in instructions
         "Comment does not have ending '*/'",
         "Identifier already declared",
+        "This is not a variable that can be read to:",
+        "Read must be followed by identifier",
 
 };
 
@@ -193,7 +195,9 @@ const char *err_messages[NUM_ERRORS] =  {
 typedef enum errors{
 
     /* extra errors not given in instructions starts minus 1 to let*/
-    IDENT_ALR_DECLARED_ERR = (-NUM_ERRORS - 1), //"Identifier already declared"
+    READ_NEEDS_IDENT = (-NUM_ERRORS - 1),
+    INCORRECT_READ_ERR, /*"Read must be followed by an indentifier"*/
+    IDENT_ALR_DECLARED_ERR, //"Identifier already declared"
     END_OF_COMMENT_ERR, //"Comment does not have ending '*/'"
 
     /* Scanner Errors */
@@ -1150,7 +1154,7 @@ void statement(int LexLevel){
         fscanf(in, "%d", &token); //expecting ident sym
 
         if(token != identsym){
-            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+            emitError(READ_NEEDS_IDENT, "\0");
         }
         
         char tokenName[cmax];
@@ -1161,7 +1165,7 @@ void statement(int LexLevel){
         }
 
         if(table[symIndex].kind != VAR){
-            emitError(IDENTIFIER_EXPECTED_ERR, "\0"); //TODO: ASK ABOUT THIS ERROR or can I just make my own "read must be followed by ident"
+            emitError(INCORRECT_READ_ERR, tokenName); //TODO: ASK ABOUT THIS ERROR or can I just make my own "read must be followed by ident"
         }
 
         
