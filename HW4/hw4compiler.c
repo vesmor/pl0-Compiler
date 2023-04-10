@@ -1042,12 +1042,12 @@ void statement(int LexLevel){
 
         char identName[cmax];
         fscanf(in, "%s", identName);
-        int symIdx = symboltablecheck(identName);
+        int symIdx = symboltablecheck(identName); //TODO: FIX DESCRIPTION TO INCLUDE RETURNS LEXLEVEL BEFORE LOOKING GLOBAL
         if (symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
 
-        if (table[symIdx].kind != VAR && table[symIdx].kind != PROC){
+        if (table[symIdx].kind != VAR){
             emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
@@ -1062,8 +1062,9 @@ void statement(int LexLevel){
         tableworkingIndex = symIdx;
         expression(LexLevel);
 
+        //commented cuz we dont need a semicolon at the last line of a statement
         // if (token != semicolonsym && token != endsym){
-        //     // printf("missing semicolon %d\n", token);
+        //     // printf(RED "missing semicolon %d\n" RESET, token);
         //     emitError(ARITHMETIC_ERR, "\0");
         // }
 
@@ -1077,9 +1078,9 @@ void statement(int LexLevel){
         do
         {
 
-            if (fscanf(in, "%d", &token) <= 0){ //makes sure we dont get stuck in recursive hell if theres nothing after
-                break;
-            }
+            fscanf(in, "%d", &token); //makes sure we dont get stuck in recursive hell if theres nothing after
+            
+            
 
            statement(LexLevel);
 
@@ -1144,7 +1145,7 @@ void statement(int LexLevel){
 
     if(token == readsym){
 
-        fscanf(in, "%d", &token);
+        fscanf(in, "%d", &token); //expecting ident sym
 
         if(token != identsym){
             emitError(IDENTIFIER_EXPECTED_ERR, "\0");
@@ -1158,10 +1159,9 @@ void statement(int LexLevel){
         }
 
         if(table[symIndex].kind != VAR){
-            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+            emitError(IDENTIFIER_EXPECTED_ERR, "\0"); //TODO: ASK ABOUT THIS ERROR or can I just make my own "read must be followed by ident"
         }
 
-        fscanf(in, "%d", &token);
         
         emit(SYS, 0, SIN); //READ
 
