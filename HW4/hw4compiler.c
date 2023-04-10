@@ -123,7 +123,7 @@ typedef struct symbol{
     char name[12];  //name like str is variables name
     int val;        //literal value of a number
     int level;      //lexographical level
-    int addr;       //M address
+    int addr;       //relative address of a variable in activation record, line number where procedure starts for procedures
     int mark;       //marks when the symbol has been used
 
 }symbol;
@@ -147,7 +147,7 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-#define NUM_ERRORS 29
+#define NUM_ERRORS 31
 const char *err_messages[NUM_ERRORS] =  {
  
         "Use = instead of := ", 
@@ -160,7 +160,7 @@ const char *err_messages[NUM_ERRORS] =  {
         "Incorrect symbol after statement part in block",
         "Period expected ",
         "Semicolon between statements missing",
-        "Undeclared identifier",
+        "Undeclared identifier:",
         "Assignment to constant or procedure is not allowed",
         "Assignment operator expected",
         "call must be followed by an identifier",
@@ -182,7 +182,9 @@ const char *err_messages[NUM_ERRORS] =  {
 
         //extra errors not given in instructions
         "Comment does not have ending '*/'",
-        "Identifier already declared",
+        "Identifier already declared:",
+        "This is not a variable that can be read to:",
+        "Read must be followed by identifier",
 
 };
 
@@ -194,7 +196,9 @@ const char *err_messages[NUM_ERRORS] =  {
 typedef enum errors{
 
     /* extra errors not given in instructions starts minus 1 to let*/
-    IDENT_ALR_DECLARED_ERR = (-NUM_ERRORS - 1), //"Identifier already declared"
+    READ_NEEDS_IDENT = (-NUM_ERRORS - 1),
+    INCORRECT_READ_ERR, /*"Read must be followed by an indentifier"*/
+    IDENT_ALR_DECLARED_ERR, //"Identifier already declared"
     END_OF_COMMENT_ERR, //"Comment does not have ending '*/'"
 
     /* Scanner Errors */
@@ -412,16 +416,18 @@ int main(int argc, char const *argv[])
     cx = 0;
     // tokens = readTokens();
 
-    table[tableworkingIndex++] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index 0
-    
+    table[tableworkingIndex] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index
+    tableworkingIndex++;
+
     emit(JMP, 0, 3);
 
     program(LexLevel); //literally starts reading program
 
+    table[symboltablecheck(("main"))].addr = where_main_starts * 3; //correct the address of main in symbol table
     code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
-    printf(GREEN "\nNo errors, program is syntatically correct\n\n\n" RESET);
+    printf(GREEN "\nNo errors, program is syntatically correct.\n\n\n" RESET);
     printInstructions();
     // printTable(table, tableSize);
     
@@ -731,7 +737,7 @@ int symboltablecheck(char *targetName){
     for (int index = tableSize - 1; index >= 0; index--)
     {
         // printf("\tI: %d\n", index);
-        if(strcmp(table[index].name, targetName) == 0){
+        if(strcmp(table[index].name, targetName) == 0 && table[index].mark == UNUSED){
             return index;
         }
 
@@ -1046,12 +1052,12 @@ void statement(int LexLevel){
 
         char identName[cmax];
         fscanf(in, "%s", identName);
-        int symIdx = symboltablecheck(identName);
+        int symIdx = symboltablecheck(identName); //TODO: FIX DESCRIPTION TO INCLUDE RETURNS LEXLEVEL BEFORE LOOKING GLOBAL
         if (symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
 
-        if (table[symIdx].kind != VAR && table[symIdx].kind != PROC){
+        if (table[symIdx].kind != VAR){
             emitError(ILLEGAL_CONST_CHANGE_ERR, "\0");
         }
 
@@ -1066,12 +1072,13 @@ void statement(int LexLevel){
         tableworkingIndex = symIdx;
         expression(LexLevel);
 
+        //commented cuz we dont need a semicolon at the last line of a statement
         // if (token != semicolonsym && token != endsym){
-        //     // printf("missing semicolon %d\n", token);
+        //     // printf(RED "missing semicolon %d\n" RESET, token);
         //     emitError(ARITHMETIC_ERR, "\0");
         // }
 
-        emit(STO, LexLevel, table[symIdx].addr);
+        emit(STO, LexLevel-table[symIdx].level, table[symIdx].addr);    //i believe this has to be minus 1 because it stores it from the "negative" lexlevel we're looking for
         return;
 
     }
@@ -1081,9 +1088,9 @@ void statement(int LexLevel){
         do
         {
 
-            if (fscanf(in, "%d", &token) <= 0){ //makes sure we dont get stuck in recursive hell if theres nothing after
-                break;
-            }
+            fscanf(in, "%d", &token); //makes sure we dont get stuck in recursive hell if theres nothing after
+            
+            
 
            statement(LexLevel);
 
@@ -1148,10 +1155,10 @@ void statement(int LexLevel){
 
     if(token == readsym){
 
-        fscanf(in, "%d", &token);
+        fscanf(in, "%d", &token); //expecting ident sym
 
         if(token != identsym){
-            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+            emitError(READ_NEEDS_IDENT, "\0");
         }
         
         char tokenName[cmax];
@@ -1162,14 +1169,13 @@ void statement(int LexLevel){
         }
 
         if(table[symIndex].kind != VAR){
-            emitError(IDENTIFIER_EXPECTED_ERR, "\0");
+            emitError(INCORRECT_READ_ERR, tokenName); //TODO: ASK ABOUT THIS ERROR or can I just make my own "read must be followed by ident"
         }
 
-        fscanf(in, "%d", &token);
         
         emit(SYS, 0, SIN); //READ
-
-        emit(STO, LexLevel, table[symIndex].addr);
+        
+        emit(STO, LexLevel-table[symIndex].level, table[symIndex].addr);
 
         fscanf(in, "%d", &token); //expecting semicolon
 
@@ -1334,7 +1340,7 @@ void factor(int LexLevel){
         }
         else if(table[symIdx].kind == VAR){
 
-            emit(LOD, LexLevel, table[symIdx].addr);
+            emit(LOD, LexLevel-table[symIdx].level, table[symIdx].addr);
         }
 
         // table[tableworkingIndex].val = table[symIdx].val;
