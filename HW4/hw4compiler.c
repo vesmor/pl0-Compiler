@@ -424,7 +424,7 @@ int main(int argc, char const *argv[])
 
     printf(GREEN "\nNo errors, program is syntatically correct.\n\n\n" RESET);
     printInstructions();
-    printTable(table, tableSize);
+    // printTable(table, tableSize);
     
 
 
