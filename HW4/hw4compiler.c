@@ -181,7 +181,7 @@ const char *err_messages[NUM_ERRORS] =  {
 
         //extra errors not given in instructions
         "Comment does not have ending '*/'",
-        "Identifier already declared",
+        "Identifier already declared:",
         "This is not a variable that can be read to:",
         "Read must be followed by identifier",
 
