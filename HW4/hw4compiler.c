@@ -873,7 +873,7 @@ void const_declaration(){
             // get next token 
             fscanf(in, "%d", &token);
             if(token != numbersym){
-                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
+                emitError(IDENTIFIER_EXPECTED_ERR, "\0");
             }
             
             int actualNumber;
@@ -990,10 +990,10 @@ void statement(){
         tableworkingIndex = symIdx;
         expression();
 
-        // if (token != semicolonsym && token != endsym){
-        //     // printf("missing semicolon %d\n", token);
-        //     emitError(ARITHMETIC_ERR, "\0");
-        // }
+        if (token != semicolonsym && token != endsym){
+            // printf("missing semicolon %d\n", token);
+            emitError(ARITHMETIC_ERR, "\0");
+        }
 
         //emit STO (M = table[symIdx].addr)
         // printf("emitting STO\n");
