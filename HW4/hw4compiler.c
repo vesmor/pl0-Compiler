@@ -956,7 +956,7 @@ void const_declaration(int LexLevel){
             // get next token 
             fscanf(in, "%d", &token);
             if(token != numbersym){
-                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");
+                emitError(IDENTIFIER_EXPECTED_ERR, "\0");
             }
             
             int actualNumber;
