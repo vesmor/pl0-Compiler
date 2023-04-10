@@ -122,7 +122,7 @@ typedef struct symbol{
     char name[12];  //name like str is variables name
     int val;        //literal value of a number
     int level;      //lexographical level
-    int addr;       //M address
+    int addr;       //relative address of a variable in activation record, line number where procedure starts for procedures
     int mark;       //marks when the symbol has been used
 
 }symbol;
@@ -411,18 +411,20 @@ int main(int argc, char const *argv[])
     cx = 0;
     // tokens = readTokens();
 
-    table[tableworkingIndex++] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index 0
-    
+    table[tableworkingIndex] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index
+    tableworkingIndex++;
+
     emit(JMP, 0, 3);
 
     program(LexLevel); //literally starts reading program
 
+    table[symboltablecheck(("main"))].addr = where_main_starts * 3; //correct the address of main in symbol table
     code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
-    printf(GREEN "\nNo errors, program is syntatically correct\n\n\n" RESET);
+    printf(GREEN "\nNo errors, program is syntatically correct.\n\n\n" RESET);
     printInstructions();
-    // printTable(table, tableSize);
+    printTable(table, tableSize);
     
 
 
@@ -727,7 +729,7 @@ int symboltablecheck(char *targetName){
     for (int index = tableSize - 1; index >= 0; index--)
     {
         // printf("\tI: %d\n", index);
-        if(strcmp(table[index].name, targetName) == 0){
+        if(strcmp(table[index].name, targetName) == 0 && table[index].mark == UNUSED){
             return index;
         }
 
@@ -1068,7 +1070,7 @@ void statement(int LexLevel){
         //     emitError(ARITHMETIC_ERR, "\0");
         // }
 
-        emit(STO, LexLevel, table[symIdx].addr);
+        emit(STO, LexLevel-table[symIdx].level, table[symIdx].addr);    //i believe this has to be minus 1 because it stores it from the "negative" lexlevel we're looking for
         return;
 
     }
@@ -1164,8 +1166,8 @@ void statement(int LexLevel){
 
         
         emit(SYS, 0, SIN); //READ
-
-        emit(STO, LexLevel, table[symIndex].addr);
+        
+        emit(STO, LexLevel-table[symIndex].level, table[symIndex].addr);
 
         fscanf(in, "%d", &token); //expecting semicolon
 
@@ -1330,7 +1332,7 @@ void factor(int LexLevel){
         }
         else if(table[symIdx].kind == VAR){
 
-            emit(LOD, LexLevel, table[symIdx].addr);
+            emit(LOD, LexLevel-table[symIdx].level, table[symIdx].addr);
         }
 
         // table[tableworkingIndex].val = table[symIdx].val;
