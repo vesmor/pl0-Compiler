@@ -1275,23 +1275,70 @@ void condition(int LexLevel){
 void expression(int LexLevel){
 
 
-    term(LexLevel);
+    // term(LexLevel);
 
-    while (token == plussym || token == minussym){
-        // fscanf(in, "%d", &token);
+    // while (token == plussym || token == minussym){
+    //     // fscanf(in, "%d", &token);
     
-        if (token == plussym){
+    //     if (token == plussym){
+    //         fscanf(in, "%d", &token);
+    //         term(LexLevel);
+    //         emit(OPR, LexLevel, ADD);
+    //     }
+    //     else if (token == minussym){
+    //         fscanf(in, "%d", &token);
+    //         term(LexLevel);
+    //         emit(OPR, LexLevel, SUB);
+    //     }    
+    // }
+    
+    if (token == minussym){
+        
+        fscanf(in, "%d", &token);
+        term(LexLevel);
+
+        emit(OPR, LexLevel, SUB);
+
+        while (token == plussym || token == minussym){
             fscanf(in, "%d", &token);
-            term(LexLevel);
-            emit(OPR, LexLevel, ADD);
+
+            if (token == plussym){
+                fscanf(in, "%d", &token);
+                term(LexLevel);
+                emit(OPR, LexLevel, ADD);
+            }
+            else{
+                fscanf(in, "%d", &token);
+                term(LexLevel);
+                emit(OPR, LexLevel, SUB);
+            }    
         }
-        else if (token == minussym){
-            fscanf(in, "%d", &token);
-            term(LexLevel);
-            emit(OPR, LexLevel, SUB);
-        }    
+
     }
-    
+
+    else{
+        if(token == plussym){
+            fscanf(in, "%d", &token);
+        }
+
+        term(LexLevel);
+
+        while (token == plussym || token == minussym){
+            fscanf(in, "%d", &token);
+
+            if (token == plussym){
+                fscanf(in, "%d", &token);
+                term(LexLevel);
+                emit(OPR, LexLevel, SUB);
+            }
+            else{
+                fscanf(in, "%d", &token);
+                term(LexLevel);
+                emit(OPR, LexLevel, SUB);
+            }    
+        }
+
+    }
 
 
 }
