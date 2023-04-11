@@ -10,9 +10,8 @@
 
 /*
 
-    FIXME: Need to look over the factorial test case and see why that's not running properly; last time it was ran the ans1 was not increasing in size like expected
-    It may have to do with the load and store stuff, we'll investigate later
-
+    FIXME: Change the error message when an identifier starts with a number or weird symbol from "expression cant start with this" to "identifier cant start with this"
+    FIXME: Check that expression cant start with this is still a valid thing
 */
 
 
@@ -147,13 +146,13 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-#define NUM_ERRORS 31
+#define NUM_ERRORS 32
 const char *err_messages[NUM_ERRORS] =  {
  
         "Use = instead of := ", 
         "= must be followed by a number ", 
         "Identifier must be followed by = ", 
-        "const , var , procedure must be followed by identifier" , 
+        "const, var, procedure must be followed by identifier" , 
         "Semicolon or comma missing" , 
         "Incorrect symbol after procedure declaration" , 
         "Statement expected",
@@ -185,6 +184,7 @@ const char *err_messages[NUM_ERRORS] =  {
         "Identifier already declared:",
         "This is not a variable that can be read to:",
         "Read must be followed by identifier",
+        "An identifier can not start with this symbol",
 
 };
 
@@ -196,8 +196,9 @@ const char *err_messages[NUM_ERRORS] =  {
 typedef enum errors{
 
     /* extra errors not given in instructions starts minus 1 to let*/
-    READ_NEEDS_IDENT = (-NUM_ERRORS - 1),
-    INCORRECT_READ_ERR, /*"Read must be followed by an indentifier"*/
+    INVALID_VAR_ERR = (-NUM_ERRORS - 1),
+    READ_NEEDS_IDENT, //"Read must be followed by identifier"
+    INCORRECT_READ_ERR, //This is not a variable that can be read to:
     IDENT_ALR_DECLARED_ERR, //"Identifier already declared"
     END_OF_COMMENT_ERR, //"Comment does not have ending '*/'"
 
@@ -205,7 +206,7 @@ typedef enum errors{
     INVALID_SYM_ERR, //"Invalid symbol"
     IDENT_TOO_LONG_ERR, //"Identifier too long"
     NUM_TOO_LONG_ERR, //"This number is too large"
-    INVALID_VAR_ERR, //"An expression cannot begin with this symbol"
+    EXPRESSION_ERR, //"An expression cannot begin with this symbol"
 
     /* Parser Errors */
     ARITHMETIC_ERR, //"The preceding factor cannot begin with this symbol"
@@ -331,7 +332,6 @@ int main(int argc, char const *argv[])
     lexeme *lex_list = NULL;
 
     printSourceCode(charArr, arrSize);
-    printf("\n");
 
     // printf("Lexeme Table:\n\nlexeme\t\ttoken type\n");
 
@@ -419,7 +419,7 @@ int main(int argc, char const *argv[])
     table[tableworkingIndex] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index
     tableworkingIndex++;
 
-    emit(JMP, 0, 3);
+    emit(JMP, 0, 3); //jmp to line where main instruction starts
 
     program(LexLevel); //literally starts reading program
 
@@ -427,7 +427,7 @@ int main(int argc, char const *argv[])
     code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
-    printf(GREEN "\nNo errors, program is syntatically correct.\n\n\n" RESET);
+    printf(GREEN "No errors, program is syntatically correct.\n\n\n" RESET);
     printInstructions();
     // printTable(table, tableSize);
     
@@ -511,7 +511,7 @@ char* readProgram(int *arrSize){
             break;
         }
 
-        printf("%c", charArr[i]);
+        // printf("%c", charArr[i]);
         // fprintf(out, "%c", charArr[i]);
     
         i++;    //added in statement so it didnt mess up realloc 'math' for some reason
@@ -729,6 +729,7 @@ int seekSymbol(char *targetName, int target_LexLevel){
 }
 
 //checks if a symbol with targetName exists in general
+//looks for local variables that are in scope and if not found continues to look globally
 //returns index if found, returns NOT_FOUND if not
 int symboltablecheck(char *targetName){
 
@@ -1052,7 +1053,7 @@ void statement(int LexLevel){
 
         char identName[cmax];
         fscanf(in, "%s", identName);
-        int symIdx = symboltablecheck(identName); //TODO: FIX DESCRIPTION TO INCLUDE RETURNS LEXLEVEL BEFORE LOOKING GLOBAL
+        int symIdx = symboltablecheck(identName);
         if (symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identName);
         }
@@ -1169,7 +1170,7 @@ void statement(int LexLevel){
         }
 
         if(table[symIndex].kind != VAR){
-            emitError(INCORRECT_READ_ERR, tokenName); //TODO: ASK ABOUT THIS ERROR or can I just make my own "read must be followed by ident"
+            emitError(INCORRECT_READ_ERR, tokenName);
         }
 
         
@@ -1353,7 +1354,6 @@ void term(int LexLevel){
 
             fscanf(in, "%d", &token);
             factor(LexLevel);
-            //emit MUL
             emit(OPR, LexLevel, MUL);
 
         }
@@ -1504,6 +1504,6 @@ void printSourceCode(char *charArr, int arrSize){
     for (int i = 0; i < arrSize; i++){
         printf("%c", charArr[i]);
     }
-
     // printf("\n----End of Source Program----\n");
+    printf("\n");
 }
