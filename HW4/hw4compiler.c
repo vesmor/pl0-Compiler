@@ -951,6 +951,11 @@ void const_declaration(int LexLevel){
             strcpy(identName, identSymStr);
         
             fscanf(in, "%d", &token);
+
+            if (token == becomessym){
+                emitError(USE_EQ_NOT_BECOME_ERR, "\0");
+            }
+
             if (token != eqlsym) {
                 emitError(CONST_NEEDS_EQ_ERR, "\0");
             }
