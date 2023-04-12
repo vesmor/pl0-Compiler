@@ -12,6 +12,9 @@
 
     FIXME: Change the error message when an identifier starts with a number or weird symbol from "expression cant start with this" to "identifier cant start with this"
     FIXME: Check that expression cant start with this is still a valid thing
+
+    TODOS: 
+        []: implement the rest of the error codes that might be missing even if not all of them will be used
 */
 
 
@@ -1300,7 +1303,7 @@ void expression(int LexLevel){
     
     if (token == minussym){
         
-        fscanf(in, "%d", &token);
+        fscanf(in, "%d", &token); //expecting identifier number or parantheses
         term(LexLevel);
 
         emit(OPR, LexLevel, SUB);
@@ -1385,6 +1388,12 @@ void factor(int LexLevel){
         int symIdx = symboltablecheck(identifierStr);
         if(symIdx == NOT_FOUND){
             emitError(UNDECLARED_IDENT_ERR, identifierStr);
+        }
+
+        symbol symbol = table[symIdx];
+
+        if (symbol.kind == PROC){
+            emitError(EXPRESSION_PROCEDURE_ERR, "\0");
         }
 
         if(table[symIdx].kind == CONST){
