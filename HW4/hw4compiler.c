@@ -1333,12 +1333,12 @@ void expression(int LexLevel){
         term(LexLevel);
 
         while (token == plussym || token == minussym){
-            fscanf(in, "%d", &token);
+            // fscanf(in, "%d", &token); //deleting because it messes up the alignment when adding two numers together in an assignment
 
             if (token == plussym){
                 fscanf(in, "%d", &token);
                 term(LexLevel);
-                emit(OPR, LexLevel, SUB);
+                emit(OPR, LexLevel, ADD);
             }
             else{
                 fscanf(in, "%d", &token);
