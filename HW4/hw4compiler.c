@@ -266,7 +266,7 @@ int isWord (char *chunk);
 int determinNonReserved(char *chunk);
 int tokenize(char *chunk);
 void printLexemes(lexeme *list, int size);
-int var_declaration();
+int var_declaration(int LexLevel);
 symbol initSymObj(int kind, char *name, int val, int level, int addr);
 void printTable(symbol table[], int tableSize);
 void emitError(int errorSignal, char *invalidIdent);
@@ -893,7 +893,7 @@ void block(int LexLevel){
         
         fscanf(in, "%d", &token);
         if (token != semicolonsym){
-            emitError(SEMI_OR_COLON_MISSING_ERR, "\0");
+            emitError(WRONG_SYM_AFTER_PROC_ERR, "\0");
         }
 
         fscanf(in, "%d", &token);    //expecting an isStartStatement type keyword
@@ -1147,7 +1147,7 @@ void statement(int LexLevel){
 
         statement(LexLevel);
 
-        emit(JMP, 0, loopIndex);
+        emit(JMP, 0, loopIndex * 3);
         code[jpcIndex].M = cx * 3;
         return;
 
@@ -1457,28 +1457,28 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         //translates the sub-instructions for opr
-        // if(code[i].op == OPR){
-        //     char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
-        //     char opr_name[4];
-        //     strcpy(opr_name, opr_all_names[code[i].M]);
-        //     printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
-        // }
-        //translates for SYS stuff
-        // else if(code[i].op == SYS){
-        //     char *sys_names[] ={ "SOU", "SIN", "EOP"};
-        //     char sys_name[4];
-        //     strcpy(sys_name, sys_names[code[i].M - 1]);
-        //     printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
-        // }
+        if(code[i].op == OPR){
+            char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
+            char opr_name[4];
+            strcpy(opr_name, opr_all_names[code[i].M]);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
+        }
+        // translates for SYS stuff
+        else if(code[i].op == SYS){
+            char *sys_names[] ={ "SOU", "SIN", "EOP"};
+            char sys_name[4];
+            strcpy(sys_name, sys_names[code[i].M - 1]);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+        }
 
         //TODO: REMOVE BEFORE SUBMISSION THIS IS JUST TO READ IT EASIER (if we forgot to remove this pls dont dock points for us :sob:)
-        // else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
-        //     printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
-        // }
-        // else{
+        else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
+            printf("%3d %6s %6d %7d: %d\n", i, op_name, code[i].L, code[i].M, code[i].M/3);
+        }
+        else{
             printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
             // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
-        // }
+        }
         fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
     
     }
