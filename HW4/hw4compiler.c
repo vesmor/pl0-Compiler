@@ -12,17 +12,12 @@
 
     FIXME: Change the error message when an identifier starts with a number or weird symbol from "expression cant start with this" to "identifier cant start with this"
     FIXME: Check that expression cant start with this is still a valid thing
+    FIXME: Symbol table is deleting some values when theyre written in procedures?
 
     TODOS: 
         []: implement the rest of the error codes that might be missing even if not all of them will be used
 */
 
-
-/*
-
-    TODO: maybe add emit error function overloading when time permits so we dont keep forgetting the "\0"
-
-*/
 
 /*
     Correct output:
@@ -711,6 +706,7 @@ void printLexemes(lexeme *list, int size){
 /*                               START PARSER FUNCS                    */
 
 //searches thru symbol table for a targetName name and checks if theyre on the same lexlevel 
+//usually used to check if we wont have conflicting names in the same scope
 //returns index if name and level match, if not returns NOT_FOUND
 int seekSymbol(char *targetName, int target_LexLevel){
 
@@ -774,13 +770,13 @@ void printTable(symbol table[], int tableSize){
 
     printf("\nSymbol Table:\n\n");
     // fprintf(out, "\nSymbol Table:\n\n");
-    // printf("table size %d\n", tableSize);
+    printf("table size %d\n", tableSize);
     printf("Kind | Name   \t| Value   | Level | Address | Mark\n");
     printf("---------------------------------------------------\n");
     // fprintf(out, "Kind | Name   \t| Value   | Level | Address | Mark\n");
     // fprintf(out, "---------------------------------------------------\n");
 
-    for (int i = 0; (i < tableSize) && (table[i].name[0] != '\0'); i++)
+    for (int i = 0; (i < tableSize); i++)
     {
         printf("   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
         // fprintf(out, "   %d |\t%7s |\t%d |\t%d |\t%d   |\t%d\n", table[i].kind, table[i].name, table[i].val, table[i].level, table[i].addr, table[i].mark);
@@ -940,7 +936,7 @@ void const_declaration(int LexLevel){
                 emitError(IDENTIFIER_EXPECTED_ERR, "\0");  // i think this error needs to be changed
             }
             
-            char identSymStr[cmax + 1];
+            char identSymStr[cmax + 1]; //save ident name 
             fscanf(in, "%s", identSymStr);
             if (seekSymbol(identSymStr, LexLevel) != NOT_FOUND){
                 // printf("in const_decl\n");
@@ -948,12 +944,8 @@ void const_declaration(int LexLevel){
                 
             }
 
-            
-            //save ident name 
-            char identName[cmax + 1];
-            strcpy(identName, identSymStr);
-        
-            fscanf(in, "%d", &token);
+
+            fscanf(in, "%d", &token); //expecting equal "=" symbol
 
             if (token == becomessym){
                 emitError(USE_EQ_NOT_BECOME_ERR, "\0");
@@ -972,7 +964,7 @@ void const_declaration(int LexLevel){
             fscanf(in ,"%d", &actualNumber);
             
             // add to symbol table 
-            symbol constSym = initSymObj(CONST, identName, actualNumber, LexLevel, 0);
+            symbol constSym = initSymObj(CONST, identSymStr, actualNumber, LexLevel, 0);
             table[tableworkingIndex] = constSym;
             tableworkingIndex++;
 
@@ -1078,7 +1070,6 @@ void statement(int LexLevel){
         }
 
         fscanf(in, "%d", &token);
-        tableworkingIndex = symIdx;
         expression(LexLevel);
 
         //commented cuz we dont need a semicolon at the last line of a statement
@@ -1390,9 +1381,8 @@ void factor(int LexLevel){
             emitError(UNDECLARED_IDENT_ERR, identifierStr);
         }
 
-        symbol symbol = table[symIdx];
 
-        if (symbol.kind == PROC){
+        if (table[symIdx].kind == PROC){
             emitError(EXPRESSION_PROCEDURE_ERR, "\0");
         }
 
@@ -1467,28 +1457,28 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         //translates the sub-instructions for opr
-        if(code[i].op == OPR){
-            char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
-            char opr_name[4];
-            strcpy(opr_name, opr_all_names[code[i].M]);
-            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
-        }
+        // if(code[i].op == OPR){
+        //     char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
+        //     char opr_name[4];
+        //     strcpy(opr_name, opr_all_names[code[i].M]);
+        //     printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
+        // }
         //translates for SYS stuff
-        else if(code[i].op == SYS){
-            char *sys_names[] ={ "SOU", "SIN", "EOP"};
-            char sys_name[4];
-            strcpy(sys_name, sys_names[code[i].M - 1]);
-            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
-        }
+        // else if(code[i].op == SYS){
+        //     char *sys_names[] ={ "SOU", "SIN", "EOP"};
+        //     char sys_name[4];
+        //     strcpy(sys_name, sys_names[code[i].M - 1]);
+        //     printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+        // }
 
         //TODO: REMOVE BEFORE SUBMISSION THIS IS JUST TO READ IT EASIER (if we forgot to remove this pls dont dock points for us :sob:)
-        else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
-            printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
-        }
-        else{
+        // else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
+        //     printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M/3);
+        // }
+        // else{
             printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
             // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
-        }
+        // }
         fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
     
     }
@@ -1496,6 +1486,7 @@ void printInstructions(){
 
 }
 
+//starts from end of table and marks symbol backwards until we reach a smaller lexlevel
 void markTable(int current_LexLevel) {
 
     for (int i = tableSize - 1; i >= 0; i--) {
@@ -1505,7 +1496,7 @@ void markTable(int current_LexLevel) {
             break;
 
         if(table[i].level == current_LexLevel)
-            table[i].mark = 1;
+            table[i].mark = USED;
 
     }
 }
