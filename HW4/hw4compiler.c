@@ -132,7 +132,7 @@ const char  *word [] = { "const", "var", "begin", "end", "if", "then", "while", 
 /* list of ignored symbols */
 const char ignoresym [] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
-const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':', '!'};
+const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
 const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", ""};
