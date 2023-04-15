@@ -389,12 +389,12 @@ int main(int argc, char const *argv[])
     table[tableworkingIndex] = initSymObj(PROC, "main", LexLevel, 0, 3); //adds main procedure to symbol table at index
     tableworkingIndex++;
 
-    emit(JMP, 0, 3); //jmp to line where main instruction starts
+    // emit(JMP, 0, 3); //jmp to line where main instruction starts
 
     program(LexLevel); //literally starts reading program
 
     table[symboltablecheck(("main"))].addr = where_main_starts * 3; //correct the address of main in symbol table
-    code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
+    // code[0].M = where_main_starts * 3;//jmp to where main procedure is when we start
 
 
     printf(GREEN "No errors, program is syntatically correct.\n\n\n" RESET);
@@ -821,6 +821,8 @@ void program(int LexLevel){
 void block(int LexLevel){
 
     // printf("in block\n");
+    int procStarts = cx;
+    emit(JMP, 0, 0); //jmp to where this proc starts
 
     //grab number of variables and constants we need
     int numVars = 0;
@@ -887,8 +889,7 @@ void block(int LexLevel){
         emit(OPR, 0, RTN); //return from this function
     }
 
-
-    where_main_starts = cx;
+    code[procStarts].M = cx * 3;
     emit(INC, 0, numVars + 3); // plus 3 because we need to go past activation record info
     
     statement(LexLevel);
