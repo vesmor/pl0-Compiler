@@ -19,5 +19,6 @@ HW3/*.txt
 !HW3/cases
 
 HW4/*.txt
+HW4/cases/
 *.text
 hw4
