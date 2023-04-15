@@ -114,7 +114,7 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-#define NUM_ERRORS 32
+#define NUM_ERRORS 33
 const char *err_messages[NUM_ERRORS] =  {
  
         "Use = instead of := ", 
@@ -153,6 +153,7 @@ const char *err_messages[NUM_ERRORS] =  {
         "This is not a variable that can be read to:",
         "Read must be followed by identifier",
         "An identifier can not start with this symbol",
+        "Can not assign value to var right after declaration",
 
 };
 
@@ -164,7 +165,8 @@ const char *err_messages[NUM_ERRORS] =  {
 typedef enum errors{
 
     /* extra errors not given in instructions starts minus 1 to let*/
-    INVALID_VAR_ERR = (-NUM_ERRORS - 1), /*"An identifier can not start with this symbol"*/
+    VAR_ASSIGN_ERR = (-NUM_ERRORS - 1),/*"Can not assign value to var after declaration"*/
+    INVALID_VAR_ERR, /*"An identifier can not start with this symbol"*/
     READ_NEEDS_IDENT, //"Read must be followed by identifier"
     INCORRECT_READ_ERR, //This is not a variable that can be read to:
     IDENT_ALR_DECLARED_ERR, //"Identifier already declared"
@@ -992,6 +994,9 @@ int var_declaration(int LexLevel){
 
             //get next token and hope its a comma
             fscanf(in, "%d", &token);
+            if(token == becomessym){
+                emitError(VAR_ASSIGN_ERR, "\0");
+            }
                 
         }while (token == commasym);
 
