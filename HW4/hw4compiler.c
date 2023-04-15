@@ -114,7 +114,7 @@ const int ssymlen     = sizeof(ssym)/sizeof(ssym[0]);             /*len of speci
 const int symlen      = sizeof(sym)/sizeof(sym[0]);               /*master sym array length*/
 
 
-#define NUM_ERRORS 33
+#define NUM_ERRORS 34
 const char *err_messages[NUM_ERRORS] =  {
  
         "Use = instead of := ", 
@@ -154,6 +154,7 @@ const char *err_messages[NUM_ERRORS] =  {
         "Read must be followed by identifier",
         "An identifier can not start with this symbol",
         "Can not assign value to var right after declaration",
+        "Constant must be assigned a value during declaration",
 
 };
 
@@ -165,7 +166,8 @@ const char *err_messages[NUM_ERRORS] =  {
 typedef enum errors{
 
     /* extra errors not given in instructions starts minus 1 to let*/
-    VAR_ASSIGN_ERR = (-NUM_ERRORS - 1),/*"Can not assign value to var after declaration"*/
+    CONST_NEEDS_VAL_ERR = (-NUM_ERRORS - 1),/*"Constant must be assigned a value during declaration"*/
+    VAR_ASSIGN_ERR,/*"Can not assign value to var after declaration"*/
     INVALID_VAR_ERR, /*"An identifier can not start with this symbol"*/
     READ_NEEDS_IDENT, //"Read must be followed by identifier"
     INCORRECT_READ_ERR, //This is not a variable that can be read to:
@@ -902,9 +904,9 @@ void const_declaration(int LexLevel){
         do
         {
             
-            if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
+            if(fscanf(in, "%d", &token) <= 0){ //check infinite loop and something is coming after this keyword
                 emitError(IDENT_AFTER_KEYWORD_ERR,"\0");
-            }   
+            }
             if (token != identsym){
                 emitError(IDENT_AFTER_KEYWORD_ERR, "\0");  // i think this error needs to be changed
             }
@@ -922,6 +924,10 @@ void const_declaration(int LexLevel){
 
             if (token == becomessym){
                 emitError(USE_EQ_NOT_BECOME_ERR, "\0");
+            }
+
+            if (token == semicolonsym){ //user probably forgot to declare the value of constant
+                emitError(CONST_NEEDS_VAL_ERR, "\0");
             }
 
             if (token != eqlsym) {
