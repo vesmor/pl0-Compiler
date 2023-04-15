@@ -8,36 +8,6 @@
 */ 
 
 
-/*
-
-    FIXME: Change the error message when an identifier starts with a number or weird symbol from "expression cant start with this" to "identifier cant start with this"
-    FIXME: Check that expression cant start with this is still a valid thing
-    FIXME: Symbol table is deleting some values when theyre written in procedures?
-
-    TODOS: 
-        []: implement the rest of the error codes that might be missing even if not all of them will be used
-*/
-
-
-/*
-    Correct output:
-        1.- Print input (program in PL/0) 
-    
-        2.- Print out the message “No errors, program is syntactically correct”  
-        
-        2.- Print out the generated code 
-        
-        3.- Create file with executable for your VM virtual machine (HW1)
-
-    Error code output:
-        1. print input
-        
-        2. a message alon gthe lines of:
-              ***** Error number xxx, period expected
-
-*/
-
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,7 +102,7 @@ const char  *word [] = { "const", "var", "begin", "end", "if", "then", "while", 
 /* list of ignored symbols */
 const char ignoresym [] = { '\n', '\0', ' ', '\t', '\f', '\r', '\v'};                         
 /* list of special symbols such as arithmetic*/
-const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '%', '+', '/', '=', ':'};
+const char ssym[] = {'*', ')', '.', '>', ';', '-', '(', ',', '<', '+', '/', '=', ':'};
 /*master list of all symbols or keywords, matching index with token_type enum*/
 const char *sym[] = {"", "", "", "", "+", "-", "*", "/", "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", 
     ":=", "begin", "end", "if", "then", "while", "do", "call", "const", "var", "procedure", "write", "read", ""};
@@ -173,7 +143,7 @@ const char *err_messages[NUM_ERRORS] =  {
 
         //scanner errors
         "An expression cannot begin with this symbol", 
-        "This number is too large", 
+        "Number is too large", 
         "Identifier too long", 
         "Invalid symbol",
 
@@ -194,7 +164,7 @@ const char *err_messages[NUM_ERRORS] =  {
 typedef enum errors{
 
     /* extra errors not given in instructions starts minus 1 to let*/
-    INVALID_VAR_ERR = (-NUM_ERRORS - 1),
+    INVALID_VAR_ERR = (-NUM_ERRORS - 1), /*"An identifier can not start with this symbol"*/
     READ_NEEDS_IDENT, //"Read must be followed by identifier"
     INCORRECT_READ_ERR, //This is not a variable that can be read to:
     IDENT_ALR_DECLARED_ERR, //"Identifier already declared"
@@ -930,10 +900,10 @@ void const_declaration(int LexLevel){
         {
             
             if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
-                emitError(IDENTIFIER_EXPECTED_ERR,"\0");
+                emitError(IDENT_AFTER_KEYWORD_ERR,"\0");
             }   
             if (token != identsym){
-                emitError(IDENTIFIER_EXPECTED_ERR, "\0");  // i think this error needs to be changed
+                emitError(IDENT_AFTER_KEYWORD_ERR, "\0");  // i think this error needs to be changed
             }
             
             char identSymStr[cmax + 1]; //save ident name 
@@ -954,7 +924,7 @@ void const_declaration(int LexLevel){
             if (token != eqlsym) {
                 emitError(CONST_NEEDS_EQ_ERR, "\0");
             }
-            // get next token 
+            // hoping for a number
             fscanf(in, "%d", &token);
             if(token != numbersym){
                 emitError(IDENTIFIER_EXPECTED_ERR, "\0");
@@ -995,7 +965,7 @@ int var_declaration(int LexLevel){
         do
         {   
             if(fscanf(in, "%d", &token) <= 0){ //check infinite loop
-                emitError(IDENTIFIER_EXPECTED_ERR,"\0");
+                emitError(IDENT_AFTER_KEYWORD_ERR,"\0");
             }
             
             if( token != identsym){
@@ -1457,28 +1427,28 @@ void printInstructions(){
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
         //translates the sub-instructions for opr
-        if(code[i].op == OPR){
-            char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
-            char opr_name[4];
-            strcpy(opr_name, opr_all_names[code[i].M]);
-            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
-        }
+        // if(code[i].op == OPR){
+            // char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
+            // char opr_name[4];
+            // strcpy(opr_name, opr_all_names[code[i].M]);
+            // printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
+        // }
         // translates for SYS stuff
-        else if(code[i].op == SYS){
-            char *sys_names[] ={ "SOU", "SIN", "EOP"};
-            char sys_name[4];
-            strcpy(sys_name, sys_names[code[i].M - 1]);
-            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
-        }
+        // else if(code[i].op == SYS){
+            // char *sys_names[] ={ "SOU", "SIN", "EOP"};
+            // char sys_name[4];
+            // strcpy(sys_name, sys_names[code[i].M - 1]);
+            // printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+        // }
 
-        //TODO: REMOVE BEFORE SUBMISSION THIS IS JUST TO READ IT EASIER (if we forgot to remove this pls dont dock points for us :sob:)
-        else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
-            printf("%3d %6s %6d %7d: %d\n", i, op_name, code[i].L, code[i].M, code[i].M/3);
-        }
-        else{
+
+        // else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
+            // printf("%3d %6s %6d %7d: %d\n", i, op_name, code[i].L, code[i].M, code[i].M/3);
+        // }
+        // else{
             printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
             // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
-        }
+        // }
         fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
     
     }
