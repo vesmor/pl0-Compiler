@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
+#include "leak_detector_c.h"
 
 //these are here cuz romsev wants to be extra with terminal coloring
 #define RED   "\x1B[31m"
@@ -231,6 +231,7 @@ int token;
 
 /*---------Function Declarations-----------------*/
 //
+void cleanup(lexeme* lex_list, int lex_size, char charArr[]);
 int findSymVal(char *chunk);
 int shouldBeIgnored(char c);
 int isSpecialSym(char c);
@@ -407,23 +408,28 @@ int main(int argc, char const *argv[])
 
 
     //clean up
-    // for (int index = 0; index < lex_size; index++)
-    // {
-    //     // if(lex_list[index].token_name == NULL)
-    //     free(lex_list[index].token_name);
-    
-    // }
-    // free(lex_list);
-    // free(charArr);
-    fclose(in);
-    fclose(out);
-    printf(RESET); //just to make sure terminal doesnt stay colored in weird cases
+    cleanup(lex_list, lex_size, charArr);
     return 0;
 }
 
 
 //-------------------------------------FUNCTION DECLARATIONS-----------------------------
 
+void cleanup(lexeme* lex_list, int lex_size, char charArr[]){
+    for (int index = 0; index < lex_size + 1; index++)
+    {
+        if(lex_list[index].token_name != NULL){
+            // printf("freeing %s\n", lex_list[index].token_name);
+            free(lex_list[index].token_name);
+        }
+    
+    }
+    free(lex_list);
+    free(charArr);
+    fclose(in);
+    fclose(out);
+    printf(RESET); //just to make sure terminal doesnt stay colored in weird cases
+}
 
 /*returns index of symbol found from masterlist*/
 int findSymVal(char *chunk){
