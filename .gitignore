@@ -7,11 +7,18 @@ HW2/example.c
 !readme.txt
 
 tokens.txt
+parsercodegen
 
 HW1/*.txt
 
 HW3/output.txt
-HW3/parsercodegen
+
 
 HW3/*.txt
+
 !HW3/cases
+
+HW4/*.txt
+HW4/cases/
+*.text
+hw4

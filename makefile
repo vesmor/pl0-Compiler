@@ -2,17 +2,28 @@
 
 HW1_DIR = HW1
 HW3_DIR = HW3
+HW4_DIR = HW4
 
-all: codegen vm
+CC = gcc
+
+all: proc vm
+
+.PHONY: proc
+proc: $(HW4_DIR)/hw4compiler.c $(HW4_DIR)/input.txt
+	cd $(HW4_DIR) && $(CC) -Wall -Wextra -g hw4compiler.c -o hw4 && ./hw4 input.txt
+
+.PHONY: proc_debug
+proc_debug: $(HW4_DIR)/hw4compiler.c $(HW4_DIR)/input.txt
+	cd $(HW4_DIR) && $(CC) -g hw4compiler.c -o hw4 && ./hw4 input.txt out/input_out.txt
 
 .PHONY: codegen
 codegen: $(HW3_DIR)/parsercodegen.c $(HW3_DIR)/input.txt
-	cd $(HW3_DIR) && gcc -g parsercodegen.c -o parsercodegen && ./parsercodegen cases/input.txt out/input_out.txt
+	cd $(HW3_DIR) && $(CC) -g parsercodegen.c -o parsercodegen && ./parsercodegen cases/input.txt out/input_out.txt
 
 .PHONY: vm
-vm: $(HW1_DIR)/vm.c $(HW1_DIR)/input.txt
-	cd $(HW1_DIR) && gcc -o vm vm.c && ./vm input.txt
+vm: $(HW1_DIR)/vm.c $(HW1_DIR)/input2.txt
+	cd $(HW1_DIR) && $(CC) -g -o vm vm.c && ./vm ../$(HW4_DIR)/elf.text
 
 .PHONY: clean
 clean:
-	rm -f $(HW3_DIR)/parsercodegen $(HW1_DIR)/vm
+	rm -f $(HW3_DIR)/parsercodegen $(HW1_DIR)/vm $(HW4_DIR)/parsercodegen
