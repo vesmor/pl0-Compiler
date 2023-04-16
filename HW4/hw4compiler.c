@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "leak_detector_c.h"
 
 //these are here cuz romsev wants to be extra with terminal coloring
 #define RED   "\x1B[31m"
