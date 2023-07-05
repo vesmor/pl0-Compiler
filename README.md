@@ -1,6 +1,5 @@
 # PM/0 Machine
-## COP3402: Systems Software 
-## Euripedes Montagne
+
 &nbsp;
 ##  Group Members
 * Romsev Charles
