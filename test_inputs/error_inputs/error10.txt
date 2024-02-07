@@ -1,0 +1,6 @@
+/* begin must be followed by end */
+var x, y, z;
+begin 
+    x := 5;
+    x := y * 2; 
+.

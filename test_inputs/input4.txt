@@ -1,0 +1,10 @@
+var input;
+
+begin
+
+    write input;
+
+    while input <> 50 do write input;
+
+end
+.

@@ -1,0 +1,6 @@
+/* The preceding factor cannot begin with this symbol */
+var x, y, z;
+begin 
+    x := 5;
+    x := -y; 
+end.

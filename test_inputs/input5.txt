@@ -1,0 +1,23 @@
+var input, output, correct_num;
+
+procedure guess;
+
+    procedure guess2;
+    var somuchinput;
+    begin
+
+        correct_num := 50;
+
+        read input;
+        if input <> correct_num then output := 0;
+        if input = correct_num then output := 1;
+
+        write output;
+    end
+    ;
+;
+
+begin
+
+    call guess;
+end.

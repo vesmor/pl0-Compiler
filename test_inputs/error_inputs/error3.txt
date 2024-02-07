@@ -1,0 +1,7 @@
+/* symbol name has already been declared */
+var x, y, z;
+var z;
+begin 
+    x := 5;
+    x := y * 2; 
+end.
