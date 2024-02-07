@@ -1443,30 +1443,30 @@ void printInstructions(){
         char op_name[4];
         strcpy(op_name, op_code_names[code[i].op - 1]); //translate op number into name from above arr
         
-        //translates the sub-instructions for opr
-        // if(code[i].op == OPR){
-            // char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
-            // char opr_name[4];
-            // strcpy(opr_name, opr_all_names[code[i].M]);
-            // printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
-        // }
+        // translates the sub-instructions for opr
+        if(code[i].op == OPR){
+            char *opr_all_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ", "ODD"};
+            char opr_name[4];
+            strcpy(opr_name, opr_all_names[code[i].M]);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, opr_name);
+        }
         // translates for SYS stuff
-        // else if(code[i].op == SYS){
-            // char *sys_names[] ={ "SOU", "SIN", "EOP"};
-            // char sys_name[4];
-            // strcpy(sys_name, sys_names[code[i].M - 1]);
-            // printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
-        // }
+        else if(code[i].op == SYS){
+            char *sys_names[] ={ "SOU", "SIN", "EOP"};
+            char sys_name[4];
+            strcpy(sys_name, sys_names[code[i].M - 1]);
+            printf("%3d %6s %6d %7s\n", i, op_name, code[i].L, sys_name);
+        }
 
 
-        // else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
-            // printf("%3d %6s %6d %7d: %d\n", i, op_name, code[i].L, code[i].M, code[i].M/3);
-        // }
-        // else{
+        else if(code[i].op == JMP || code[i].op == JPC ||  code[i].op == CAL){
+            printf("%3d %6s %6d %7d: %d\n", i, op_name, code[i].L, code[i].M, code[i].M/3);
+        }
+        else{
             printf("%3d %6s %6d %7d\n", i, op_name, code[i].L, code[i].M);
             // fprintf(out, "%3ld %6s %6d %7d\n", i, op_name, code[i].L, code[i].M); //prettified output file
-        // }
-        // fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
+        }
+        fprintf(out, "%d %d %d\n", code[i].op, code[i].L, code[i].M); //write op codes in plain numbers to file for VM to run
     
     }
     
