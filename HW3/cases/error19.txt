@@ -1,6 +1,0 @@
-/*invalid symbols*/
-var x, y, z, #;
-begin 
-    x := 5;
-    x := y + 2; 
-end.

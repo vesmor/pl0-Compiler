@@ -1,6 +1,0 @@
-/* constants must be assigned an integer value */
-const x = y;
-begin 
-    x := 5;
-    x := y * 2; 
-end.

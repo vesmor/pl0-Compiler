@@ -1,1 +1,0 @@
-Error: condition must contain comparison operator

@@ -1,6 +1,0 @@
-/*variable name too long*/
-var  x, vartoolongforreal , y, z;
-begin 
-    x := 5;
-    x := y + 2; 
-end.

@@ -1,6 +1,0 @@
-/*number too long*/
-var x, y, z;
-begin 
-    x := 2223333;
-    x := y + 2; 
-end.
