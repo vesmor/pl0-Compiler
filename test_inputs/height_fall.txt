@@ -1,0 +1,22 @@
+/* gravity meters per second in meters */
+var startHeight, height, time;
+const gravity = 10; 
+begin 
+    
+    time := 0;
+
+    read startHeight;
+    height := startHeight;
+    
+    while height >= 0 do 
+        begin
+            height := (gravity * (time * time)) / 2
+            time := time + 1;
+            write height;
+        end;
+        
+
+    write grav;
+ 
+end
+.

@@ -1,0 +1,32 @@
+var input, output, correct_num;
+
+procedure guess;
+    var output;
+
+    procedure mommy;
+        var output;
+
+        begin
+            read output;
+        end
+    ;
+
+    begin
+
+        write input;
+
+        while input <> 50 do write input;
+    end
+;
+
+procedure idk;
+    var output;
+    const deez = 5;
+
+    if output = 0 then write deez
+
+;
+
+begin
+    call guess;
+end.
